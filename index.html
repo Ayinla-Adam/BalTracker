@@ -806,9 +806,10 @@
     }
 
     .form-group {
+      padding: 10px;
       display: flex;
       flex-direction: column;
-      gap: 7px;
+      gap: 10px;
     }
 
     .form-group.full {
@@ -1062,6 +1063,7 @@
 
     .modal-overlay.show .modal {
       transform: translateY(0) scale(1);
+      padding: 20px;
     }
 
     .modal-header {
@@ -1505,9 +1507,12 @@
         </div>
 
         <div class="topbar-right">
-          <button class="btn btn-primary" onclick="openTransactionModal('sale')">
-            + Add Transaction
-          </button>
+          <button
+  class="btn btn-primary"
+  onclick="openTransactionModal()"
+>
+  + Add Transaction
+</button>
 
           <div class="user-avatar">BT</div>
         </div>
@@ -2121,94 +2126,174 @@
 ========================= -->
 
   <div class="modal-overlay" id="transactionModal">
+  <div class="modal">
 
-    <div class="modal">
+    <div class="modal-header">
 
-      <div class="modal-header">
-
-        <div class="modal-title" id="transactionModalTitle">
+      <div>
+        <h2 id="transactionModalTitle">
           Add Transaction
-        </div>
+        </h2>
 
-        <button class="modal-close" onclick="closeModal('transactionModal')">
-          ×
-        </button>
-
+        <p>
+          Record a sale, expense, credit or debit.
+        </p>
       </div>
 
-      <form id="transactionForm">
+      <button
+        class="modal-close"
+        onclick="closeModal('transactionModal')"
+        type="button"
+      >
+        ×
+      </button>
 
-        <div class="modal-body">
-
-          <input type="hidden" id="transactionType">
-
-          <div class="form-grid">
-
-            <div class="form-group">
-
-              <label class="form-label">
-                Amount
-              </label>
-
-              <input class="form-input" type="number" id="transactionAmount" min="0" step="0.01" placeholder="0.00"
-                required>
-
-            </div>
+    </div>
 
 
-            <div class="form-group">
+    <form id="transactionForm">
 
-              <label class="form-label">
-                Date
-              </label>
-
-              <input class="form-input" type="date" id="transactionDate" required>
-
-            </div>
+      <input
+        type="hidden"
+        id="transactionId"
+        value=""
+      >
 
 
-            <div class="form-group full" id="partyField">
+      <!-- TRANSACTION TYPE -->
 
-              <label class="form-label" id="partyLabel">
-                Customer
-              </label>
+      <div class="form-group">
 
-              <div id="partyControl"></div>
+        <label>
+          Transaction Type
+        </label>
 
-            </div>
+        <div
+          class="custom-select"
+          id="transactionTypeControl"
+          data-value=""
+        >
+
+          <button
+            type="button"
+            class="custom-select-trigger"
+            onclick="toggleCustomSelect('transactionTypeControl')"
+          >
+
+            <span
+              class="custom-select-value"
+            >
+              Select transaction type
+            </span>
+
+            <span class="custom-select-arrow">
+              ▾
+            </span>
+
+          </button>
 
 
-            <div class="form-group full">
+          <div class="custom-select-menu">
 
-              <label class="form-label">
-                Description
-              </label>
+            <button
+              type="button"
+              class="custom-option"
+              data-value="sale"
+              onclick="selectTransactionType('sale')"
+            >
+              <span>Sale</span>
+            </button>
 
-              <input class="form-input" id="transactionDescription" placeholder="What was this transaction for?">
 
-            </div>
+            <button
+              type="button"
+              class="custom-option"
+              data-value="expense"
+              onclick="selectTransactionType('expense')"
+            >
+              <span>Expense</span>
+            </button>
+
+
+            <button
+              type="button"
+              class="custom-option"
+              data-value="credit"
+              onclick="selectTransactionType('credit')"
+            >
+              <span>Credit</span>
+            </button>
+
+
+            <button
+              type="button"
+              class="custom-option"
+              data-value="debit"
+              onclick="selectTransactionType('debit')"
+            >
+              <span>Debit</span>
+            </button>
 
           </div>
 
         </div>
 
-        <div class="modal-footer">
+      </div>
 
-          <button type="button" class="btn btn-secondary" onclick="closeModal('transactionModal')">
-            Cancel
-          </button>
 
-          <button type="submit" class="btn btn-primary">
-            Save Transaction
-          </button>
+      <!-- DYNAMIC TRANSACTION FIELDS -->
 
+      <div id="transactionFields">
+
+        <div
+          class="transaction-placeholder"
+          style="
+            padding:18px;
+            border:1px dashed var(--border);
+            border-radius:12px;
+            background:#f8fafc;
+            color:var(--muted);
+            text-align:center;
+            font-size:12px;
+          "
+        >
+          Select a transaction type to continue.
         </div>
 
-      </form>
+      </div>
 
-    </div>
+
+      <div
+        style="
+          display:flex;
+          gap:10px;
+          justify-content:flex-end;
+          margin-top:22px;
+        "
+      >
+
+        <button
+          type="button"
+          class="btn btn-secondary"
+          onclick="closeModal('transactionModal')"
+        >
+          Cancel
+        </button>
+
+
+        <button
+          type="submit"
+          class="btn btn-primary"
+        >
+          Add Transaction
+        </button>
+
+      </div>
+
+    </form>
 
   </div>
+</div>
 
 
   <!-- =========================
@@ -3081,7 +3166,7 @@
        BUSINESS HEALTH
     ========================================================= */
 
-    function calculateHealth(t) {
+    function calculateHealth() {
 
       const t = totals();
 
@@ -3107,7 +3192,6 @@
 
 
       /* Continue with the existing health calculation below */
-
       const revenue =
         Number(t.totalRevenue) || 0;
 
@@ -3377,6 +3461,7 @@
         score,
         status,
         message,
+        hasData: true,
 
         profitabilityScore,
         cashScore,
@@ -3445,7 +3530,7 @@
       document.getElementById(
         "healthScore"
       ).textContent =
-        h.score + "%";
+        h.hasData ? h.score + "%" : "—";
 
       document.getElementById(
         "healthStatus"
@@ -3462,109 +3547,29 @@
          INVERTED-U GAUGE
       ------------------------- */
 
-      const healthScore =
-        document.getElementById("healthScore");
+      const gauge = document.getElementById("healthGaugeProgress");
+      const gaugeDot = document.getElementById("healthGaugeDot");
 
-      const healthStatus =
-        document.getElementById("healthStatus");
+      if (gauge) {
+        const gaugeLength = gauge.getTotalLength();
+        const gaugeScore = h.hasData ? Math.max(0, Math.min(100, h.score)) : 0;
 
-      const gaugeProgress =
-        document.getElementById(
-          "healthGaugeProgress"
-        );
-
-      const gaugeDot =
-        document.getElementById(
-          "healthGaugeDot"
-        );
-
-
-      if (!health.hasData) {
-
-        healthScore.textContent = "—";
-
-        healthStatus.textContent =
-          "No data";
-
-        gaugeProgress.style.strokeDashoffset =
-          "282.743";
-
-        gaugeDot.style.opacity = "0";
-
-      } else {
-
-        healthScore.textContent =
-          h.score + "%";
-
-        healthStatus.textContent =
-          h.status;
-
-        const gaugeLength =
-          282.743;
-
-        const gaugeScore =
-          Math.max(
-            0,
-            Math.min(
-              100,
-              h.score
-            )
-          );
-
-        gaugeProgress.style.strokeDashoffset =
-          gaugeLength -
-          (
-            gaugeLength *
-            gaugeScore /
-            100
-          );
-
-
-        const angle =
-          Math.PI -
-          (
-            Math.PI *
-            gaugeScore /
-            100
-          );
-
-
-        const cx =
-          110 +
-          (
-            90 *
-            Math.cos(angle)
-          );
-
-        const cy =
-          110 -
-          (
-            90 *
-            Math.sin(angle)
-          );
-
-
-        gaugeDot.setAttribute(
-          "cx",
-          cx.toFixed(2)
-        );
-
-        gaugeDot.setAttribute(
-          "cy",
-          cy.toFixed(2)
-        );
-
-        gaugeDot.style.opacity = "1";
-
-
-        gaugeDot.style.stroke =
-          h.status === "Healthy"
-            ? "#16a34a"
-            : h.status === "Watch"
-              ? "#f59e0b"
-              : "#dc2626";
-
+        gauge.style.strokeDasharray = gaugeLength;
+        gauge.style.strokeDashoffset = gaugeLength * (1 - gaugeScore / 100);
+        gauge.style.opacity = h.hasData ? "1" : "0";
       }
+
+      if (gaugeDot) {
+        const score = h.hasData ? Math.max(0, Math.min(100, h.score)) : 0;
+        const angle = Math.PI - (score / 100) * Math.PI;
+        const cx = 110 + 90 * Math.cos(angle);
+        const cy = 110 - 90 * Math.sin(angle);
+
+        gaugeDot.setAttribute("cx", cx.toFixed(2));
+        gaugeDot.setAttribute("cy", cy.toFixed(2));
+        gaugeDot.style.opacity = h.hasData ? "1" : "0";
+      }
+
       /* -------------------------
          FOUR METRIC BARS
       ------------------------- */
@@ -3849,83 +3854,137 @@
        TRANSACTION MODAL
     ========================================================= */
 
-    function openTransactionModal(type) {
+    function openTransactionModal(initialType = ""){
 
-      const safeType =
-        normalizedType(type);
+  const modal =
+    document.getElementById(
+      "transactionModal"
+    );
 
-      document.getElementById(
-        "transactionType"
-      ).value =
-        safeType;
-
-      const titles = {
-
-        sale: "Add Sale",
-        expense: "Add Expense",
-        credit: "Add Customer Credit",
-        debit: "Add Business Debit"
-
-      };
-
-      document.getElementById(
-        "transactionModalTitle"
-      ).textContent =
-        titles[safeType] ||
-        "Add Transaction";
+  if(!modal) return;
 
 
-      document.getElementById(
-        "transactionAmount"
-      ).value = "";
-
-      document.getElementById(
-        "transactionDescription"
-      ).value = "";
-
-      document.getElementById(
-        "transactionDate"
-      ).value =
-        today();
+  document.getElementById(
+    "transactionModalTitle"
+  ).textContent =
+    "Add Transaction";
 
 
-      if (
-        safeType === "sale" ||
-        safeType === "credit"
-      ) {
-
-        document.getElementById(
-          "partyLabel"
-        ).textContent =
-          "Customer";
-
-        currentPartyMode.customer =
-          "existing";
-
-        renderPartyControl("customer");
-
-      } else {
-
-        document.getElementById(
-          "partyLabel"
-        ).textContent =
-          "Vendor";
-
-        currentPartyMode.vendor =
-          "existing";
-
-        renderPartyControl("vendor");
-
-      }
+  document.getElementById(
+    "transactionId"
+  ).value = "";
 
 
-      openModal(
-        "transactionModal"
+  /*
+    Reset party mode so every new transaction
+    starts with the normal existing-list option.
+  */
+
+  currentPartyMode.customer = "existing";
+  currentPartyMode.vendor = "existing";
+
+
+  /*
+    Reset transaction type dropdown.
+  */
+
+  const typeControl =
+    document.getElementById(
+      "transactionTypeControl"
+    );
+
+  typeControl.dataset.value =
+    initialType || "";
+
+
+  const typeValue =
+    typeControl.querySelector(
+      ".custom-select-value"
+    );
+
+
+  const labels = {
+    sale: "Sale",
+    expense: "Expense",
+    credit: "Credit",
+    debit: "Debit"
+  };
+
+
+  if(typeValue){
+
+    typeValue.textContent =
+      labels[initialType] ||
+      "Select transaction type";
+
+  }
+
+
+  typeControl
+    .querySelectorAll(
+      ".custom-option"
+    )
+    .forEach(option => {
+
+      option.classList.toggle(
+        "selected",
+        option.dataset.value ===
+        initialType
       );
 
-    }
+    });
 
 
+  /*
+    If Add Transaction was clicked from
+    the main top bar, leave the form waiting
+    for a transaction type.
+
+    If it was opened from a quick action,
+    immediately show that transaction's form.
+  */
+
+  if(initialType){
+
+    renderTransactionFields(
+      initialType
+    );
+
+  }else{
+
+    document.getElementById(
+      "transactionFields"
+    ).innerHTML = `
+
+      <div
+        class="transaction-placeholder"
+        style="
+          padding:18px;
+          border:1px dashed var(--border);
+          border-radius:12px;
+          background:#f8fafc;
+          color:var(--muted);
+          text-align:center;
+          font-size:12px;
+        "
+      >
+        Select a transaction type to continue.
+      </div>
+
+    `;
+
+  }
+
+
+  modal.classList.add(
+    "show"
+  );
+
+
+  document.body.style.overflow =
+    "hidden";
+
+}
     /* =========================================================
        CUSTOM SELECT
     ========================================================= */
@@ -4353,6 +4412,201 @@
       }
     );
 
+function toggleCustomSelect(id){
+
+  const select =
+    document.getElementById(id);
+
+  if(!select) return;
+
+  document
+    .querySelectorAll(".custom-select.open")
+    .forEach(item => {
+
+      if(item !== select){
+
+        item.classList.remove("open");
+
+      }
+
+    });
+
+  select.classList.toggle("open");
+
+}
+
+
+function selectTransactionType(type){
+
+  const control =
+    document.getElementById(
+      "transactionTypeControl"
+    );
+
+  if(!control) return;
+
+
+  control.dataset.value =
+    type;
+
+
+  const labels = {
+
+    sale: "Sale",
+
+    expense: "Expense",
+
+    credit: "Credit",
+
+    debit: "Debit"
+
+  };
+
+
+  const value =
+    control.querySelector(
+      ".custom-select-value"
+    );
+
+
+  if(value){
+
+    value.textContent =
+      labels[type];
+
+  }
+
+
+  control
+    .querySelectorAll(
+      ".custom-option"
+    )
+    .forEach(option => {
+
+      option.classList.toggle(
+        "selected",
+        option.dataset.value === type
+      );
+
+    });
+
+
+  control.classList.remove(
+    "open"
+  );
+
+
+  renderTransactionFields(
+    type
+  );
+
+}
+
+
+function renderTransactionFields(type){
+
+  const container =
+    document.getElementById(
+      "transactionFields"
+    );
+
+  if(!container) return;
+
+
+  const partyType =
+    type === "sale" ||
+    type === "credit"
+      ? "customer"
+      : "vendor";
+
+
+  const partyLabel =
+    partyType === "customer"
+      ? "Customer"
+      : "Vendor";
+
+
+  container.innerHTML = `
+
+    <div class="form-grid">
+
+      <div class="form-group">
+
+        <label class="form-label">
+          ${partyLabel}
+        </label>
+
+        <div id="partyControl"></div>
+
+      </div>
+
+
+      <div class="form-group">
+
+        <label class="form-label">
+          Amount
+        </label>
+
+        <input
+          class="form-input"
+          type="number"
+          id="transactionAmount"
+          min="0"
+          step="0.01"
+          placeholder="₦0.00"
+          required
+        >
+
+      </div>
+
+
+      <div class="form-group">
+
+        <label class="form-label">
+          Date
+        </label>
+
+        <input
+          class="form-input"
+          type="date"
+          id="transactionDate"
+          value="${today()}"
+          required
+        >
+
+      </div>
+
+
+      <div class="form-group">
+
+        <label class="form-label">
+          Description
+        </label>
+
+        <input
+          class="form-input"
+          type="text"
+          id="transactionDescription"
+          placeholder="Optional description"
+        >
+
+      </div>
+
+    </div>
+
+  `;
+
+
+  /*
+    Reuse the existing fully styled
+    customer/vendor dropdown.
+  */
+
+  renderPartyControl(
+    partyType
+  );
+
+}
 
     /* =========================================================
        TRANSACTION SUBMISSION
@@ -4367,35 +4621,60 @@
           event.preventDefault();
 
 
-          const type =
+          /*
+            The transaction type now comes from
+            the dedicated styled dropdown.
+          */
+
+          const typeControl =
             document.getElementById(
-              "transactionType"
-            ).value;
+              "transactionTypeControl"
+            );
+
+
+          const type =
+            typeControl?.dataset.value ||
+            "";
+
+
+          if(!type){
+
+            showToast(
+              "Please select a transaction type.",
+              "error",
+              "Transaction Type Required"
+            );
+
+            return;
+
+          }
+
 
           const amount =
             Number(
               document.getElementById(
                 "transactionAmount"
-              ).value
+              )?.value
             );
 
 
           const date =
             document.getElementById(
               "transactionDate"
-            ).value;
+            )?.value;
 
 
           const description =
             document.getElementById(
               "transactionDescription"
-            ).value.trim();
+            )?.value.trim() ||
+            "";
 
 
-          if (
+          if(
             !amount ||
             amount <= 0
-          ) {
+          ){
 
             showToast(
               "Please enter a valid amount.",
@@ -4408,7 +4687,7 @@
           }
 
 
-          if (!date) {
+          if(!date){
 
             showToast(
               "Please select a transaction date.",
@@ -4433,15 +4712,16 @@
           let party = "";
 
 
-          if (
+          if(
             currentPartyMode[partyType] ===
             "new"
-          ) {
+          ){
 
             const input =
               document.getElementById(
                 "newPartyInput"
               );
+
 
             party =
               input
@@ -4449,12 +4729,13 @@
                 : "";
 
 
-            if (!party) {
+            if(!party){
 
               showToast(
-                `Please enter the ${partyType === "customer"
-                  ? "customer"
-                  : "vendor"
+                `Please enter the ${
+                  partyType === "customer"
+                    ? "customer"
+                    : "vendor"
                 } name.`,
                 "error",
                 "Missing Name"
@@ -4471,38 +4752,33 @@
                 : vendors;
 
 
-            if (
+            if(
               !list.some(
                 name =>
                   name.toLowerCase() ===
                   party.toLowerCase()
               )
-            ) {
+            ){
 
-              list.push(party);
+              list.push(
+                party
+              );
 
             }
 
-          } else {
+          }else{
 
             const control =
               document.getElementById(
                 "partyControl"
               );
 
+
             party =
               control?.dataset.value ||
               "";
 
           }
-
-
-          /*
-            A party is useful for sales,
-            expenses, credit and debit,
-            but the user can still record
-            a transaction without one.
-          */
 
 
           const transaction = {
@@ -4513,7 +4789,7 @@
               "_" +
               Math.random()
                 .toString(36)
-                .slice(2, 8),
+                .slice(2,8),
 
             type,
 
@@ -4559,7 +4835,8 @@
 
           const successLabels = {
 
-            sale: "Sale added successfully.",
+            sale:
+              "Sale added successfully.",
 
             expense:
               "Expense added successfully.",
@@ -4582,7 +4859,6 @@
 
         }
       );
-
 
     /* =========================================================
        TABLE HELPERS
