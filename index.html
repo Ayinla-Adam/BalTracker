@@ -3083,6 +3083,31 @@
 
     function calculateHealth(t) {
 
+      const t = totals();
+
+      // No financial data yet
+      if (
+        transactions.length === 0 ||
+        (
+          t.totalRevenue === 0 &&
+          t.totalCosts === 0 &&
+          t.credit === 0 &&
+          t.debit === 0
+        )
+      ) {
+
+        return {
+          score: 0,
+          status: "No data",
+          message: "Add your first transaction to see your business health.",
+          hasData: false
+        };
+
+      }
+
+
+      /* Continue with the existing health calculation below */
+
       const revenue =
         Number(t.totalRevenue) || 0;
 
@@ -3437,6 +3462,12 @@
          INVERTED-U GAUGE
       ------------------------- */
 
+      const healthScore =
+        document.getElementById("healthScore");
+
+      const healthStatus =
+        document.getElementById("healthStatus");
+
       const gaugeProgress =
         document.getElementById(
           "healthGaugeProgress"
@@ -3447,17 +3478,38 @@
           "healthGaugeDot"
         );
 
-      const gaugeLength =
-        282.743;
 
-      const gaugeScore =
-        Math.max(
-          0,
-          Math.min(100, h.score)
-        );
+      if (!health.hasData) {
 
+        healthScore.textContent = "—";
 
-      if (gaugeProgress) {
+        healthStatus.textContent =
+          "No data";
+
+        gaugeProgress.style.strokeDashoffset =
+          "282.743";
+
+        gaugeDot.style.opacity = "0";
+
+      } else {
+
+        healthScore.textContent =
+          h.score + "%";
+
+        healthStatus.textContent =
+          h.status;
+
+        const gaugeLength =
+          282.743;
+
+        const gaugeScore =
+          Math.max(
+            0,
+            Math.min(
+              100,
+              h.score
+            )
+          );
 
         gaugeProgress.style.strokeDashoffset =
           gaugeLength -
@@ -3467,10 +3519,6 @@
             100
           );
 
-      }
-
-
-      if (gaugeDot) {
 
         const angle =
           Math.PI -
@@ -3479,6 +3527,7 @@
             gaugeScore /
             100
           );
+
 
         const cx =
           110 +
@@ -3494,6 +3543,7 @@
             Math.sin(angle)
           );
 
+
         gaugeDot.setAttribute(
           "cx",
           cx.toFixed(2)
@@ -3504,27 +3554,17 @@
           cy.toFixed(2)
         );
 
+        gaugeDot.style.opacity = "1";
 
-        if (h.status === "Healthy") {
 
-          gaugeDot.style.stroke =
-            "#16a34a";
-
-        } else if (h.status === "Watch") {
-
-          gaugeDot.style.stroke =
-            "#f59e0b";
-
-        } else {
-
-          gaugeDot.style.stroke =
-            "#dc2626";
-
-        }
+        gaugeDot.style.stroke =
+          h.status === "Healthy"
+            ? "#16a34a"
+            : h.status === "Watch"
+              ? "#f59e0b"
+              : "#dc2626";
 
       }
-
-
       /* -------------------------
          FOUR METRIC BARS
       ------------------------- */
