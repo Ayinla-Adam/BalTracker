@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#0f62fe">
-  <title>BalTracker — Know Your Money. Control Your Business.</title>
+  <title>BalTracker — Sign In</title>
+  <link rel="icon" type="image/png" href="balTracker-logo.png" onerror="this.href='balTracker-logo'">
 
   <style>
-    :root {
+:root {
       --primary: #0f62fe;
       --primary-dark: #0849c7;
       --primary-soft: #eaf2ff;
@@ -77,1031 +77,7 @@
       text-decoration: none;
     }
 
-    /* =========================
-   APP LAYOUT
-========================= */
-
-    .app {
-      display: flex;
-      min-height: 100vh;
-    }
-
-    .sidebar {
-      width: var(--sidebar);
-      background: #fff;
-      border-right: 1px solid var(--border);
-      position: fixed;
-      top: 0;
-      left: 0;
-      bottom: 0;
-      z-index: 100;
-      display: flex;
-      flex-direction: column;
-      padding: 22px 15px;
-    }
-
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 4px 9px 26px;
-    }
-
-    .logo-mark {
-      width: 38px;
-      height: 38px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, #0f62fe, #16b7a5);
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 21px;
-      font-weight: 900;
-      box-shadow: 0 7px 18px rgba(15, 98, 254, .22);
-    }
-
-    .logo-text {
-      font-size: 20px;
-      font-weight: 800;
-      letter-spacing: -.5px;
-    }
-
-    .logo-text span {
-      color: var(--primary);
-    }
-
-    .nav {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-    }
-
-    .nav-section {
-      margin: 18px 10px 7px;
-      font-size: 10px;
-      font-weight: 800;
-      letter-spacing: .09em;
-      text-transform: uppercase;
-      color: #a0aec0;
-    }
-
-    .nav-btn {
-      border: 0;
-      background: transparent;
-      width: 100%;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 11px 12px;
-      border-radius: 11px;
-      color: #59677b;
-      font-size: 13px;
-      font-weight: 600;
-      text-align: left;
-      transition: .18s ease;
-    }
-
-    .nav-btn:hover {
-      background: #f5f8fc;
-      color: var(--text);
-    }
-
-    .nav-btn.active {
-      background: var(--primary-soft);
-      color: var(--primary);
-      font-weight: 750;
-    }
-
-    .nav-icon {
-      width: 18px;
-      height: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 15px;
-    }
-
-    .sidebar-bottom {
-      margin-top: auto;
-      border-top: 1px solid var(--border);
-      padding-top: 15px;
-    }
-
-    .main {
-      margin-left: var(--sidebar);
-      width: calc(100% - var(--sidebar));
-      min-width: 0;
-    }
-
-    .topbar {
-      height: 72px;
-      background: #fff;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 30px;
-      position: sticky;
-      top: 0;
-      z-index: 60;
-    }
-
-    .page-title {
-      font-size: 20px;
-      font-weight: 800;
-      letter-spacing: -.4px;
-    }
-
-    .topbar-right {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .user-avatar {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: var(--primary-soft);
-      color: var(--primary);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 800;
-      font-size: 13px;
-    }
-
-    .content {
-      padding: 28px;
-      max-width: 1500px;
-      margin: auto;
-    }
-
-    /* =========================
-   BUTTONS
-========================= */
-
-    .btn {
-      border: 0;
-      border-radius: 11px;
-      padding: 10px 15px;
-      font-weight: 700;
-      font-size: 13px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: .18s ease;
-    }
-
-    .btn:hover {
-      transform: translateY(-1px);
-    }
-
-    .btn-primary {
-      background: var(--primary);
-      color: #fff;
-      box-shadow: 0 6px 18px rgba(15, 98, 254, .18);
-    }
-
-    .btn-primary:hover {
-      background: var(--primary-dark);
-    }
-
-    .btn-secondary {
-      background: #f1f5f9;
-      color: #334155;
-    }
-
-    .btn-secondary:hover {
-      background: #e8eef5;
-    }
-
-    .btn-danger {
-      background: var(--red);
-      color: #fff;
-    }
-
-    .btn-success {
-      background: var(--green);
-      color: #fff;
-    }
-
-    .btn-icon {
-      width: 38px;
-      height: 38px;
-      padding: 0;
-      border-radius: 11px;
-    }
-
-    .btn-outline {
-      background: #fff;
-      color: var(--text);
-      border: 1px solid var(--border);
-    }
-
-    .btn-outline:hover {
-      border-color: #cbd5e1;
-      background: #f8fafc;
-    }
-
-    .btn-link {
-      border: 0;
-      background: none;
-      color: var(--primary);
-      padding: 0;
-      font-weight: 700;
-    }
-
-    .btn-link:hover {
-      text-decoration: none;
-    }
-
-    /* =========================
-   DASHBOARD
-========================= */
-
-    .page {
-      display: none;
-    }
-
-    .page.active {
-      display: block;
-    }
-
-    .welcome {
-      margin-bottom: 24px;
-    }
-
-    .welcome h1 {
-      font-size: 27px;
-      letter-spacing: -.8px;
-      margin-bottom: 5px;
-    }
-
-    .welcome p {
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
-      margin-bottom: 20px;
-    }
-
-    .stat-card {
-      background: #fff;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 19px;
-      box-shadow: var(--shadow);
-    }
-
-    .stat-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 18px;
-    }
-
-    .stat-label {
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 650;
-    }
-
-    .stat-icon {
-      width: 34px;
-      height: 34px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 15px;
-    }
-
-    .icon-blue {
-      color: var(--primary);
-      background: var(--primary-soft);
-    }
-
-    .icon-green {
-      color: var(--green);
-      background: var(--green-soft);
-    }
-
-    .icon-red {
-      color: var(--red);
-      background: var(--red-soft);
-    }
-
-    .icon-purple {
-      color: var(--purple);
-      background: var(--purple-soft);
-    }
-
-    .stat-value {
-      font-size: 24px;
-      font-weight: 850;
-      letter-spacing: -.8px;
-    }
-
-    .stat-sub {
-      margin-top: 7px;
-      font-size: 11px;
-      color: var(--muted);
-    }
-
-    .dashboard-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.6fr) minmax(300px, .9fr);
-      gap: 18px;
-    }
-
-    .card {
-      background: #fff;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-    }
-
-    .card-header {
-      padding: 18px 20px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 15px;
-    }
-
-    .card-title {
-      font-size: 14px;
-      font-weight: 800;
-    }
-
-    .card-body {
-      padding: 20px;
-    }
-
-    /* =========================
-   QUICK ACTIONS
-========================= */
-
-    .quick-actions {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-    }
-
-    .quick-btn {
-      border: 1px solid var(--border);
-      background: #fff;
-      border-radius: 12px;
-      padding: 14px 10px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      color: var(--text);
-      transition: .18s ease;
-    }
-
-    .quick-btn:hover {
-      border-color: #cbd5e1;
-      background: #f8fafc;
-      transform: translateY(-1px);
-    }
-
-    .quick-icon {
-      width: 35px;
-      height: 35px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 900;
-    }
-
-    .quick-btn small {
-      font-size: 11px;
-      font-weight: 700;
-    }
-
-    /* =========================
-   HEALTH
-========================= */
-
-    .health-wrap {
-      display: block;
-    }
-
-    .health-gauge {
-      position: relative;
-      width: min(100%, 430px);
-      margin: 8px auto 0;
-      padding: 4px 8px 0;
-    }
-
-    .health-gauge-svg {
-      display: block;
-      width: 100%;
-      height: auto;
-      overflow: visible;
-    }
-
-    .health-gauge-track,
-    .health-gauge-progress {
-      fill: none;
-      stroke-width: 16;
-      stroke-linecap: round;
-    }
-
-    .health-gauge-track {
-      stroke: #edf1f5;
-    }
-
-    .health-gauge-progress {
-      stroke: url(#healthGaugeGradient);
-      stroke-dasharray: 282.743;
-      stroke-dashoffset: 282.743;
-      transition: stroke-dashoffset .55s ease;
-    }
-
-    .health-gauge-dot {
-      fill: #fff;
-      stroke: #2563eb;
-      stroke-width: 4;
-      transition: cx .55s ease, cy .55s ease, stroke .25s ease;
-      filter: drop-shadow(0 3px 6px rgba(15, 23, 42, .16));
-    }
-
-    .health-gauge-label {
-      position: absolute;
-      bottom: 2px;
-      font-size: 10px;
-      font-weight: 800;
-      color: #94a3b8;
-    }
-
-    .health-gauge-label.attention {
-      left: 7px;
-      color: #dc2626;
-    }
-
-    .health-gauge-label.watch {
-      left: 50%;
-      transform: translateX(-50%);
-      color: #b45309;
-    }
-
-    .health-gauge-label.healthy {
-      right: 7px;
-      color: #16a34a;
-    }
-
-    .health-gauge-center {
-      position: absolute;
-      left: 50%;
-      top: 54%;
-      transform: translate(-50%, -50%);
-      text-align: center;
-      pointer-events: none;
-    }
-
-    .health-gauge-center .health-score {
-      font-size: 30px;
-      font-weight: 900;
-      line-height: 1;
-      letter-spacing: -1px;
-    }
-
-    .health-gauge-center .health-status {
-      font-size: 12px;
-      font-weight: 800;
-      margin-top: 6px;
-    }
-
-    .health-info {
-      margin-top: 4px;
-      min-width: 0;
-    }
-
-    .health-message {
-      color: var(--muted);
-      font-size: 11px;
-      line-height: 1.5;
-      text-align: center;
-      margin: 0 auto;
-      max-width: 620px;
-      padding: 10px 12px;
-      border-radius: 11px;
-      background: #f8fafc;
-    }
-
-    .health-metrics {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-      margin-top: 18px;
-    }
-
-    .health-metric {
-      padding: 12px;
-      border: 1px solid #edf1f5;
-      border-radius: 11px;
-      background: #fff;
-    }
-
-    .health-metric-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-    }
-
-    .health-metric-label {
-      color: var(--muted);
-      font-size: 10px;
-      font-weight: 700;
-    }
-
-    .health-metric-value {
-      font-size: 13px;
-      font-weight: 850;
-      margin-top: 4px;
-    }
-
-    .metric-bar {
-      height: 5px;
-      margin-top: 10px;
-      background: #edf1f5;
-      border-radius: 999px;
-      overflow: hidden;
-    }
-
-    .metric-fill {
-      height: 100%;
-      width: 0%;
-      border-radius: 999px;
-      transition: width .55s ease;
-    }
-
-    .metric-fill.profit {
-      background: #16a34a;
-    }
-
-    .metric-fill.cash {
-      background: #2563eb;
-    }
-
-    .metric-fill.credit {
-      background: #0f766e;
-    }
-
-    .metric-fill.debit {
-      background: #f59e0b;
-    }
-
-    /* =========================
-   TABLE
-========================= */
-
-    .table-wrap {
-      overflow-x: auto;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    th {
-      text-align: left;
-      padding: 12px 16px;
-      color: #8a97a8;
-      font-size: 10px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: .05em;
-      border-bottom: 1px solid var(--border);
-    }
-
-    td {
-      padding: 14px 16px;
-      border-bottom: 1px solid #eef2f6;
-      font-size: 12px;
-      color: #334155;
-    }
-
-    tr:last-child td {
-      border-bottom: 0;
-    }
-
-    .amount-positive {
-      color: var(--green);
-      font-weight: 800;
-    }
-
-    .amount-negative {
-      color: var(--red);
-      font-weight: 800;
-    }
-
-    .amount-neutral {
-      color: var(--text);
-      font-weight: 800;
-    }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      padding: 5px 8px;
-      border-radius: 999px;
-      font-size: 9px;
-      font-weight: 800;
-    }
-
-    .badge-sale {
-      color: #166534;
-      background: #dcfce7;
-    }
-
-    .badge-expense {
-      color: #991b1b;
-      background: #fee2e2;
-    }
-
-    .badge-credit {
-      color: #0f766e;
-      background: #ccfbf1;
-    }
-
-    .badge-debit {
-      color: #9a3412;
-      background: #ffedd5;
-    }
-
-    .badge-complete {
-      color: #166534;
-      background: #dcfce7;
-    }
-
-    .badge-part {
-      color: #92400e;
-      background: #fef3c7;
-    }
-
-    .badge-other {
-      color: #475569;
-      background: #f1f5f9;
-    }
-
-    /* =========================
-   EMPTY STATE
-========================= */
-
-    .empty {
-      min-height: 180px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      gap: 7px;
-      color: var(--muted);
-    }
-
-    .empty-icon {
-      width: 42px;
-      height: 42px;
-      border-radius: 50%;
-      background: #f1f5f9;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      margin-bottom: 5px;
-    }
-
-    .empty strong {
-      color: var(--text);
-      font-size: 13px;
-    }
-
-    .empty span {
-      font-size: 11px;
-    }
-
-    /* =========================
-   FORMS
-========================= */
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 15px;
-    }
-
-    .form-group {
-      padding: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .form-group.full {
-      grid-column: 1/-1;
-    }
-
-    .form-label {
-      font-size: 11px;
-      font-weight: 750;
-      color: #475569;
-    }
-
-    .form-input,
-    .form-select,
-    .form-textarea {
-      width: 100%;
-      border: 1px solid var(--border);
-      background: #fff;
-      border-radius: 10px;
-      padding: 11px 12px;
-      color: var(--text);
-      font-size: 12px;
-      outline: none;
-      transition: .18s ease;
-    }
-
-    .form-input:focus,
-    .form-select:focus,
-    .form-textarea:focus {
-      border-color: #93c5fd;
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, .08);
-    }
-
-    .form-textarea {
-      min-height: 90px;
-      resize: vertical;
-    }
-
-    /* =========================
-   CUSTOM SELECT
-========================= */
-
-    .custom-select {
-      position: relative;
-      width: 100%;
-    }
-
-    .custom-select-trigger {
-      width: 100%;
-      min-height: 43px;
-      border: 1px solid var(--border);
-      background: #fff;
-      border-radius: 10px;
-      padding: 0 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      color: var(--text);
-      font-size: 12px;
-      font-weight: 600;
-      text-align: left;
-      transition: .18s ease;
-    }
-
-    .custom-select-trigger:hover {
-      border-color: #cbd5e1;
-    }
-
-    .custom-select.open .custom-select-trigger {
-      border-color: #93c5fd;
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, .08);
-    }
-
-    .custom-select-arrow {
-      color: #64748b;
-      font-size: 12px;
-      transition: transform .18s ease;
-    }
-
-    .custom-select.open .custom-select-arrow {
-      transform: rotate(180deg);
-    }
-
-    .custom-select-menu {
-      position: absolute;
-      top: calc(100% + 6px);
-      left: 0;
-      right: 0;
-      z-index: 1000;
-      background: #fff;
-      border: 1px solid #dbe3ec;
-      border-radius: 12px;
-      padding: 6px;
-      box-shadow: 0 18px 45px rgba(15, 23, 42, .16);
-      max-height: 240px;
-      overflow-y: auto;
-      display: none;
-    }
-
-    .custom-select.open .custom-select-menu {
-      display: block;
-    }
-
-    .custom-option {
-      width: 100%;
-      border: 0;
-      background: transparent;
-      padding: 10px 11px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      color: #334155;
-      font-size: 12px;
-      font-weight: 600;
-      text-align: left;
-      transition: .15s ease;
-    }
-
-    .custom-option:hover {
-      background: #f1f5f9;
-      color: #0f172a;
-    }
-
-    .custom-option.selected {
-      background: #eaf2ff;
-      color: #0f62fe;
-    }
-
-    .custom-option.new-option {
-      color: #0f62fe;
-      border-top: 1px solid #edf1f5;
-      margin-top: 5px;
-      padding-top: 12px;
-    }
-
-    .custom-option-check {
-      color: #0f62fe;
-      font-weight: 900;
-    }
-
-    .custom-select-menu::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    .custom-select-menu::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
-      border-radius: 999px;
-    }
-
-    .custom-select-menu::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    /* =========================
-   CONTACTS
-========================= */
-
-    .contacts-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
-    }
-
-    .contact-card {
-      background: #fff;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 18px;
-      box-shadow: var(--shadow);
-    }
-
-    .contact-head {
-      display: flex;
-      align-items: center;
-      gap: 11px;
-    }
-
-    .contact-avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 12px;
-      background: var(--primary-soft);
-      color: var(--primary);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      font-weight: 850;
-    }
-
-    .contact-name {
-      font-size: 13px;
-      font-weight: 800;
-    }
-
-    .contact-type {
-      margin-top: 3px;
-      color: var(--muted);
-      font-size: 10px;
-    }
-
-    .contact-value {
-      margin-top: 22px;
-      font-size: 20px;
-      font-weight: 850;
-    }
-
-    .contact-meta {
-      margin-top: 4px;
-      color: var(--muted);
-      font-size: 10px;
-    }
-
-    /* =========================
-   MODALS
-========================= */
-
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(15, 23, 42, .55);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      z-index: 1000;
-      opacity: 0;
-      visibility: hidden;
-      transition: .2s ease;
-      backdrop-filter: blur(5px);
-    }
-
-    .modal-overlay.show {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    .modal {
-      width: min(100%, 560px);
-      max-height: calc(100vh - 40px);
-      overflow-y: auto;
-      background: #fff;
-      border-radius: 20px;
-      box-shadow: 0 30px 80px rgba(15, 23, 42, .25);
-      transform: translateY(15px) scale(.98);
-      transition: .2s ease;
-    }
-
-    .modal-overlay.show .modal {
-      transform: translateY(0) scale(1);
-      padding: 20px;
-    }
-
-    .modal-header {
-      padding: 18px 20px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .modal-title {
-      font-size: 15px;
-      font-weight: 850;
-    }
-
-    .modal-close {
-      width: 34px;
-      height: 34px;
-      border: 0;
-      border-radius: 10px;
-      background: #f8fafc;
-      color: #64748b;
-      font-size: 18px;
-    }
-
-    .modal-body {
-      padding: 20px;
-    }
-
-    .modal-footer {
-      padding: 15px 20px;
-      border-top: 1px solid var(--border);
-      display: flex;
-      justify-content: flex-end;
-      gap: 9px;
-    }
-
-    /* =========================
+/* =========================
    TOAST
 ========================= */
 
@@ -1173,5722 +149,836 @@
       }
     }
 
-    /* =========================
-   RESPONSIVE
-========================= */
+/* =========================
+       LOGIN SCREEN
+    ========================= */
 
-    @media(max-width:1100px) {
-
-      .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-
-      .dashboard-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .contacts-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-
-    }
-
-    @media(max-width:800px) {
-
-      :root {
-        --sidebar: 0px;
-      }
-
-      .sidebar {
-        position: fixed;
-        width: 260px;
-        transform: translateX(-100%);
-        transition: .25s ease;
-        box-shadow: 10px 0 35px rgba(15, 23, 42, .15);
-      }
-
-      .sidebar.open {
-        transform: translateX(0);
-      }
-
-      .main {
-        margin-left: 0;
-        width: 100%;
-      }
-
-      .mobile-menu {
-        display: flex !important;
-      }
-
-      .topbar {
-        padding: 0 18px;
-      }
-
-      .content {
-        padding: 20px;
-      }
-
-      .form-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .form-group.full {
-        grid-column: auto;
-      }
-
-    }
-
-    @media(max-width:700px) {
-
-      .stats-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .quick-actions {
-        grid-template-columns: repeat(2, 1fr);
-      }
-
-      .contacts-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .health-gauge {
-        width: min(100%, 360px);
-        padding-left: 0;
-        padding-right: 0;
-      }
-
-      .health-metrics {
-        grid-template-columns: 1fr;
-      }
-
-      .page-title {
-        font-size: 17px;
-      }
-
-      .welcome h1 {
-        font-size: 23px;
-      }
-
-      .card-header {
-        padding: 15px;
-      }
-
-      .card-body {
-        padding: 15px;
-      }
-
-    }
-
-    .mobile-menu {
-      display: none;
-      width: 36px;
-      height: 36px;
-      border: 0;
-      background: #f1f5f9;
-      color: #334155;
-      border-radius: 10px;
+    .login-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 5000;
+      display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
+      padding: 24px;
+      background:
+        radial-gradient(circle at 15% 15%, rgba(37, 99, 235, .12), transparent 30%),
+        radial-gradient(circle at 85% 85%, rgba(22, 183, 165, .12), transparent 32%),
+        #f7f9fc;
+      overflow-y: auto;
     }
 
-    /* =========================
-   REFINED DESIGN OVERRIDES
-========================= */
-
-    .sidebar {
-      background: #0f172a;
-      border-right: 0;
-      color: #fff;
-      box-shadow: 4px 0 20px rgba(15, 23, 42, .05);
+    .login-screen.hidden {
+      display: none;
     }
 
-    .logo-text {
-      color: #fff;
+    .login-shell {
+      width: min(100%, 440px);
     }
 
-    .logo-text span {
-      color: #60a5fa;
-    }
-
-    .logo-mark {
-      box-shadow: 0 8px 20px rgba(37, 99, 235, .3);
-    }
-
-    .nav-btn {
-      color: #94a3b8;
-    }
-
-    .nav-btn:hover {
-      background: rgba(255, 255, 255, .06);
-      color: #fff;
-    }
-
-    .nav-btn.active {
-      background: #1d4ed8;
-      color: #fff;
-    }
-
-    .nav-section {
-      color: #64748b;
-    }
-
-    .sidebar-bottom {
-      border-top-color: rgba(255, 255, 255, .08);
-    }
-
-    .main {
-      background: var(--bg);
-    }
-
-    .topbar {
-      box-shadow: 0 1px 0 rgba(15, 23, 42, .02);
-    }
-
-    .btn {
-      border: 1px solid var(--border);
+    .login-card {
+      margin-top: 150px;
       background: #fff;
-      color: var(--text);
-      min-height: 42px;
-      padding: 0 15px;
-      border-radius: 11px;
+      border: 1px solid #e2e8f0;
+      border-radius: 24px;
+      padding: 34px;
+      box-shadow: 0 24px 70px rgba(15, 23, 42, .12);
     }
 
-    .btn-primary {
+    .login-brand {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 25px;
+    }
+
+    .login-brand img {
+      display: block;
+      width: min(100%, 235px);
+      height: auto;
+      object-fit: contain;
+    }
+
+    .login-heading {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .login-heading h1 {
+      font-size: 25px;
+      font-weight: 850;
+      letter-spacing: -.7px;
+      color: #142033;
+    }
+
+    .login-heading p {
+      margin-top: 7px;
+      color: #64748b;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .login-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .login-field {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .login-label {
+      color: #334155;
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .login-input-wrap {
+      position: relative;
+    }
+
+    .login-input {
+      width: 100%;
+      min-height: 48px;
+      border: 1px solid #dbe3ec;
+      border-radius: 12px;
+      background: #fff;
+      color: #142033;
+      padding: 0 13px;
+      font-size: 13px;
+      outline: none;
+      transition: .18s ease;
+    }
+
+    .login-input.password {
+      padding-right: 48px;
+    }
+
+    .login-input::placeholder {
+      color: #a0aec0;
+    }
+
+    .login-input:focus {
+      border-color: #93c5fd;
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, .08);
+    }
+
+    .password-toggle {
+      position: absolute;
+      top: 50%;
+      right: 8px;
+      transform: translateY(-50%);
+      width: 34px;
+      height: 34px;
+      border: 0;
+      border-radius: 9px;
+      background: transparent;
+      color: #64748b;
+      font-size: 14px;
+    }
+
+    .password-toggle:hover {
+      background: #f1f5f9;
+      color: #334155;
+    }
+
+    .login-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: -2px;
+    }
+
+    .login-check {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #64748b;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .login-check input {
+      width: 15px;
+      height: 15px;
+      accent-color: #2563eb;
+      cursor: pointer;
+    }
+
+    .login-forgot {
+      border: 0;
+      background: transparent;
+      color: #2563eb;
+      font-size: 11px;
+      font-weight: 750;
+      padding: 4px;
+    }
+
+    .login-forgot:hover {
+      text-decoration: underline;
+    }
+
+    .login-submit {
+      width: 100%;
+      min-height: 48px;
+      border: 0;
+      border-radius: 12px;
       background: #2563eb;
       color: #fff;
-      border-color: #2563eb;
+      font-size: 13px;
+      font-weight: 800;
+      box-shadow: 0 9px 22px rgba(37, 99, 235, .22);
+      transition: .18s ease;
+      margin-top: 2px;
     }
 
-    .btn-primary:hover {
+    .login-submit:hover {
       background: #1d4ed8;
-      border-color: #1d4ed8;
+      transform: translateY(-1px);
     }
 
-    .btn-secondary {
+    .login-submit:disabled {
+      opacity: .65;
+      cursor: wait;
+      transform: none;
+    }
+
+    .login-demo-note {
+      margin-top: 18px;
+      padding: 11px 12px;
+      border-radius: 11px;
       background: #f8fafc;
+      color: #64748b;
+      font-size: 10px;
+      line-height: 1.5;
+      text-align: center;
     }
 
-    .btn-danger {
-      background: #fff;
-      color: #dc2626;
-      border-color: #fecaca;
+    .login-footer {
+      text-align: center;
+      color: #94a3b8;
+      font-size: 10px;
+      margin-top: 17px;
     }
 
-    .btn-success {
-      background: #16a34a;
-      color: #fff;
-      border-color: #16a34a;
+    .sidebar-logo {
+      width: 100%;
+      padding: 8px 8px 25px;
     }
 
-    .card,
-    .stat-card {
-      border-color: #e2e8f0;
-      box-shadow: 0 10px 30px rgba(15, 23, 42, .07);
+    .sidebar-logo img {
+      display: block;
+      width: 100%;
+      max-width: 195px;
+      height: 62px;
+      margin: 0 auto;
+      object-fit: contain;
+      border-radius: 12px;
     }
 
-    .card-header {
-      background: #fff;
+    .logout-btn {
+      color: #fca5a5 !important;
     }
 
-    .quick-btn {
-      background: #fff;
-      border-color: #e2e8f0;
+    .logout-btn:hover {
+      color: #fff !important;
+      background: rgba(220, 38, 38, .14) !important;
     }
 
-    .quick-btn:hover {
-      border-color: #bfdbfe;
-      background: #f8fbff;
+    @media(max-width:500px) {
+      .login-screen {
+        padding: 14px;
+      }
+
+      .login-card {
+        padding: 25px 20px;
+        border-radius: 20px;
+      }
+
+      .login-brand img {
+        width: min(100%, 210px);
+      }
     }
 
-    .modal-overlay {
-      background: rgba(15, 23, 42, .55);
-      backdrop-filter: blur(5px);
-    }
+/* =========================================================
+   CUSTOM FORM VALIDATION
+   Replaces browser-native validation messages.
+========================================================= */
+.custom-form-error {
+  display:none;
+  margin-top:6px;
+  color:#dc2626;
+  font-size:11px;
+  font-weight:700;
+  line-height:1.45;
+}
 
-    .modal {
-      border-radius: 20px;
-      box-shadow: 0 30px 80px rgba(15, 23, 42, .25);
-    }
+.custom-form-error.show {
+  display:block;
+}
 
-    .modal-close {
-      background: #f8fafc;
-    }
+.form-input.input-error,
+.login-input.input-error {
+  border-color:#dc2626 !important;
+  box-shadow:0 0 0 3px rgba(220,38,38,.08) !important;
+}
+
+.custom-select.input-error .custom-select-trigger {
+  border-color:#dc2626 !important;
+  box-shadow:0 0 0 3px rgba(220,38,38,.08) !important;
+}
+  
+/* =========================
+   AUTH MODE SWITCHING
+========================= */
+.auth-tabs{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:6px;
+  padding:5px;
+  background:#f1f5f9;
+  border-radius:12px;
+  margin-bottom:20px;
+}
+.auth-tab{
+  min-height:40px;
+  border:0;
+  border-radius:9px;
+  background:transparent;
+  color:#64748b;
+  font-size:12px;
+  font-weight:800;
+  cursor:pointer;
+  transition:.18s ease;
+}
+.auth-tab.active{
+  background:#fff;
+  color:#2563eb;
+  box-shadow:0 2px 8px rgba(15,23,42,.08);
+}
+.auth-view{display:none;}
+.auth-view.active{display:block;}
+.auth-switch{
+  margin-top:18px;
+  text-align:center;
+  color:#64748b;
+  font-size:11px;
+}
+.auth-link{
+  border:0;
+  background:transparent;
+  color:#2563eb;
+  font-size:11px;
+  font-weight:800;
+  cursor:pointer;
+  padding:0;
+}
+.auth-link:hover{text-decoration:underline;}
+.auth-back{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  border:0;
+  background:transparent;
+  color:#64748b;
+  font-size:11px;
+  font-weight:750;
+  cursor:pointer;
+  padding:0;
+  margin-bottom:15px;
+}
+.auth-back:hover{color:#2563eb;}
+.password-requirements{
+  margin-top:5px;
+  color:#94a3b8;
+  font-size:10px;
+  line-height:1.45;
+}
+@media(max-width:500px){
+  .auth-tabs{margin-bottom:18px;}
+}
+
   </style>
+
 </head>
 
+
 <body>
+  <section class="login-screen" id="loginScreen" aria-label="BalTracker authentication">
+    <div class="login-shell">
+      <div class="login-card">
 
-  <div class="app">
-
-    <!-- =========================
-     SIDEBAR
-========================= -->
-
-    <aside class="sidebar" id="sidebar">
-
-      <div class="logo">
-        <div class="logo-mark">B</div>
-        <div class="logo-text">Bal<span>Tracker</span></div>
-      </div>
-
-      <nav class="nav">
-
-        <div class="nav-section">Overview</div>
-
-        <button class="nav-btn active" data-page="dashboard">
-          <span class="nav-icon">⌂</span>
-          Dashboard
-        </button>
-
-        <div class="nav-section">Money</div>
-
-        <button class="nav-btn" data-page="sales">
-          <span class="nav-icon">↗</span>
-          Sales
-        </button>
-
-        <button class="nav-btn" data-page="expenses">
-          <span class="nav-icon">↘</span>
-          Expenses
-        </button>
-
-        <button class="nav-btn" data-page="credit">
-          <span class="nav-icon">◉</span>
-          Credit
-        </button>
-
-        <button class="nav-btn" data-page="debit">
-          <span class="nav-icon">◌</span>
-          Debit
-        </button>
-
-        <div class="nav-section">Manage</div>
-
-        <button class="nav-btn" data-page="activity">
-          <span class="nav-icon">☷</span>
-          Activity
-        </button>
-
-        <button class="nav-btn" data-page="contacts">
-          <span class="nav-icon">♙</span>
-          Customers & Vendors
-        </button>
-
-        <button class="nav-btn" data-page="settings">
-          <span class="nav-icon">⚙</span>
-          Settings
-        </button>
-
-      </nav>
-
-      <div class="sidebar-bottom">
-        <button class="nav-btn"
-          onclick="showToast('BalTracker is designed to help you understand and control your business finances.','info','About BalTracker')">
-          <span class="nav-icon">?</span>
-          About
-        </button>
-      </div>
-
-    </aside>
-
-    <!-- =========================
-     MAIN
-========================= -->
-
-    <main class="main">
-
-      <header class="topbar">
-
-        <div style="display:flex;align-items:center;">
-          <button class="mobile-menu" id="mobileMenu">☰</button>
-          <div class="page-title" id="pageTitle">Dashboard</div>
+        <div class="login-brand">
+          <img src="balTracker-logo.png" alt="BalTracker"
+               onerror="this.onerror=null;this.src='balTracker-logo';">
         </div>
 
-        <div class="topbar-right">
-          <button
-  class="btn btn-primary"
-  onclick="openTransactionModal()"
->
-  + Add Transaction
-</button>
+        <!-- SIGN IN / SIGN UP -->
+        <div id="mainAuthView" class="auth-view active">
+          <div class="auth-heading login-heading">
+            <h1 id="authTitle">Welcome back</h1>
+            <p id="authSubtitle">Sign in to manage your business finances.</p>
+          </div>
 
-          <div class="user-avatar">BT</div>
+          <div class="auth-tabs" role="tablist" aria-label="Authentication">
+            <button type="button" class="auth-tab active" id="signInTab" data-auth-action="signin">Sign In</button>
+            <button type="button" class="auth-tab" id="signUpTab" data-auth-action="signup">Sign Up</button>
+          </div>
+
+          <!-- SIGN IN -->
+          <form class="login-form auth-form active" id="signInForm" novalidate>
+            <div class="login-field">
+              <label class="login-label" for="signInEmail">Email address</label>
+              <input class="login-input" id="signInEmail" type="email"
+                     autocomplete="email" placeholder="you@example.com">
+              <div class="custom-form-error" id="signInEmailError"></div>
+            </div>
+
+            <div class="login-field">
+              <label class="login-label" for="signInPassword">Password</label>
+              <div class="login-input-wrap">
+                <input class="login-input password" id="signInPassword" type="password"
+                       autocomplete="current-password" placeholder="Enter your password">
+                <button type="button" class="password-toggle" onclick="togglePassword('signInPassword', this)"
+                        aria-label="Show password">◉</button>
+              </div>
+              <div class="custom-form-error" id="signInPasswordError"></div>
+            </div>
+
+            <div class="login-row">
+              <label class="login-check">
+                <input type="checkbox" id="rememberSignIn" checked>
+                <span>Keep me signed in</span>
+              </label>
+              <button type="button" class="login-forgot" data-auth-action="forgot">
+                Forgot password?
+              </button>
+            </div>
+
+            <button type="submit" class="login-submit" id="signInSubmit">Sign In</button>
+          </form>
+
+          <!-- SIGN UP -->
+          <form class="login-form auth-form" id="signUpForm" novalidate style="display:none;">
+            <div class="login-field">
+              <label class="login-label" for="signUpName">Full name</label>
+              <input class="login-input" id="signUpName" type="text"
+                     autocomplete="name" placeholder="Enter your full name">
+              <div class="custom-form-error" id="signUpNameError"></div>
+            </div>
+
+            <div class="login-field">
+              <label class="login-label" for="signUpEmail">Email address</label>
+              <input class="login-input" id="signUpEmail" type="email"
+                     autocomplete="email" placeholder="you@example.com">
+              <div class="custom-form-error" id="signUpEmailError"></div>
+            </div>
+
+            <div class="login-field">
+              <label class="login-label" for="signUpPassword">Password</label>
+              <div class="login-input-wrap">
+                <input class="login-input password" id="signUpPassword" type="password"
+                       autocomplete="new-password" placeholder="Create a password">
+                <button type="button" class="password-toggle" onclick="togglePassword('signUpPassword', this)"
+                        aria-label="Show password">◉</button>
+              </div>
+              <div class="custom-form-error" id="signUpPasswordError"></div>
+              <div class="password-requirements">Use at least 6 characters.</div>
+            </div>
+
+            <div class="login-field">
+              <label class="login-label" for="signUpConfirm">Confirm password</label>
+              <div class="login-input-wrap">
+                <input class="login-input password" id="signUpConfirm" type="password"
+                       autocomplete="new-password" placeholder="Re-enter your password">
+                <button type="button" class="password-toggle" onclick="togglePassword('signUpConfirm', this)"
+                        aria-label="Show password">◉</button>
+              </div>
+              <div class="custom-form-error" id="signUpConfirmError"></div>
+            </div>
+
+            <button type="submit" class="login-submit" id="signUpSubmit">Create Account</button>
+          </form>
+
+          <div class="auth-switch" id="authSwitch">
+            Don't have an account?
+            <button type="button" class="auth-link" data-auth-action="signup">Sign Up</button>
+          </div>
         </div>
 
-      </header>
+        <!-- FORGOT PASSWORD -->
+        <div id="forgotView" class="auth-view">
+          <button type="button" class="auth-back" data-auth-action="signin">← Back to Sign In</button>
 
-      <div class="content">
-
-        <!-- =========================
-         DASHBOARD
-    ========================= -->
-
-        <section class="page active" id="page-dashboard">
-
-          <div class="welcome">
-            <h1>Good day 👋</h1>
-            <p>Know your money. Control your business.</p>
+          <div class="login-heading">
+            <h1>Forgot password?</h1>
+            <p>Enter your email and we'll help you reset your password.</p>
           </div>
 
-          <div class="stats-grid">
-
-            <div class="stat-card">
-              <div class="stat-top">
-                <span class="stat-label">Cash Position</span>
-                <div class="stat-icon icon-blue">₦</div>
-              </div>
-              <div class="stat-value" id="dashCash">₦0</div>
-              <div class="stat-sub">Cash received minus cash paid</div>
+          <form class="login-form" id="forgotForm" novalidate>
+            <div class="login-field">
+              <label class="login-label" for="forgotEmail">Email address</label>
+              <input class="login-input" id="forgotEmail" type="email"
+                     autocomplete="email" placeholder="you@example.com">
+              <div class="custom-form-error" id="forgotEmailError"></div>
             </div>
 
-            <div class="stat-card">
-              <div class="stat-top">
-                <span class="stat-label">Estimated Profit</span>
-                <div class="stat-icon icon-green">↗</div>
-              </div>
-              <div class="stat-value" id="dashProfit">₦0</div>
-              <div class="stat-sub">Revenue minus recorded costs</div>
-            </div>
+            <button type="submit" class="login-submit" id="forgotSubmit">Reset Password</button>
+          </form>
 
-            <div class="stat-card">
-              <div class="stat-top">
-                <span class="stat-label">Money Owed to Me</span>
-                <div class="stat-icon icon-purple">◉</div>
-              </div>
-              <div class="stat-value" id="dashCredit">₦0</div>
-              <div class="stat-sub">Outstanding customer credit</div>
-            </div>
-
-            <div class="stat-card">
-              <div class="stat-top">
-                <span class="stat-label">Money I Owe</span>
-                <div class="stat-icon icon-red">◌</div>
-              </div>
-              <div class="stat-value" id="dashDebit">₦0</div>
-              <div class="stat-sub">Outstanding business obligations</div>
-            </div>
-
+          <div class="auth-switch">
+            Remember your password?
+            <button type="button" class="auth-link" data-auth-action="signin">Sign In</button>
           </div>
-
-          <div class="dashboard-grid">
-
-            <div>
-
-              <div class="card" style="margin-bottom:18px;">
-
-                <div class="card-header">
-                  <div class="card-title">Quick Actions</div>
-                </div>
-
-                <div class="card-body">
-
-                  <div class="quick-actions">
-
-                    <button class="quick-btn" onclick="openTransactionModal('sale')">
-                      <div class="quick-icon icon-green">+</div>
-                      <small>Sale</small>
-                    </button>
-
-                    <button class="quick-btn" onclick="openTransactionModal('expense')">
-                      <div class="quick-icon icon-red">−</div>
-                      <small>Expense</small>
-                    </button>
-
-                    <button class="quick-btn" onclick="openTransactionModal('credit')">
-                      <div class="quick-icon icon-purple">+</div>
-                      <small>Credit</small>
-                    </button>
-
-                    <button class="quick-btn" onclick="openTransactionModal('debit')">
-                      <div class="quick-icon icon-blue">+</div>
-                      <small>Debit</small>
-                    </button>
-
-                  </div>
-
-                </div>
-              </div>
-
-              <div class="card">
-
-                <div class="card-header">
-                  <div class="card-title">Recent Activity</div>
-
-                  <button class="btn-link" onclick="navigate('activity')">
-                    View all
-                  </button>
-                </div>
-
-                <div id="recentActivity"></div>
-
-              </div>
-
-            </div>
-
-
-            <!-- =========================
-             BUSINESS HEALTH
-        ========================= -->
-
-            <div class="card">
-
-              <div class="card-header">
-                <div class="card-title">Business Health</div>
-              </div>
-
-              <div class="card-body">
-
-                <div class="health-wrap">
-
-                  <div class="health-gauge" aria-label="Business health gauge">
-
-                    <svg class="health-gauge-svg" viewBox="0 0 220 135" role="img" aria-hidden="true">
-
-                      <defs>
-
-                        <linearGradient id="healthGaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                          <stop offset="0%" stop-color="#dc2626"></stop>
-
-                          <stop offset="50%" stop-color="#f59e0b"></stop>
-
-                          <stop offset="100%" stop-color="#16a34a"></stop>
-                        </linearGradient>
-
-                      </defs>
-
-                      <path class="health-gauge-track" d="M20 110 A90 90 0 0 1 200 110"></path>
-
-                      <path class="health-gauge-progress" id="healthGaugeProgress" d="M20 110 A90 90 0 0 1 200 110">
-                      </path>
-
-                      <circle class="health-gauge-dot" id="healthGaugeDot" cx="20" cy="110" r="5"></circle>
-
-                    </svg>
-
-                    <div class="health-gauge-label attention">
-                      Attention
-                    </div>
-
-                    <div class="health-gauge-label watch">
-                      Watch
-                    </div>
-
-                    <div class="health-gauge-label healthy">
-                      Healthy
-                    </div>
-
-                    <div class="health-gauge-center">
-
-                      <div class="health-score" id="healthScore">
-                        0%
-                      </div>
-
-                      <div class="health-status" id="healthStatus">
-                        No data
-                      </div>
-
-                    </div>
-
-                  </div>
-
-                  <div class="health-info">
-
-                    <div class="health-message" id="healthMessage">
-                      Add transactions to see your business health.
-                    </div>
-
-                    <div class="health-metrics">
-
-                      <div class="health-metric">
-
-                        <div class="health-metric-top">
-
-                          <div>
-                            <div class="health-metric-label">
-                              Estimated Profit
-                            </div>
-
-                            <div class="health-metric-value" id="healthProfit">
-                              ₦0
-                            </div>
-                          </div>
-
-                        </div>
-
-                        <div class="metric-bar">
-                          <div class="metric-fill profit" id="profitMetricBar"></div>
-                        </div>
-
-                      </div>
-
-
-                      <div class="health-metric">
-
-                        <div class="health-metric-top">
-
-                          <div>
-                            <div class="health-metric-label">
-                              Cash Position
-                            </div>
-
-                            <div class="health-metric-value" id="healthCash">
-                              ₦0
-                            </div>
-                          </div>
-
-                        </div>
-
-                        <div class="metric-bar">
-                          <div class="metric-fill cash" id="cashMetricBar"></div>
-                        </div>
-
-                      </div>
-
-
-                      <div class="health-metric">
-
-                        <div class="health-metric-top">
-
-                          <div>
-                            <div class="health-metric-label">
-                              Customer Credit
-                            </div>
-
-                            <div class="health-metric-value" id="healthCredit">
-                              ₦0
-                            </div>
-                          </div>
-
-                        </div>
-
-                        <div class="metric-bar">
-                          <div class="metric-fill credit" id="creditMetricBar"></div>
-                        </div>
-
-                      </div>
-
-
-                      <div class="health-metric">
-
-                        <div class="health-metric-top">
-
-                          <div>
-                            <div class="health-metric-label">
-                              Outstanding Debit
-                            </div>
-
-                            <div class="health-metric-value" id="healthDebit">
-                              ₦0
-                            </div>
-                          </div>
-
-                        </div>
-
-                        <div class="metric-bar">
-                          <div class="metric-fill debit" id="debitMetricBar"></div>
-                        </div>
-
-                      </div>
-
-                    </div>
-
-                  </div>
-
-                </div>
-
-              </div>
-
-            </div>
-
-          </div>
-
-        </section>
-
-
-        <!-- =========================
-         SALES PAGE
-    ========================= -->
-
-        <section class="page" id="page-sales">
-
-          <div class="welcome">
-
-            <h1>Sales</h1>
-
-            <p>
-              Track the money your business receives from sales.
-            </p>
-
-          </div>
-
-          <div class="card">
-
-            <div class="card-header">
-
-              <div class="card-title">
-                Sales Transactions
-              </div>
-
-              <button class="btn btn-primary" onclick="openTransactionModal('sale')">
-                + Add Sale
-              </button>
-
-            </div>
-
-            <div id="salesTable"></div>
-
-          </div>
-
-        </section>
-
-
-        <!-- =========================
-         EXPENSES PAGE
-    ========================= -->
-
-        <section class="page" id="page-expenses">
-
-          <div class="welcome">
-
-            <h1>Expenses</h1>
-
-            <p>
-              Track the money your business spends.
-            </p>
-
-          </div>
-
-          <div class="card">
-
-            <div class="card-header">
-
-              <div class="card-title">
-                Expense Transactions
-              </div>
-
-              <button class="btn btn-primary" onclick="openTransactionModal('expense')">
-                + Add Expense
-              </button>
-
-            </div>
-
-            <div id="expensesTable"></div>
-
-          </div>
-
-        </section>
-
-
-        <!-- =========================
-         CREDIT PAGE
-    ========================= -->
-
-        <section class="page" id="page-credit">
-
-          <div class="welcome">
-
-            <h1>Customer Credit</h1>
-
-            <p>
-              Keep track of money customers still owe your business.
-            </p>
-
-          </div>
-
-          <div class="card">
-
-            <div class="card-header">
-
-              <div class="card-title">
-                Outstanding Customer Credit
-              </div>
-
-              <button class="btn btn-primary" onclick="openTransactionModal('credit')">
-                + Add Credit
-              </button>
-
-            </div>
-
-            <div id="creditTable"></div>
-
-          </div>
-
-        </section>
-
-
-        <!-- =========================
-         DEBIT PAGE
-    ========================= -->
-
-        <section class="page" id="page-debit">
-
-          <div class="welcome">
-
-            <h1>Business Debit</h1>
-
-            <p>
-              Track money your business owes to suppliers and others.
-            </p>
-
-          </div>
-
-          <div class="card">
-
-            <div class="card-header">
-
-              <div class="card-title">
-                Outstanding Business Debit
-              </div>
-
-              <button class="btn btn-primary" onclick="openTransactionModal('debit')">
-                + Add Debit
-              </button>
-
-            </div>
-
-            <div id="debitTable"></div>
-
-          </div>
-
-        </section>
-
-
-        <!-- =========================
-         ACTIVITY PAGE
-    ========================= -->
-
-        <section class="page" id="page-activity">
-
-          <div class="welcome">
-
-            <h1>Activity</h1>
-
-            <p>
-              See everything recorded in your BalTracker account.
-            </p>
-
-          </div>
-
-          <div class="card">
-
-            <div class="card-header">
-
-              <div class="card-title">
-                Transaction Activity
-              </div>
-
-              <div style="display:flex;gap:8px;align-items:center;">
-
-                <input class="form-input" id="activitySearch" placeholder="Search..." style="width:180px;">
-
-                <button class="btn btn-outline" onclick="renderActivity()">
-                  Refresh
-                </button>
-
-              </div>
-
-            </div>
-
-            <div id="activityTable"></div>
-
-          </div>
-
-        </section>
-
-
-        <!-- =========================
-         CONTACTS PAGE
-    ========================= -->
-
-        <section class="page" id="page-contacts">
-
-          <div class="welcome">
-
-            <h1>Customers & Vendors</h1>
-
-            <p>
-              Manage the people and businesses connected to your transactions.
-            </p>
-
-          </div>
-
-          <div style="display:flex;justify-content:flex-end;margin-bottom:16px;">
-
-            <button class="btn btn-primary" onclick="openContactModal()">
-              + Add Contact
-            </button>
-
-          </div>
-
-          <div class="contacts-grid" id="contactsGrid"></div>
-
-        </section>
-
-
-        <!-- =========================
-         SETTINGS PAGE
-    ========================= -->
-
-        <section class="page" id="page-settings">
-
-          <div class="welcome">
-
-            <h1>Settings</h1>
-
-            <p>
-              Manage your BalTracker preferences.
-            </p>
-
-          </div>
-
-          <div class="card">
-
-            <div class="card-header">
-              <div class="card-title">
-                Business Settings
-              </div>
-            </div>
-
-            <div class="card-body">
-
-              <div class="form-grid">
-
-                <div class="form-group">
-
-                  <label class="form-label">
-                    Business Name
-                  </label>
-
-                  <input class="form-input" id="businessName" value="My Business">
-
-                </div>
-
-                <div class="form-group">
-
-                  <label class="form-label">
-                    Currency
-                  </label>
-
-                  <input class="form-input" value="₦ Nigerian Naira" disabled>
-
-                </div>
-
-              </div>
-
-              <div style="margin-top:18px;">
-
-                <button class="btn btn-primary" onclick="saveSettings()">
-                  Save Changes
-                </button>
-
-              </div>
-
-            </div>
-
-          </div>
-
-          <div class="card" style="margin-top:18px;">
-
-            <div class="card-header">
-              <div class="card-title">
-                Local Data
-              </div>
-            </div>
-
-            <div class="card-body">
-
-              <p style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:15px;">
-                This prototype stores your transactions, customers and vendors
-                locally in your browser.
-              </p>
-
-              <button class="btn btn-danger" onclick="clearAllData()">
-                Clear All Data
-              </button>
-
-            </div>
-
-          </div>
-
-        </section>
-
+        </div>
+
+        <div class="login-demo-note">
+          Prototype mode: authentication is currently stored locally in this browser.
+          Connect Supabase Auth before production.
+        </div>
       </div>
 
-    </main>
-
-  </div>
-
-
-  <!-- =========================
-     TRANSACTION MODAL
-========================= -->
-
-  <div class="modal-overlay" id="transactionModal">
-  <div class="modal">
-
-    <div class="modal-header">
-
-      <div>
-        <h2 id="transactionModalTitle">
-          Add Transaction
-        </h2>
-
-        <p>
-          Record a sale, expense, credit or debit.
-        </p>
+      <div class="login-footer">
+        © 2026 BalTracker · Know Your Money. Control Your Business.
       </div>
-
-      <button
-        class="modal-close"
-        onclick="closeModal('transactionModal')"
-        type="button"
-      >
-        ×
-      </button>
-
     </div>
-
-
-    <form id="transactionForm">
-
-      <input
-        type="hidden"
-        id="transactionId"
-        value=""
-      >
-
-
-      <!-- TRANSACTION TYPE -->
-
-      <div class="form-group">
-
-        <label>
-          Transaction Type
-        </label>
-
-        <div
-          class="custom-select"
-          id="transactionTypeControl"
-          data-value=""
-        >
-
-          <button
-            type="button"
-            class="custom-select-trigger"
-            onclick="toggleCustomSelect('transactionTypeControl')"
-          >
-
-            <span
-              class="custom-select-value"
-            >
-              Select transaction type
-            </span>
-
-            <span class="custom-select-arrow">
-              ▾
-            </span>
-
-          </button>
-
-
-          <div class="custom-select-menu">
-
-            <button
-              type="button"
-              class="custom-option"
-              data-value="sale"
-              onclick="selectTransactionType('sale')"
-            >
-              <span>Sale</span>
-            </button>
-
-
-            <button
-              type="button"
-              class="custom-option"
-              data-value="expense"
-              onclick="selectTransactionType('expense')"
-            >
-              <span>Expense</span>
-            </button>
-
-
-            <button
-              type="button"
-              class="custom-option"
-              data-value="credit"
-              onclick="selectTransactionType('credit')"
-            >
-              <span>Credit</span>
-            </button>
-
-
-            <button
-              type="button"
-              class="custom-option"
-              data-value="debit"
-              onclick="selectTransactionType('debit')"
-            >
-              <span>Debit</span>
-            </button>
-
-          </div>
-
-        </div>
-
-      </div>
-
-
-      <!-- DYNAMIC TRANSACTION FIELDS -->
-
-      <div id="transactionFields">
-
-        <div
-          class="transaction-placeholder"
-          style="
-            padding:18px;
-            border:1px dashed var(--border);
-            border-radius:12px;
-            background:#f8fafc;
-            color:var(--muted);
-            text-align:center;
-            font-size:12px;
-          "
-        >
-          Select a transaction type to continue.
-        </div>
-
-      </div>
-
-
-      <div
-        style="
-          display:flex;
-          gap:10px;
-          justify-content:flex-end;
-          margin-top:22px;
-        "
-      >
-
-        <button
-          type="button"
-          class="btn btn-secondary"
-          onclick="closeModal('transactionModal')"
-        >
-          Cancel
-        </button>
-
-
-        <button
-          type="submit"
-          class="btn btn-primary"
-        >
-          Add Transaction
-        </button>
-
-      </div>
-
-    </form>
-
-  </div>
-</div>
-
-
-  <!-- =========================
-     PAYMENT MODAL
-========================= -->
-
-  <div class="modal-overlay" id="paymentModal">
-
-    <div class="modal">
-
-      <div class="modal-header">
-
-        <div class="modal-title" id="paymentModalTitle">
-          Record Payment
-        </div>
-
-        <button class="modal-close" onclick="closeModal('paymentModal')">
-          ×
-        </button>
-
-      </div>
-
-      <form id="paymentForm">
-
-        <div class="modal-body">
-
-          <input type="hidden" id="paymentTransactionId">
-
-          <div style="
-            padding:13px;
-            background:#f8fafc;
-            border-radius:11px;
-            margin-bottom:16px;
-          ">
-
-            <div style="
-              font-size:10px;
-              color:var(--muted);
-              font-weight:700;
-            ">
-              Outstanding Balance
-            </div>
-
-            <div id="paymentOutstanding" style="
-              font-size:22px;
-              font-weight:850;
-              margin-top:4px;
-            ">
-              ₦0
-            </div>
-
-          </div>
-
-          <div class="form-grid">
-
-            <div class="form-group">
-
-              <label class="form-label">
-                Payment Amount
-              </label>
-
-              <input class="form-input" type="number" id="paymentAmount" min="0" step="0.01" required>
-
-            </div>
-
-            <div class="form-group">
-
-              <label class="form-label">
-                Payment Date
-              </label>
-
-              <input class="form-input" type="date" id="paymentDate" required>
-
-            </div>
-
-          </div>
-
-        </div>
-
-        <div class="modal-footer">
-
-          <button type="button" class="btn btn-secondary" onclick="closeModal('paymentModal')">
-            Cancel
-          </button>
-
-          <button type="submit" class="btn btn-success">
-            Record Payment
-          </button>
-
-        </div>
-
-      </form>
-
-    </div>
-
-  </div>
-
-
-  <!-- =========================
-     CONTACT MODAL
-========================= -->
-
-  <div class="modal-overlay" id="contactModal">
-
-    <div class="modal">
-
-      <div class="modal-header">
-
-        <div class="modal-title" id="contactModalTitle">
-          Add Contact
-        </div>
-
-        <button class="modal-close" onclick="closeModal('contactModal')">
-          ×
-        </button>
-
-      </div>
-
-      <form id="contactForm">
-
-        <div class="modal-body">
-
-          <input type="hidden" id="contactId">
-
-          <div class="form-grid">
-
-            <div class="form-group">
-
-              <label class="form-label">
-                Name
-              </label>
-
-              <input class="form-input" id="contactName" placeholder="Full name or business name" required>
-
-            </div>
-
-            <div class="form-group">
-
-              <label class="form-label">
-                Type
-              </label>
-
-              <div id="contactTypeControl"></div>
-
-            </div>
-
-            <div class="form-group full">
-
-              <label class="form-label">
-                Phone
-              </label>
-
-              <input class="form-input" id="contactPhone" placeholder="Phone number">
-
-            </div>
-
-          </div>
-
-        </div>
-
-        <div class="modal-footer">
-
-          <button type="button" class="btn btn-secondary" onclick="closeModal('contactModal')">
-            Cancel
-          </button>
-
-          <button type="submit" class="btn btn-primary">
-            Save Contact
-          </button>
-
-        </div>
-
-      </form>
-
-    </div>
-
-  </div>
-
-
-  <!-- =========================
-     CONFIRMATION MODAL
-========================= -->
-
-  <div class="modal-overlay" id="confirmModal">
-
-    <div class="modal" style="max-width:430px;">
-
-      <div class="modal-header">
-
-        <div class="modal-title" id="confirmTitle">
-          Confirm Action
-        </div>
-
-        <button class="modal-close" onclick="closeModal('confirmModal')">
-          ×
-        </button>
-
-      </div>
-
-      <div class="modal-body">
-
-        <p id="confirmMessage" style="
-          color:var(--muted);
-          font-size:12px;
-          line-height:1.6;
-        "></p>
-
-      </div>
-
-      <div class="modal-footer">
-
-        <button class="btn btn-secondary" onclick="closeModal('confirmModal')">
-          Cancel
-        </button>
-
-        <button class="btn btn-danger" id="confirmButton">
-          Confirm
-        </button>
-
-      </div>
-
-    </div>
-
-  </div>
-
-
-  <!-- =========================
-     TOAST CONTAINER
-========================= -->
+  </section>
 
   <div class="toast-container" id="toastContainer"></div>
 
-
-  <script>
-    /* =========================================================
-   BALTRACKER DATA
-========================================================= */
-
-    let transactions = JSON.parse(
-      localStorage.getItem("baltracker_transactions") || "[]"
-    );
-
-    let customers = JSON.parse(
-      localStorage.getItem("baltracker_customers") ||
-      '["Ngozi E.","Bola A.","Amaka Styles","Chinedu O."]'
-    );
-
-    let vendors = JSON.parse(
-      localStorage.getItem("baltracker_vendors") ||
-      '["Mega Supplies","Ifeoma Wholesale","Prime Distributors"]'
-    );
-
-    let currentPartyMode = {
-      customer: "existing",
-      vendor: "existing"
-    };
-
-    let confirmCallback = null;
-
-
-    /* =========================================================
-       SAVE
-    ========================================================= */
-
-    function save() {
-
-      localStorage.setItem(
-        "baltracker_transactions",
-        JSON.stringify(transactions)
-      );
-
-      localStorage.setItem(
-        "baltracker_customers",
-        JSON.stringify(customers)
-      );
-
-      localStorage.setItem(
-        "baltracker_vendors",
-        JSON.stringify(vendors)
-      );
-
-    }
-
-
-    /* =========================================================
-       UTILITIES
-    ========================================================= */
-
-    function formatMoney(value) {
-
-      const amount = Number(value) || 0;
-
-      return new Intl.NumberFormat("en-NG", {
-        style: "currency",
-        currency: "NGN",
-        maximumFractionDigits: 0
-      }).format(amount);
-
-    }
-
-
-    function escapeHTML(value) {
-
-      return String(value ?? "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-
-    }
-
-
-    function formatDate(date) {
-
-      if (!date) return "—";
-
-      const d = new Date(date + "T00:00:00");
-
-      if (Number.isNaN(d.getTime())) return "—";
-
-      return d.toLocaleDateString("en-NG", {
-        day: "numeric",
-        month: "short",
-        year: "numeric"
-      });
-
-    }
-
-
-    function today() {
-
-      return new Date()
-        .toISOString()
-        .split("T")[0];
-
-    }
-
-
-    function normalizedType(type) {
-
-      const allowed = [
-        "sale",
-        "expense",
-        "credit",
-        "debit"
-      ];
-
-      return allowed.includes(type)
-        ? type
-        : "other";
-
-    }
-
-
-    function typeLabel(type) {
-
-      const labels = {
-        sale: "Sale",
-        expense: "Expense",
-        credit: "Credit",
-        debit: "Debit",
-        other: "Other"
-      };
-
-      return labels[
-        normalizedType(type)
-      ] || "Other";
-
-    }
-
-
-    function typeBadge(type) {
-
-      const safe = normalizedType(type);
-
-      return `
-    <span class="badge badge-${safe}">
-      ${escapeHTML(typeLabel(safe))}
-    </span>
-  `;
-
-    }
-
-
-    function initials(name) {
-
-      const safe =
-        String(name || "Unknown").trim();
-
-      if (!safe) return "?";
-
-      const parts =
-        safe.split(/\s+/);
-
-      if (parts.length === 1) {
-
-        return parts[0]
-          .slice(0, 2)
-          .toUpperCase();
-
-      }
-
-      return (
-        parts[0][0] +
-        parts[parts.length - 1][0]
-      ).toUpperCase();
-
-    }
-
-
-    /* =========================================================
-       TOASTS
-    ========================================================= */
-
-    function showToast(
-      message,
-      type = "info",
-      title = "BalTracker"
-    ) {
-
-      const container =
-        document.getElementById("toastContainer");
-
-      const toast =
-        document.createElement("div");
-
-      toast.className =
-        "toast " +
-        (
-          type === "success" ||
-            type === "error" ||
-            type === "warning"
-            ? type
-            : ""
-        );
-
-      const icons = {
-        success: "✓",
-        error: "!",
-        warning: "!",
-        info: "i"
-      };
-
-      toast.innerHTML = `
-
-    <div class="toast-icon">
-      ${icons[type] || "i"}
-    </div>
-
-    <div class="toast-content">
-
-      <div class="toast-title">
-        ${escapeHTML(title)}
-      </div>
-
-      <div class="toast-message">
-        ${escapeHTML(message)}
-      </div>
-
-    </div>
-
-  `;
-
-      container.appendChild(toast);
-
-      setTimeout(() => {
-
-        toast.style.opacity = "0";
-        toast.style.transform =
-          "translateY(8px)";
-
-        setTimeout(() => {
-          toast.remove();
-        }, 250);
-
-      }, 3200);
-
-    }
-
-
-    /* =========================================================
-       MODALS
-    ========================================================= */
-
-    function openModal(id) {
-
-      const modal =
-        document.getElementById(id);
-
-      if (!modal) return;
-
-      modal.classList.add("show");
-
-      document.body.style.overflow = "hidden";
-
-    }
-
-
-    function closeModal(id) {
-
-      const modal =
-        document.getElementById(id);
-
-      if (!modal) return;
-
-      modal.classList.remove("show");
-
-      const anyOpen =
-        document.querySelector(
-          ".modal-overlay.show"
-        );
-
-      if (!anyOpen) {
-
-        document.body.style.overflow = "";
-
-      }
-
-    }
-
-
-    document
-      .querySelectorAll(".modal-overlay")
-      .forEach(overlay => {
-
-        overlay.addEventListener(
-          "click",
-          event => {
-
-            if (event.target === overlay) {
-
-              overlay.classList.remove("show");
-
-              const anyOpen =
-                document.querySelector(
-                  ".modal-overlay.show"
-                );
-
-              if (!anyOpen) {
-
-                document.body.style.overflow = "";
-
-              }
-
-            }
-
-          }
-        );
-
-      });
-
-
-    /* =========================================================
-       CONFIRMATION
-    ========================================================= */
-
-    function showConfirm(
-      message,
-      callback,
-      title = "Confirm Action"
-    ) {
-
-      document.getElementById(
-        "confirmTitle"
-      ).textContent = title;
-
-      document.getElementById(
-        "confirmMessage"
-      ).textContent = message;
-
-      confirmCallback = callback;
-
-      openModal("confirmModal");
-
-    }
-
-
-    document.getElementById(
-      "confirmButton"
-    ).addEventListener(
-      "click",
-      () => {
-
-        if (typeof confirmCallback === "function") {
-
-          const callback =
-            confirmCallback;
-
-          confirmCallback = null;
-
-          closeModal("confirmModal");
-
-          callback();
-
-          return;
-
-        }
-
-        closeModal("confirmModal");
-
-      }
-    );
-
-
-    /* =========================================================
-       NAVIGATION
-    ========================================================= */
-
-    const pageTitles = {
-
-      dashboard: "Dashboard",
-      sales: "Sales",
-      expenses: "Expenses",
-      credit: "Customer Credit",
-      debit: "Business Debit",
-      activity: "Activity",
-      contacts: "Customers & Vendors",
-      settings: "Settings"
-
-    };
-
-
-    function navigate(page) {
-
-      document
-        .querySelectorAll(".page")
-        .forEach(section => {
-
-          section.classList.remove("active");
-
-        });
-
-      const target =
-        document.getElementById(
-          "page-" + page
-        );
-
-      if (target) {
-
-        target.classList.add("active");
-
-      }
-
-      document
-        .querySelectorAll(".nav-btn[data-page]")
-        .forEach(button => {
-
-          button.classList.toggle(
-            "active",
-            button.dataset.page === page
-          );
-
-        });
-
-      document.getElementById(
-        "pageTitle"
-      ).textContent =
-        pageTitles[page] || "BalTracker";
-
-      if (page === "dashboard") {
-
-        renderDashboard();
-
-      }
-
-      if (page === "sales") {
-
-        renderSales();
-
-      }
-
-      if (page === "expenses") {
-
-        renderExpenses();
-
-      }
-
-      if (page === "credit") {
-
-        renderCredit();
-
-      }
-
-      if (page === "debit") {
-
-        renderDebit();
-
-      }
-
-      if (page === "activity") {
-
-        renderActivity();
-
-      }
-
-      if (page === "contacts") {
-
-        renderContacts();
-
-      }
-
-      if (window.innerWidth <= 800) {
-
-        document
-          .getElementById("sidebar")
-          .classList.remove("open");
-
-      }
-
-    }
-
-
-    document
-      .querySelectorAll(".nav-btn[data-page]")
-      .forEach(button => {
-
-        button.addEventListener(
-          "click",
-          () => {
-
-            navigate(button.dataset.page);
-
-          }
-        );
-
-      });
-
-
-    document
-      .getElementById("mobileMenu")
-      .addEventListener(
-        "click",
-        () => {
-
-          document
-            .getElementById("sidebar")
-            .classList.toggle("open");
-
-        }
-      );
-
-
-    /* =========================================================
-       TRANSACTION TOTALS
-    ========================================================= */
-
-    function totals() {
-
-      let sales = 0;
-      let expenses = 0;
-      let credit = 0;
-      let debit = 0;
-
-      let creditRevenue = 0;
-      let debitCosts = 0;
-
-      let creditPayments = 0;
-      let debitPayments = 0;
-
-      transactions.forEach(t => {
-
-        const amount =
-          Number(t.amount) || 0;
-
-        const balance =
-          Number(
-            t.balance !== undefined
-              ? t.balance
-              : amount
-          ) || 0;
-
-        if (t.type === "sale") {
-
-          sales += amount;
-
-        }
-
-        if (t.type === "expense") {
-
-          expenses += amount;
-
-        }
-
-        if (t.type === "credit") {
-
-          credit += balance;
-
-          creditRevenue += amount;
-
-          if (Array.isArray(t.payments)) {
-
-            creditPayments += t.payments.reduce(
-              (sum, payment) =>
-                sum + (Number(payment.amount) || 0),
-              0
-            );
-
-          }
-
-        }
-
-        if (t.type === "debit") {
-
-          debit += balance;
-
-          debitCosts += amount;
-
-          if (Array.isArray(t.payments)) {
-
-            debitPayments += t.payments.reduce(
-              (sum, payment) =>
-                sum + (Number(payment.amount) || 0),
-              0
-            );
-
-          }
-
-        }
-
-      });
-
-      const totalRevenue =
-        sales + creditRevenue;
-
-      const totalCosts =
-        expenses + debitCosts;
-
-      const estimatedProfit =
-        totalRevenue - totalCosts;
-
-      const cashReceived =
-        sales + creditPayments;
-
-      const cashPaid =
-        expenses + debitPayments;
-
-      const cashPosition =
-        cashReceived - cashPaid;
-
-      return {
-
-        sales,
-        expenses,
-        credit,
-        debit,
-
-        creditRevenue,
-        debitCosts,
-
-        creditPayments,
-        debitPayments,
-
-        totalRevenue,
-        totalCosts,
-
-        estimatedProfit,
-
-        cashReceived,
-        cashPaid,
-
-        cashPosition
-
-      };
-
-    }
-
-
-    /* =========================================================
-       BUSINESS HEALTH
-    ========================================================= */
-
-    function calculateHealth() {
-
-      const t = totals();
-
-      // No financial data yet
-      if (
-        transactions.length === 0 ||
-        (
-          t.totalRevenue === 0 &&
-          t.totalCosts === 0 &&
-          t.credit === 0 &&
-          t.debit === 0
-        )
-      ) {
-
-        return {
-          score: 0,
-          status: "No data",
-          message: "Add your first transaction to see your business health.",
-          hasData: false
-        };
-
-      }
-
-
-      /* Continue with the existing health calculation below */
-      const revenue =
-        Number(t.totalRevenue) || 0;
-
-      const costs =
-        Number(t.totalCosts) || 0;
-
-      const profit =
-        Number(t.estimatedProfit) || 0;
-
-      const cash =
-        Number(t.cashPosition) || 0;
-
-      const debit =
-        Number(t.debit) || 0;
-
-      const credit =
-        Number(t.credit) || 0;
-
-
-      /* -------------------------
-         PROFITABILITY — 35 POINTS
-      ------------------------- */
-
-      let profitabilityScore = 0;
-
-      if (revenue > 0) {
-
-        const margin =
-          profit / revenue;
-
-        if (margin >= .30) {
-
-          profitabilityScore = 35;
-
-        } else if (margin >= 0) {
-
-          profitabilityScore =
-            18 +
-            ((margin / .30) * 17);
-
-        } else {
-
-          profitabilityScore =
-            Math.max(
-              0,
-              18 + (margin * 36)
-            );
-
-        }
-
-      }
-
-
-      /* -------------------------
-         CASH POSITION — 25 POINTS
-      ------------------------- */
-
-      let cashScore = 0;
-
-      if (revenue > 0) {
-
-        const cashRatio =
-          cash / revenue;
-
-        if (cashRatio >= .30) {
-
-          cashScore = 25;
-
-        } else if (cashRatio >= 0) {
-
-          cashScore =
-            12 +
-            ((cashRatio / .30) * 13);
-
-        } else {
-
-          cashScore =
-            Math.max(
-              0,
-              12 + (cashRatio * 24)
-            );
-
-        }
-
-      } else if (cash > 0) {
-
-        cashScore = 25;
-
-      }
-
-
-      /* -------------------------
-         DEBT BURDEN — 30 POINTS
-      ------------------------- */
-
-      let debtScore = 30;
-
-      if (revenue <= 0) {
-
-        debtScore =
-          debit > 0
-            ? 0
-            : 30;
-
-      } else {
-
-        const debtRatio =
-          debit / revenue;
-
-        if (debtRatio <= .25) {
-
-          debtScore = 30;
-
-        } else if (debtRatio <= .50) {
-
-          debtScore = 25;
-
-        } else if (debtRatio <= 1) {
-
-          debtScore = 18;
-
-        } else if (debtRatio <= 2) {
-
-          debtScore = 8;
-
-        } else {
-
-          debtScore =
-            Math.max(
-              0,
-              8 -
-              ((debtRatio - 2) * 4)
-            );
-
-        }
-
-      }
-
-
-      /* -------------------------
-         CREDIT EXPOSURE — 10 POINTS
-      ------------------------- */
-
-      let creditScore = 10;
-
-      if (revenue <= 0) {
-
-        creditScore =
-          credit > 0
-            ? 0
-            : 10;
-
-      } else {
-
-        const creditRatio =
-          credit / revenue;
-
-        if (creditRatio <= .25) {
-
-          creditScore = 10;
-
-        } else if (creditRatio <= .50) {
-
-          creditScore = 8;
-
-        } else if (creditRatio <= 1) {
-
-          creditScore = 6;
-
-        } else if (creditRatio <= 2) {
-
-          creditScore = 3;
-
-        } else {
-
-          creditScore = 0;
-
-        }
-
-      }
-
-
-      let score =
-        profitabilityScore +
-        cashScore +
-        debtScore +
-        creditScore;
-
-      score = Math.round(
-        Math.max(
-          0,
-          Math.min(100, score)
-        )
-      );
-
-
-      let status = "Attention";
-
-      if (score >= 75) {
-
-        status = "Healthy";
-
-      } else if (score >= 50) {
-
-        status = "Watch";
-
-      }
-
-
-      /*
-        If outstanding debt is at least twice
-        revenue, the business cannot be shown
-        as Healthy.
-      */
-
-      if (
-        revenue > 0 &&
-        debit >= revenue * 2 &&
-        status === "Healthy"
-      ) {
-
-        status = "Watch";
-
-      }
-
-
-      let message =
-        "Your business needs attention.";
-
-      if (status === "Healthy") {
-
-        message =
-          "Your finances currently show a healthy balance.";
-
-      } else if (status === "Watch") {
-
-        message =
-          "Your finances are manageable, but there are areas you should watch.";
-
-      }
-
-
-      if (
-        revenue > 0 &&
-        debit > revenue
-      ) {
-
-        message =
-          "Outstanding debit is higher than your recorded revenue. Keep a close eye on your obligations.";
-
-      }
-
-
-      if (
-        revenue <= 0 &&
-        debit > 0
-      ) {
-
-        message =
-          "You have outstanding obligations but no recorded revenue yet.";
-
-      }
-
-
-      return {
-
-        score,
-        status,
-        message,
-        hasData: true,
-
-        profitabilityScore,
-        cashScore,
-        debtScore,
-        creditScore
-
-      };
-
-    }
-
-
-    /* =========================================================
-       RENDER DASHBOARD
-    ========================================================= */
-
-    function renderDashboard() {
-
-      const t = totals();
-
-      document.getElementById(
-        "dashCash"
-      ).textContent =
-        formatMoney(t.cashPosition);
-
-      document.getElementById(
-        "dashProfit"
-      ).textContent =
-        formatMoney(t.estimatedProfit);
-
-      document.getElementById(
-        "dashCredit"
-      ).textContent =
-        formatMoney(t.credit);
-
-      document.getElementById(
-        "dashDebit"
-      ).textContent =
-        formatMoney(t.debit);
-
-
-      document.getElementById(
-        "healthProfit"
-      ).textContent =
-        formatMoney(t.estimatedProfit);
-
-      document.getElementById(
-        "healthCash"
-      ).textContent =
-        formatMoney(t.cashPosition);
-
-      document.getElementById(
-        "healthCredit"
-      ).textContent =
-        formatMoney(t.credit);
-
-      document.getElementById(
-        "healthDebit"
-      ).textContent =
-        formatMoney(t.debit);
-
-
-      const h =
-        calculateHealth(t);
-
-
-      document.getElementById(
-        "healthScore"
-      ).textContent =
-        h.hasData ? h.score + "%" : "—";
-
-      document.getElementById(
-        "healthStatus"
-      ).textContent =
-        h.status;
-
-      document.getElementById(
-        "healthMessage"
-      ).textContent =
-        h.message;
-
-
-      /* -------------------------
-         INVERTED-U GAUGE
-      ------------------------- */
-
-      const gauge = document.getElementById("healthGaugeProgress");
-      const gaugeDot = document.getElementById("healthGaugeDot");
-
-      if (gauge) {
-        const gaugeLength = gauge.getTotalLength();
-        const gaugeScore = h.hasData ? Math.max(0, Math.min(100, h.score)) : 0;
-
-        gauge.style.strokeDasharray = gaugeLength;
-        gauge.style.strokeDashoffset = gaugeLength * (1 - gaugeScore / 100);
-        gauge.style.opacity = h.hasData ? "1" : "0";
-      }
-
-      if (gaugeDot) {
-        const score = h.hasData ? Math.max(0, Math.min(100, h.score)) : 0;
-        const angle = Math.PI - (score / 100) * Math.PI;
-        const cx = 110 + 90 * Math.cos(angle);
-        const cy = 110 - 90 * Math.sin(angle);
-
-        gaugeDot.setAttribute("cx", cx.toFixed(2));
-        gaugeDot.setAttribute("cy", cy.toFixed(2));
-        gaugeDot.style.opacity = h.hasData ? "1" : "0";
-      }
-
-      /* -------------------------
-         FOUR METRIC BARS
-      ------------------------- */
-
-      const revenueBase =
-        Math.max(
-          t.totalRevenue,
-          1
-        );
-
-      const cashBase =
-        Math.max(
-          Math.abs(t.totalRevenue) +
-          Math.abs(t.totalCosts),
-          1
-        );
-
-
-      const profitPercent =
-        t.totalRevenue > 0
-          ? Math.max(
-            0,
-            Math.min(
-              100,
-              (
-                t.estimatedProfit /
-                t.totalRevenue
-              ) * 100
-            )
-          )
-          : 0;
-
-
-      const cashPercent =
-        t.cashPosition >= 0
-          ? Math.max(
-            0,
-            Math.min(
-              100,
-              (
-                t.cashPosition /
-                cashBase
-              ) * 100
-            )
-          )
-          : 0;
-
-
-      const creditPercent =
-        t.totalRevenue > 0
-          ? Math.max(
-            0,
-            Math.min(
-              100,
-              (
-                t.credit /
-                revenueBase
-              ) * 100
-            )
-          )
-          : (
-            t.credit > 0
-              ? 100
-              : 0
-          );
-
-
-      const debitPercent =
-        t.totalRevenue > 0
-          ? Math.max(
-            0,
-            Math.min(
-              100,
-              (
-                t.debit /
-                revenueBase
-              ) * 100
-            )
-          )
-          : (
-            t.debit > 0
-              ? 100
-              : 0
-          );
-
-
-      const profitBar =
-        document.getElementById(
-          "profitMetricBar"
-        );
-
-      const cashBar =
-        document.getElementById(
-          "cashMetricBar"
-        );
-
-      const creditBar =
-        document.getElementById(
-          "creditMetricBar"
-        );
-
-      const debitBar =
-        document.getElementById(
-          "debitMetricBar"
-        );
-
-
-      if (profitBar) {
-
-        profitBar.style.width =
-          profitPercent + "%";
-
-      }
-
-      if (cashBar) {
-
-        cashBar.style.width =
-          cashPercent + "%";
-
-      }
-
-      if (creditBar) {
-
-        creditBar.style.width =
-          creditPercent + "%";
-
-      }
-
-      if (debitBar) {
-
-        debitBar.style.width =
-          debitPercent + "%";
-
-      }
-
-
-      renderRecentActivity();
-
-    }
-
-
-    /* =========================================================
-       RECENT ACTIVITY
-    ========================================================= */
-
-    function renderRecentActivity() {
-
-      const container =
-        document.getElementById(
-          "recentActivity"
-        );
-
-      const recent =
-        [...transactions]
-          .sort(
-            (a, b) =>
-              new Date(b.date) -
-              new Date(a.date)
-          )
-          .slice(0, 6);
-
-
-      if (!recent.length) {
-
-        container.innerHTML = `
-
-      <div class="empty">
-
-        <div class="empty-icon">
-          +
-        </div>
-
-        <strong>
-          No transactions yet
-        </strong>
-
-        <span>
-          Add your first transaction to get started.
-        </span>
-
-      </div>
-
-    `;
-
-        return;
-
-      }
-
-
-      container.innerHTML = `
-
-    <div class="table-wrap">
-
-      <table>
-
-        <thead>
-
-          <tr>
-
-            <th>
-              Date
-            </th>
-
-            <th>
-              Type
-            </th>
-
-            <th>
-              Description
-            </th>
-
-            <th>
-              Customer / Vendor
-            </th>
-
-            <th>
-              Amount
-            </th>
-
-          </tr>
-
-        </thead>
-
-        <tbody>
-
-          ${recent.map(t => `
-
-            <tr>
-
-              <td>
-                ${escapeHTML(
-        formatDate(t.date)
-      )}
-              </td>
-
-              <td>
-                ${typeBadge(t.type)}
-              </td>
-
-              <td>
-                ${escapeHTML(
-        t.description ||
-        "—"
-      )}
-              </td>
-
-              <td>
-                ${escapeHTML(
-        t.party ||
-        "—"
-      )}
-              </td>
-
-              <td class="${t.type === "sale" ||
-          t.type === "credit"
-          ? "amount-positive"
-          : "amount-negative"
-        }">
-                ${t.type === "sale" ||
-          t.type === "credit"
-          ? "+"
-          : "-"
-        }${formatMoney(t.amount)}
-              </td>
-
-            </tr>
-
-          `).join("")}
-
-        </tbody>
-
-      </table>
-
-    </div>
-
-  `;
-
-    }
-
-
-    /* =========================================================
-       TRANSACTION MODAL
-    ========================================================= */
-
-    function openTransactionModal(initialType = ""){
-
-  const modal =
-    document.getElementById(
-      "transactionModal"
-    );
-
-  if(!modal) return;
-
-
-  document.getElementById(
-    "transactionModalTitle"
-  ).textContent =
-    "Add Transaction";
-
-
-  document.getElementById(
-    "transactionId"
-  ).value = "";
-
-
-  /*
-    Reset party mode so every new transaction
-    starts with the normal existing-list option.
-  */
-
-  currentPartyMode.customer = "existing";
-  currentPartyMode.vendor = "existing";
-
-
-  /*
-    Reset transaction type dropdown.
-  */
-
-  const typeControl =
-    document.getElementById(
-      "transactionTypeControl"
-    );
-
-  typeControl.dataset.value =
-    initialType || "";
-
-
-  const typeValue =
-    typeControl.querySelector(
-      ".custom-select-value"
-    );
-
-
-  const labels = {
-    sale: "Sale",
-    expense: "Expense",
-    credit: "Credit",
-    debit: "Debit"
-  };
-
-
-  if(typeValue){
-
-    typeValue.textContent =
-      labels[initialType] ||
-      "Select transaction type";
-
+<script>
+  function escapeHTML(value){
+    return String(value ?? "").replace(/[&<>"']/g, char => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"
+    }[char]));
   }
 
+  function showToast(message, type="info", title="BalTracker"){
+    const container=document.getElementById("toastContainer");
+    if(!container) return;
 
-  typeControl
-    .querySelectorAll(
-      ".custom-option"
-    )
-    .forEach(option => {
+    const toast=document.createElement("div");
+    toast.className="toast " + (["success","error","warning","info"].includes(type) ? type : "info");
 
-      option.classList.toggle(
-        "selected",
-        option.dataset.value ===
-        initialType
-      );
-
-    });
-
-
-  /*
-    If Add Transaction was clicked from
-    the main top bar, leave the form waiting
-    for a transaction type.
-
-    If it was opened from a quick action,
-    immediately show that transaction's form.
-  */
-
-  if(initialType){
-
-    renderTransactionFields(
-      initialType
-    );
-
-  }else{
-
-    document.getElementById(
-      "transactionFields"
-    ).innerHTML = `
-
-      <div
-        class="transaction-placeholder"
-        style="
-          padding:18px;
-          border:1px dashed var(--border);
-          border-radius:12px;
-          background:#f8fafc;
-          color:var(--muted);
-          text-align:center;
-          font-size:12px;
-        "
-      >
-        Select a transaction type to continue.
+    const icons={success:"✓",error:"!",warning:"!",info:"i"};
+    toast.innerHTML=`
+      <div class="toast-dot"></div>
+      <div>
+        <div class="toast-title">${escapeHTML(title)}</div>
+        <div class="toast-message">${escapeHTML(message)}</div>
       </div>
-
     `;
 
+    container.appendChild(toast);
+    setTimeout(()=>{
+      toast.style.opacity="0";
+      toast.style.transform="translateY(8px)";
+      setTimeout(()=>toast.remove(),250);
+    },3200);
   }
 
-
-  modal.classList.add(
-    "show"
-  );
-
-
-  document.body.style.overflow =
-    "hidden";
-
-}
-    /* =========================================================
-       CUSTOM SELECT
-    ========================================================= */
-
-    function createCustomSelect(
-      container,
-      config
-    ) {
-
-      const {
-
-        options = [],
-        value = "",
-        placeholder = "Select",
-        onChange = () => { },
-        newLabel = null,
-        onNew = null
-
-      } = config;
-
-
-      container.innerHTML = `
-
-    <div class="custom-select">
-
-      <button
-        type="button"
-        class="custom-select-trigger"
-      >
-
-        <span class="custom-select-value">
-          ${escapeHTML(
-        options.find(
-          option =>
-            option.value === value
-        )?.label ||
-        placeholder
-      )}
-        </span>
-
-        <span class="custom-select-arrow">
-          ▾
-        </span>
-
-      </button>
-
-      <div class="custom-select-menu">
-
-        ${options.map(option => `
-
-          <button
-            type="button"
-            class="custom-option ${option.value === value
-          ? "selected"
-          : ""
-        }"
-            data-value="${escapeHTML(
-          option.value
-        )}"
-          >
-
-            <span>
-              ${escapeHTML(
-          option.label
-        )}
-            </span>
-
-            ${option.value === value
-          ? `<span class="custom-option-check">✓</span>`
-          : ""
-        }
-
-          </button>
-
-        `).join("")}
-
-
-        ${newLabel
-          ? `
-
-              <button
-                type="button"
-                class="custom-option new-option"
-                data-new="true"
-              >
-
-                <span>
-                  ＋ ${escapeHTML(newLabel)}
-                </span>
-
-              </button>
-
-            `
-          : ""
-        }
-
-      </div>
-
-    </div>
-
-  `;
-
-
-      const select =
-        container.querySelector(
-          ".custom-select"
-        );
-
-      const trigger =
-        container.querySelector(
-          ".custom-select-trigger"
-        );
-
-      const menu =
-        container.querySelector(
-          ".custom-select-menu"
-        );
-
-      const valueDisplay =
-        container.querySelector(
-          ".custom-select-value"
-        );
-
-
-      trigger.addEventListener(
-        "click",
-        event => {
-
-          event.stopPropagation();
-
-          document
-            .querySelectorAll(
-              ".custom-select.open"
-            )
-            .forEach(other => {
-
-              if (other !== select) {
-
-                other.classList.remove(
-                  "open"
-                );
-
-              }
-
-            });
-
-          select.classList.toggle(
-            "open"
-          );
-
-        }
-      );
-
-
-      menu
-        .querySelectorAll(
-          ".custom-option"
-        )
-        .forEach(option => {
-
-          option.addEventListener(
-            "click",
-            event => {
-
-              event.stopPropagation();
-
-              if (
-                option.dataset.new ===
-                "true"
-              ) {
-
-                select.classList.remove(
-                  "open"
-                );
-
-                if (typeof onNew === "function") {
-
-                  onNew();
-
-                }
-
-                return;
-
-              }
-
-
-              const selectedValue =
-                option.dataset.value;
-
-              const selectedOption =
-                options.find(
-                  item =>
-                    String(item.value) ===
-                    String(selectedValue)
-                );
-
-
-              valueDisplay.textContent =
-                selectedOption
-                  ? selectedOption.label
-                  : placeholder;
-
-
-              menu
-                .querySelectorAll(
-                  ".custom-option"
-                )
-                .forEach(item => {
-
-                  item.classList.remove(
-                    "selected"
-                  );
-
-                  const check =
-                    item.querySelector(
-                      ".custom-option-check"
-                    );
-
-                  if (check) {
-
-                    check.remove();
-
-                  }
-
-                });
-
-
-              option.classList.add(
-                "selected"
-              );
-
-              option.insertAdjacentHTML(
-                "beforeend",
-                `<span class="custom-option-check">✓</span>`
-              );
-
-
-              select.classList.remove(
-                "open"
-              );
-
-
-              onChange(
-                selectedValue,
-                selectedOption
-              );
-
-            }
-          );
-
-        });
-
+  function clearCustomError(errorId,inputId){
+    const error=document.getElementById(errorId);
+    const input=document.getElementById(inputId);
+    if(error){
+      error.textContent="";
+      error.classList.remove("show");
     }
-    function setPartyMode(type, mode) {
-
-      if (
-        type !== "customer" &&
-        type !== "vendor"
-      ) {
-
-        return;
-
-      }
-
-      currentPartyMode[type] =
-        mode;
-
-      renderPartyControl(type);
-
-    }
-
-
-    function partyControl(type) {
-
-      const list =
-        type === "customer"
-          ? customers
-          : vendors;
-
-      const options =
-        list.map(name => ({
-
-          value: name,
-          label: name
-
-        }));
-
-
-      return {
-
-        options,
-
-        placeholder:
-          type === "customer"
-            ? "Select customer"
-            : "Select vendor",
-
-        newLabel:
-          type === "customer"
-            ? "New Customer"
-            : "New Vendor"
-
-      };
-
-    }
-
-
-    function renderPartyControl(type) {
-
-      const container =
-        document.getElementById(
-          "partyControl"
-        );
-
-      if (!container) return;
-
-
-      const config =
-        partyControl(type);
-
-
-      if (
-        currentPartyMode[type] ===
-        "new"
-      ) {
-
-        container.innerHTML = `
-
-      <div
-        style="
-          display:flex;
-          gap:8px;
-          align-items:center;
-        "
-      >
-
-        <input
-          class="form-input"
-          id="newPartyInput"
-          placeholder="${type === "customer"
-            ? "Enter customer name"
-            : "Enter vendor name"
-          }"
-          autocomplete="off"
-        >
-
-        <button
-          type="button"
-          class="btn btn-secondary"
-          onclick="setPartyMode('${type}','existing')"
-          style="white-space:nowrap;"
-        >
-          Existing
-        </button>
-
-      </div>
-
-    `;
-
-        return;
-
-      }
-
-
-      createCustomSelect(
-        container,
-        {
-
-          options: config.options,
-
-          value: "",
-
-          placeholder:
-            config.placeholder,
-
-          newLabel:
-            config.newLabel,
-
-          onNew: () => {
-
-            setPartyMode(
-              type,
-              "new"
-            );
-
-          },
-
-          onChange: (value) => {
-
-            container.dataset.value =
-              value;
-
-          }
-
-        }
-      );
-
-    }
-
-
-    document.addEventListener(
-      "click",
-      event => {
-
-        if (
-          !event.target.closest(
-            ".custom-select"
-          )
-        ) {
-
-          document
-            .querySelectorAll(
-              ".custom-select.open"
-            )
-            .forEach(select => {
-
-              select.classList.remove(
-                "open"
-              );
-
-            });
-
-        }
-
-      }
-    );
-
-function toggleCustomSelect(id){
-
-  const select =
-    document.getElementById(id);
-
-  if(!select) return;
-
-  document
-    .querySelectorAll(".custom-select.open")
-    .forEach(item => {
-
-      if(item !== select){
-
-        item.classList.remove("open");
-
-      }
-
-    });
-
-  select.classList.toggle("open");
-
-}
-
-
-function selectTransactionType(type){
-
-  const control =
-    document.getElementById(
-      "transactionTypeControl"
-    );
-
-  if(!control) return;
-
-
-  control.dataset.value =
-    type;
-
-
-  const labels = {
-
-    sale: "Sale",
-
-    expense: "Expense",
-
-    credit: "Credit",
-
-    debit: "Debit"
-
-  };
-
-
-  const value =
-    control.querySelector(
-      ".custom-select-value"
-    );
-
-
-  if(value){
-
-    value.textContent =
-      labels[type];
-
+    if(input) input.classList.remove("input-error");
   }
 
-
-  control
-    .querySelectorAll(
-      ".custom-option"
-    )
-    .forEach(option => {
-
-      option.classList.toggle(
-        "selected",
-        option.dataset.value === type
-      );
-
-    });
-
-
-  control.classList.remove(
-    "open"
-  );
-
-
-  renderTransactionFields(
-    type
-  );
-
-}
-
-
-function renderTransactionFields(type){
-
-  const container =
-    document.getElementById(
-      "transactionFields"
-    );
-
-  if(!container) return;
-
-
-  const partyType =
-    type === "sale" ||
-    type === "credit"
-      ? "customer"
-      : "vendor";
-
-
-  const partyLabel =
-    partyType === "customer"
-      ? "Customer"
-      : "Vendor";
-
-
-  container.innerHTML = `
-
-    <div class="form-grid">
-
-      <div class="form-group">
-
-        <label class="form-label">
-          ${partyLabel}
-        </label>
-
-        <div id="partyControl"></div>
-
-      </div>
-
-
-      <div class="form-group">
-
-        <label class="form-label">
-          Amount
-        </label>
-
-        <input
-          class="form-input"
-          type="number"
-          id="transactionAmount"
-          min="0"
-          step="0.01"
-          placeholder="₦0.00"
-          required
-        >
-
-      </div>
-
-
-      <div class="form-group">
-
-        <label class="form-label">
-          Date
-        </label>
-
-        <input
-          class="form-input"
-          type="date"
-          id="transactionDate"
-          value="${today()}"
-          required
-        >
-
-      </div>
-
-
-      <div class="form-group">
-
-        <label class="form-label">
-          Description
-        </label>
-
-        <input
-          class="form-input"
-          type="text"
-          id="transactionDescription"
-          placeholder="Optional description"
-        >
-
-      </div>
-
-    </div>
-
-  `;
-
-
-  /*
-    Reuse the existing fully styled
-    customer/vendor dropdown.
-  */
-
-  renderPartyControl(
-    partyType
-  );
-
-}
-
-    /* =========================================================
-       TRANSACTION SUBMISSION
-    ========================================================= */
-
-    document
-      .getElementById("transactionForm")
-      .addEventListener(
-        "submit",
-        event => {
-
-          event.preventDefault();
-
-
-          /*
-            The transaction type now comes from
-            the dedicated styled dropdown.
-          */
-
-          const typeControl =
-            document.getElementById(
-              "transactionTypeControl"
-            );
-
-
-          const type =
-            typeControl?.dataset.value ||
-            "";
-
-
-          if(!type){
-
-            showToast(
-              "Please select a transaction type.",
-              "error",
-              "Transaction Type Required"
-            );
-
-            return;
-
-          }
-
-
-          const amount =
-            Number(
-              document.getElementById(
-                "transactionAmount"
-              )?.value
-            );
-
-
-          const date =
-            document.getElementById(
-              "transactionDate"
-            )?.value;
-
-
-          const description =
-            document.getElementById(
-              "transactionDescription"
-            )?.value.trim() ||
-            "";
-
-
-          if(
-            !amount ||
-            amount <= 0
-          ){
-
-            showToast(
-              "Please enter a valid amount.",
-              "error",
-              "Invalid Amount"
-            );
-
-            return;
-
-          }
-
-
-          if(!date){
-
-            showToast(
-              "Please select a transaction date.",
-              "error",
-              "Missing Date"
-            );
-
-            return;
-
-          }
-
-
-          const partyType =
-            (
-              type === "sale" ||
-              type === "credit"
-            )
-              ? "customer"
-              : "vendor";
-
-
-          let party = "";
-
-
-          if(
-            currentPartyMode[partyType] ===
-            "new"
-          ){
-
-            const input =
-              document.getElementById(
-                "newPartyInput"
-              );
-
-
-            party =
-              input
-                ? input.value.trim()
-                : "";
-
-
-            if(!party){
-
-              showToast(
-                `Please enter the ${
-                  partyType === "customer"
-                    ? "customer"
-                    : "vendor"
-                } name.`,
-                "error",
-                "Missing Name"
-              );
-
-              return;
-
-            }
-
-
-            const list =
-              partyType === "customer"
-                ? customers
-                : vendors;
-
-
-            if(
-              !list.some(
-                name =>
-                  name.toLowerCase() ===
-                  party.toLowerCase()
-              )
-            ){
-
-              list.push(
-                party
-              );
-
-            }
-
-          }else{
-
-            const control =
-              document.getElementById(
-                "partyControl"
-              );
-
-
-            party =
-              control?.dataset.value ||
-              "";
-
-          }
-
-
-          const transaction = {
-
-            id:
-              "tx_" +
-              Date.now() +
-              "_" +
-              Math.random()
-                .toString(36)
-                .slice(2,8),
-
-            type,
-
-            amount,
-
-            balance:
-              (
-                type === "credit" ||
-                type === "debit"
-              )
-                ? amount
-                : 0,
-
-            date,
-
-            party,
-
-            description,
-
-            payments: [],
-
-            createdAt:
-              new Date().toISOString()
-
-          };
-
-
-          transactions.unshift(
-            transaction
-          );
-
-
-          save();
-
-
-          closeModal(
-            "transactionModal"
-          );
-
-
-          renderAll();
-
-
-          const successLabels = {
-
-            sale:
-              "Sale added successfully.",
-
-            expense:
-              "Expense added successfully.",
-
-            credit:
-              "Customer credit added successfully.",
-
-            debit:
-              "Business debit added successfully."
-
-          };
-
-
-          showToast(
-            successLabels[type] ||
-            "Transaction added successfully.",
-            "success",
-            "Saved"
-          );
-
+  function setCustomError(errorId,inputId,message){
+    const error=document.getElementById(errorId);
+    const input=document.getElementById(inputId);
+    if(error){
+      error.textContent=message;
+      error.classList.add("show");
+    }
+    if(input) input.classList.add("input-error");
+  }
+
+  function clearErrors(list){
+    list.forEach(([errorId,inputId])=>clearCustomError(errorId,inputId));
+  }
+
+  function validEmail(email){
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
+  function togglePassword(inputId,button){
+    const input=document.getElementById(inputId);
+    if(!input) return;
+    const showing=input.type==="text";
+    input.type=showing ? "password" : "text";
+    button.setAttribute("aria-label",showing ? "Show password" : "Hide password");
+  }
+
+  function switchAuth(mode){
+    const main=document.getElementById("mainAuthView");
+    const forgot=document.getElementById("forgotView");
+    const signIn=document.getElementById("signInForm");
+    const signUp=document.getElementById("signUpForm");
+    const signInTab=document.getElementById("signInTab");
+    const signUpTab=document.getElementById("signUpTab");
+    const title=document.getElementById("authTitle");
+    const subtitle=document.getElementById("authSubtitle");
+    const authSwitch=document.getElementById("authSwitch");
+
+    if(mode==="forgot"){
+      main.classList.remove("active");
+      forgot.classList.add("active");
+      return;
+    }
+
+    main.classList.add("active");
+    forgot.classList.remove("active");
+
+    const isSignUp=mode==="signup";
+    signIn.style.display=isSignUp ? "none" : "flex";
+    signUp.style.display=isSignUp ? "flex" : "none";
+
+    signInTab.classList.toggle("active",!isSignUp);
+    signUpTab.classList.toggle("active",isSignUp);
+
+    title.textContent=isSignUp ? "Create your account" : "Welcome back";
+    subtitle.textContent=isSignUp
+      ? "Create your BalTracker account to manage your business finances."
+      : "Sign in to manage your business finances.";
+
+    authSwitch.innerHTML=isSignUp
+      ? `Already have an account? <button type="button" class="auth-link" data-auth-action="signin">Sign In</button>`
+      : `Don't have an account? <button type="button" class="auth-link" data-auth-action="signup">Sign Up</button>`;
+  }
+
+  function showForgotPassword(){
+    switchAuth("forgot");
+    const email=document.getElementById("signInEmail")?.value.trim();
+    if(email && validEmail(email)){
+      document.getElementById("forgotEmail").value=email;
+    }
+  }
+
+  function getAccounts(){
+    try{
+      return JSON.parse(localStorage.getItem("baltracker_accounts") || "[]");
+    }catch{
+      return [];
+    }
+  }
+
+  function saveAccounts(accounts){
+    localStorage.setItem("baltracker_accounts",JSON.stringify(accounts));
+  }
+
+  function setSession(email,remember=true){
+    localStorage.setItem("baltracker_user_email",email);
+    localStorage.setItem("baltracker_session",remember ? "active" : "session");
+  }
+
+  function isBalTrackerLoggedIn(){
+    return localStorage.getItem("baltracker_session")==="active";
+  }
+
+  function bindAuthNavigation(){
+    document.querySelectorAll("[data-auth-action]").forEach(button=>{
+      button.addEventListener("click",()=>{
+        const action=button.dataset.authAction;
+        if(action==="forgot"){
+          showForgotPassword();
+        }else if(action==="signin" || action==="signup"){
+          switchAuth(action);
         }
-      );
+      });
+    });
+  }
 
-    /* =========================================================
-       TABLE HELPERS
-    ========================================================= */
+  function initializeAuth(){
+    bindAuthNavigation();
 
-    function transactionTable(
-      items,
-      emptyTitle,
-      emptyText,
-      options = {}
-    ) {
+    if(isBalTrackerLoggedIn()){
+      window.location.href="main.html";
+      return;
+    }
 
-      if (!items.length) {
+    const signInForm=document.getElementById("signInForm");
+    const signUpForm=document.getElementById("signUpForm");
+    const forgotForm=document.getElementById("forgotForm");
 
-        return `
+    signInForm.addEventListener("submit",event=>{
+      event.preventDefault();
 
-      <div class="empty">
+      const email=document.getElementById("signInEmail").value.trim().toLowerCase();
+      const password=document.getElementById("signInPassword").value;
+      clearErrors([
+        ["signInEmailError","signInEmail"],
+        ["signInPasswordError","signInPassword"]
+      ]);
 
-        <div class="empty-icon">
-          ${options.emptyIcon || "+"}
-        </div>
-
-        <strong>
-          ${escapeHTML(emptyTitle)}
-        </strong>
-
-        <span>
-          ${escapeHTML(emptyText)}
-        </span>
-
-      </div>
-
-    `;
-
+      if(!email){
+        setCustomError("signInEmailError","signInEmail","Please enter your email address.");
+        document.getElementById("signInEmail").focus();
+        return;
+      }
+      if(!validEmail(email)){
+        setCustomError("signInEmailError","signInEmail","Please enter a valid email address.");
+        document.getElementById("signInEmail").focus();
+        return;
+      }
+      if(!password){
+        setCustomError("signInPasswordError","signInPassword","Please enter your password.");
+        document.getElementById("signInPassword").focus();
+        return;
       }
 
-
-      return `
-
-    <div class="table-wrap">
-
-      <table>
-
-        <thead>
-
-          <tr>
-
-            <th>Date</th>
-
-            <th>Type</th>
-
-            <th>
-              ${options.partyLabel ||
-        "Customer / Vendor"
-        }
-            </th>
-
-            <th>Description</th>
-
-            <th>Amount</th>
-
-            ${options.balance
-          ? "<th>Outstanding</th>"
-          : ""
-        }
-
-            <th>Action</th>
-
-          </tr>
-
-        </thead>
-
-        <tbody>
-
-          ${items.map(
-          t => {
-
-            const amount =
-              Number(t.amount) || 0;
-
-            const balance =
-              Number(
-                t.balance !== undefined
-                  ? t.balance
-                  : 0
-              ) || 0;
-
-
-            return `
-
-                <tr>
-
-                  <td>
-                    ${escapeHTML(
-              formatDate(t.date)
-            )}
-                  </td>
-
-                  <td>
-                    ${typeBadge(t.type)}
-                  </td>
-
-                  <td>
-                    ${escapeHTML(
-              t.party || "—"
-            )}
-                  </td>
-
-                  <td>
-                    ${escapeHTML(
-              t.description || "—"
-            )}
-                  </td>
-
-                  <td class="${t.type === "sale" ||
-                t.type === "credit"
-                ? "amount-positive"
-                : "amount-negative"
-              }">
-
-                    ${t.type === "sale" ||
-                t.type === "credit"
-                ? "+"
-                : "-"
-              }
-
-                    ${formatMoney(amount)}
-
-                  </td>
-
-                  ${options.balance
-                ? `
-
-                        <td>
-
-                          ${balance === 0
-
-                  ? `
-
-                                <span class="badge badge-complete">
-                                  Completed
-                                </span>
-
-                              `
-
-                  : `
-
-                                <span class="badge badge-part">
-                                  ${formatMoney(balance)}
-                                </span>
-
-                              `
-                }
-
-                        </td>
-
-                      `
-                : ""
-              }
-
-                  <td>
-
-                    ${options.balance &&
-                balance > 0
-
-                ? `
-
-                          <button
-                            class="btn btn-outline"
-                            onclick="openPaymentModal('${escapeHTML(t.id)}')"
-                            style="
-                              min-height:34px;
-                              padding:0 10px;
-                              font-size:10px;
-                            "
-                          >
-                            Payment
-                          </button>
-
-                        `
-
-                : `
-
-                          <button
-                            class="btn btn-outline"
-                            onclick="viewTransaction('${escapeHTML(t.id)}')"
-                            style="
-                              min-height:34px;
-                              padding:0 10px;
-                              font-size:10px;
-                            "
-                          >
-                            View
-                          </button>
-
-                        `
-              }
-
-                  </td>
-
-                </tr>
-
-              `;
-
-          }
-        ).join("")}
-
-        </tbody>
-
-      </table>
-
-    </div>
-
-  `;
-
-    }
-
-
-    /* =========================================================
-       SALES
-    ========================================================= */
-
-    function renderSales() {
-
-      const sales =
-        transactions
-          .filter(
-            t => t.type === "sale"
-          )
-          .sort(
-            (a, b) =>
-              new Date(b.date) -
-              new Date(a.date)
-          );
-
-
-      document.getElementById(
-        "salesTable"
-      ).innerHTML =
-        transactionTable(
-          sales,
-          "No sales yet",
-          "Your recorded sales will appear here.",
-          {
-            partyLabel: "Customer"
-          }
-        );
-
-    }
-
-
-    /* =========================================================
-       EXPENSES
-    ========================================================= */
-
-    function renderExpenses() {
-
-      const expenses =
-        transactions
-          .filter(
-            t => t.type === "expense"
-          )
-          .sort(
-            (a, b) =>
-              new Date(b.date) -
-              new Date(a.date)
-          );
-
-
-      document.getElementById(
-        "expensesTable"
-      ).innerHTML =
-        transactionTable(
-          expenses,
-          "No expenses yet",
-          "Your recorded expenses will appear here.",
-          {
-            partyLabel: "Vendor"
-          }
-        );
-
-    }
-
-
-    /* =========================================================
-       CREDIT
-    ========================================================= */
-
-    function renderCredit() {
-
-      const credit =
-        transactions
-          .filter(
-            t => t.type === "credit"
-          )
-          .sort(
-            (a, b) =>
-              new Date(b.date) -
-              new Date(a.date)
-          );
-
-
-      document.getElementById(
-        "creditTable"
-      ).innerHTML =
-        transactionTable(
-          credit,
-          "No customer credit",
-          "Money customers owe you will appear here.",
-          {
-            partyLabel: "Customer",
-            balance: true
-          }
-        );
-
-    }
-
-
-    /* =========================================================
-       DEBIT
-    ========================================================= */
-
-    function renderDebit() {
-
-      const debit =
-        transactions
-          .filter(
-            t => t.type === "debit"
-          )
-          .sort(
-            (a, b) =>
-              new Date(b.date) -
-              new Date(a.date)
-          );
-
-
-      document.getElementById(
-        "debitTable"
-      ).innerHTML =
-        transactionTable(
-          debit,
-          "No outstanding debit",
-          "Money your business owes will appear here.",
-          {
-            partyLabel: "Vendor",
-            balance: true
-          }
-        );
-
-    }
-
-
-    /* =========================================================
-       PAYMENT MODAL
-    ========================================================= */
-
-    function openPaymentModal(id) {
-
-      const transaction =
-        transactions.find(
-          t => t.id === id
-        );
-
-
-      if (!transaction) {
-
+      const accounts=getAccounts();
+      const account=accounts.find(item=>item.email===email);
+
+      if(!account){
+        setCustomError("signInEmailError","signInEmail","No BalTracker account was found with this email.");
+        document.getElementById("signInEmail").focus();
+        return;
+      }
+
+      if(account.password!==password){
+        setCustomError("signInPasswordError","signInPassword","The password you entered is incorrect.");
+        document.getElementById("signInPassword").focus();
+        return;
+      }
+
+      const submit=document.getElementById("signInSubmit");
+      submit.disabled=true;
+      submit.textContent="Signing in…";
+
+      const remember=document.getElementById("rememberSignIn").checked;
+      setSession(email,remember);
+
+      setTimeout(()=>{
+        showToast("Welcome back to BalTracker.","success","Signed In");
+        window.location.href="main.html";
+      },350);
+    });
+
+    signUpForm.addEventListener("submit",event=>{
+      event.preventDefault();
+
+      const name=document.getElementById("signUpName").value.trim();
+      const email=document.getElementById("signUpEmail").value.trim().toLowerCase();
+      const password=document.getElementById("signUpPassword").value;
+      const confirm=document.getElementById("signUpConfirm").value;
+
+      clearErrors([
+        ["signUpNameError","signUpName"],
+        ["signUpEmailError","signUpEmail"],
+        ["signUpPasswordError","signUpPassword"],
+        ["signUpConfirmError","signUpConfirm"]
+      ]);
+
+      if(!name){
+        setCustomError("signUpNameError","signUpName","Please enter your full name.");
+        document.getElementById("signUpName").focus();
+        return;
+      }
+      if(!email){
+        setCustomError("signUpEmailError","signUpEmail","Please enter your email address.");
+        document.getElementById("signUpEmail").focus();
+        return;
+      }
+      if(!validEmail(email)){
+        setCustomError("signUpEmailError","signUpEmail","Please enter a valid email address.");
+        document.getElementById("signUpEmail").focus();
+        return;
+      }
+      if(password.length<6){
+        setCustomError("signUpPasswordError","signUpPassword","Your password must contain at least 6 characters.");
+        document.getElementById("signUpPassword").focus();
+        return;
+      }
+      if(password!==confirm){
+        setCustomError("signUpConfirmError","signUpConfirm","Passwords do not match.");
+        document.getElementById("signUpConfirm").focus();
+        return;
+      }
+
+      const accounts=getAccounts();
+      if(accounts.some(item=>item.email===email)){
+        setCustomError("signUpEmailError","signUpEmail","An account with this email already exists. Please Sign In.");
+        document.getElementById("signUpEmail").focus();
+        return;
+      }
+
+      accounts.push({name,email,password});
+      saveAccounts(accounts);
+      setSession(email,true);
+
+      const submit=document.getElementById("signUpSubmit");
+      submit.disabled=true;
+      submit.textContent="Creating account…";
+
+      setTimeout(()=>{
+        showToast("Your BalTracker account has been created.","success","Account Created");
+        window.location.href="main.html";
+      },350);
+    });
+
+    forgotForm.addEventListener("submit",event=>{
+      event.preventDefault();
+
+      const email=document.getElementById("forgotEmail").value.trim().toLowerCase();
+      clearCustomError("forgotEmailError","forgotEmail");
+
+      if(!email){
+        setCustomError("forgotEmailError","forgotEmail","Please enter your email address.");
+        document.getElementById("forgotEmail").focus();
+        return;
+      }
+      if(!validEmail(email)){
+        setCustomError("forgotEmailError","forgotEmail","Please enter a valid email address.");
+        document.getElementById("forgotEmail").focus();
+        return;
+      }
+
+      const accounts=getAccounts();
+      const exists=accounts.some(item=>item.email===email);
+
+      // Prototype behaviour: never reveal account existence in a real system.
+      const submit=document.getElementById("forgotSubmit");
+      submit.disabled=true;
+      submit.textContent="Sending…";
+
+      setTimeout(()=>{
+        submit.disabled=false;
+        submit.textContent="Reset Password";
         showToast(
-          "Transaction could not be found.",
-          "error",
-          "Not Found"
-        );
-
-        return;
-
-      }
-
-
-      const balance =
-        Number(
-          transaction.balance ??
-          transaction.amount
-        ) || 0;
-
-
-      if (balance <= 0) {
-
-        showToast(
-          "This transaction has already been fully settled.",
+          exists
+            ? "Password reset instructions are ready for this prototype."
+            : "If an account exists for this email, reset instructions would be sent.",
           "info",
-          "Already Completed"
+          "Password Recovery"
         );
+      },500);
+    });
 
-        return;
-
+    // Clear validation errors while typing.
+    [
+      ["signInEmail","signInEmailError"],
+      ["signInPassword","signInPasswordError"],
+      ["signUpName","signUpNameError"],
+      ["signUpEmail","signUpEmailError"],
+      ["signUpPassword","signUpPasswordError"],
+      ["signUpConfirm","signUpConfirmError"],
+      ["forgotEmail","forgotEmailError"]
+    ].forEach(([inputId,errorId])=>{
+      const input=document.getElementById(inputId);
+      if(input){
+        input.addEventListener("input",()=>clearCustomError(errorId,inputId));
       }
-
-
-      document.getElementById(
-        "paymentTransactionId"
-      ).value =
-        transaction.id;
-
-
-      document.getElementById(
-        "paymentOutstanding"
-      ).textContent =
-        formatMoney(balance);
-
-
-      document.getElementById(
-        "paymentAmount"
-      ).value = "";
-
-
-      document.getElementById(
-        "paymentAmount"
-      ).max =
-        balance;
-
-
-      document.getElementById(
-        "paymentDate"
-      ).value =
-        today();
-
-
-      document.getElementById(
-        "paymentModalTitle"
-      ).textContent =
-        transaction.type === "credit"
-          ? "Record Customer Payment"
-          : "Record Debt Payment";
-
-
-      openModal(
-        "paymentModal"
-      );
-
-    }
-
-
-    document
-      .getElementById("paymentForm")
-      .addEventListener(
-        "submit",
-        event => {
-
-          event.preventDefault();
-
-
-          const id =
-            document.getElementById(
-              "paymentTransactionId"
-            ).value;
-
-
-          const paid =
-            Number(
-              document.getElementById(
-                "paymentAmount"
-              ).value
-            );
-
-
-          const date =
-            document.getElementById(
-              "paymentDate"
-            ).value;
-
-
-          const transaction =
-            transactions.find(
-              t => t.id === id
-            );
-
-
-          if (!transaction) {
-
-            showToast(
-              "Transaction could not be found.",
-              "error",
-              "Payment Error"
-            );
-
-            return;
-
-          }
-
-
-          const outstanding =
-            Number(
-              transaction.balance ??
-              transaction.amount
-            ) || 0;
-
-
-          if (
-            !paid ||
-            paid <= 0
-          ) {
-
-            showToast(
-              "Please enter a valid payment amount.",
-              "error",
-              "Invalid Payment"
-            );
-
-            return;
-
-          }
-
-
-          if (paid > outstanding) {
-
-            showToast(
-              "Payment cannot be greater than the outstanding balance.",
-              "error",
-              "Payment Too High"
-            );
-
-            return;
-
-          }
-
-
-          if (!date) {
-
-            showToast(
-              "Please select a payment date.",
-              "error",
-              "Missing Date"
-            );
-
-            return;
-
-          }
-
-
-          if (!Array.isArray(
-            transaction.payments
-          )) {
-
-            transaction.payments = [];
-
-          }
-
-
-          transaction.payments.push({
-
-            id:
-              "pay_" +
-              Date.now(),
-
-            amount: paid,
-
-            date
-
-          });
-
-
-          transaction.balance =
-            Math.max(
-              0,
-              outstanding - paid
-            );
-
-
-          transaction.status =
-            transaction.balance === 0
-              ? "Completed"
-              : "Part paid";
-
-
-          save();
-
-
-          closeModal(
-            "paymentModal"
-          );
-
-
-          renderAll();
-
-
-          showToast(
-            "Payment recorded successfully.",
-            "success",
-            "Payment Saved"
-          );
-
-        }
-      );
-
-
-    /* =========================================================
-       VIEW TRANSACTION
-    ========================================================= */
-
-    function viewTransaction(id) {
-
-      const transaction =
-        transactions.find(
-          t => t.id === id
-        );
-
-
-      if (!transaction) {
-
-        showToast(
-          "Transaction could not be found.",
-          "error",
-          "Not Found"
-        );
-
-        return;
-
-      }
-
-
-      const payments =
-        Array.isArray(
-          transaction.payments
-        )
-          ? transaction.payments
-          : [];
-
-
-      const paymentHistory =
-        payments.length
-
-          ? payments.map(payment => `
-
-          <div
-            style="
-              display:flex;
-              justify-content:space-between;
-              gap:12px;
-              padding:9px 0;
-              border-bottom:1px solid #eef2f6;
-              font-size:11px;
-            "
-          >
-
-            <span>
-              ${escapeHTML(
-            formatDate(payment.date)
-          )}
-            </span>
-
-            <strong>
-              ${formatMoney(payment.amount)}
-            </strong>
-
-          </div>
-
-        `).join("")
-
-          : `
-
-          <div
-            style="
-              color:var(--muted);
-              font-size:11px;
-              padding:8px 0;
-            "
-          >
-            No payments recorded.
-          </div>
-
-        `;
-
-
-      document.getElementById(
-        "confirmTitle"
-      ).textContent =
-        "Transaction Details";
-
-
-      document.getElementById(
-        "confirmMessage"
-      ).innerHTML = `
-
-    <div
-      style="
-        color:var(--text);
-        font-size:12px;
-      "
-    >
-
-      <div
-        style="
-          display:grid;
-          grid-template-columns:1fr 1fr;
-          gap:12px;
-          margin-bottom:15px;
-        "
-      >
-
-        <div>
-          <div
-            style="
-              color:var(--muted);
-              font-size:9px;
-              font-weight:700;
-            "
-          >
-            Type
-          </div>
-
-          <div style="margin-top:4px;">
-            ${typeBadge(transaction.type)}
-          </div>
-        </div>
-
-        <div>
-          <div
-            style="
-              color:var(--muted);
-              font-size:9px;
-              font-weight:700;
-            "
-          >
-            Date
-          </div>
-
-          <div
-            style="
-              margin-top:5px;
-              font-weight:750;
-            "
-          >
-            ${escapeHTML(
-        formatDate(transaction.date)
-      )}
-          </div>
-        </div>
-
-        <div>
-          <div
-            style="
-              color:var(--muted);
-              font-size:9px;
-              font-weight:700;
-            "
-          >
-            ${transaction.type === "sale" ||
-          transaction.type === "credit"
-          ? "Customer"
-          : "Vendor"
-        }
-          </div>
-
-          <div
-            style="
-              margin-top:5px;
-              font-weight:750;
-            "
-          >
-            ${escapeHTML(
-          transaction.party || "—"
-        )}
-          </div>
-        </div>
-
-        <div>
-          <div
-            style="
-              color:var(--muted);
-              font-size:9px;
-              font-weight:700;
-            "
-          >
-            Amount
-          </div>
-
-          <div
-            style="
-              margin-top:5px;
-              font-weight:850;
-            "
-          >
-            ${formatMoney(
-          transaction.amount
-        )}
-          </div>
-        </div>
-
-      </div>
-
-
-      <div
-        style="
-          padding:11px;
-          background:#f8fafc;
-          border-radius:10px;
-          margin-bottom:12px;
-        "
-      >
-
-        <div
-          style="
-            color:var(--muted);
-            font-size:9px;
-            font-weight:700;
-          "
-        >
-          Description
-        </div>
-
-        <div
-          style="
-            margin-top:5px;
-            font-weight:650;
-          "
-        >
-          ${escapeHTML(
-          transaction.description || "—"
-        )}
-        </div>
-
-      </div>
-
-
-      ${transaction.type === "credit" ||
-          transaction.type === "debit"
-
-          ? `
-
-            <div
-              style="
-                margin-top:12px;
-              "
-            >
-
-              <div
-                style="
-                  font-size:10px;
-                  font-weight:800;
-                  margin-bottom:7px;
-                "
-              >
-                Payment History
-              </div>
-
-              ${paymentHistory}
-
-            </div>
-
-          `
-
-          : ""
-        }
-
-    </div>
-
-  `;
-
-
-      document.getElementById(
-        "confirmButton"
-      ).textContent =
-        "Close";
-
-      confirmCallback = null;
-
-      openModal(
-        "confirmModal"
-      );
-
-    }
-
-
-    /* =========================================================
-       ACTIVITY
-    ========================================================= */
-
-    function renderActivity() {
-
-      const container =
-        document.getElementById(
-          "activityTable"
-        );
-
-      const search =
-        (
-          document.getElementById(
-            "activitySearch"
-          )?.value || ""
-        )
-          .trim()
-          .toLowerCase();
-
-
-      let items =
-        [...transactions]
-          .sort(
-            (a, b) =>
-              new Date(b.date) -
-              new Date(a.date)
-          );
-
-
-      if (search) {
-
-        items =
-          items.filter(t => {
-
-            const text = [
-
-              t.type,
-              t.party,
-              t.description,
-              t.date,
-              String(t.amount)
-
-            ]
-              .join(" ")
-              .toLowerCase();
-
-            return text.includes(search);
-
-          });
-
-      }
-
-
-      if (!items.length) {
-
-        container.innerHTML = `
-
-      <div class="empty">
-
-        <div class="empty-icon">
-          ☷
-        </div>
-
-        <strong>
-          No activity found
-        </strong>
-
-        <span>
-          ${search
-            ? "Try another search."
-            : "Your transactions will appear here."
-          }
-        </span>
-
-      </div>
-
-    `;
-
-        return;
-
-      }
-
-
-      container.innerHTML = `
-
-    <div class="table-wrap">
-
-      <table>
-
-        <thead>
-
-          <tr>
-
-            <th>Date</th>
-
-            <th>Type</th>
-
-            <th>Customer / Vendor</th>
-
-            <th>Description</th>
-
-            <th>Amount</th>
-
-            <th>Outstanding</th>
-
-            <th></th>
-
-          </tr>
-
-        </thead>
-
-        <tbody>
-
-          ${items.map(t => {
-
-        const balance =
-          Number(
-            t.balance ?? 0
-          ) || 0;
-
-
-        return `
-
-              <tr>
-
-                <td>
-                  ${escapeHTML(
-          formatDate(t.date)
-        )}
-                </td>
-
-                <td>
-                  ${typeBadge(t.type)}
-                </td>
-
-                <td>
-                  ${escapeHTML(
-          t.party || "—"
-        )}
-                </td>
-
-                <td>
-                  ${escapeHTML(
-          t.description || "—"
-        )}
-                </td>
-
-                <td class="${t.type === "sale" ||
-            t.type === "credit"
-            ? "amount-positive"
-            : "amount-negative"
-          }">
-
-                  ${t.type === "sale" ||
-            t.type === "credit"
-            ? "+"
-            : "-"
-          }
-
-                  ${formatMoney(
-            t.amount
-          )}
-
-                </td>
-
-                <td>
-
-                  ${(
-            t.type === "credit" ||
-            t.type === "debit"
-          )
-
-            ? (
-              balance > 0
-                ? formatMoney(balance)
-                : "Completed"
-            )
-
-            : "—"
-          }
-
-                </td>
-
-                <td>
-
-                  <button
-                    class="btn btn-outline"
-                    onclick="viewTransaction('${escapeHTML(t.id)}')"
-                    style="
-                      min-height:34px;
-                      padding:0 10px;
-                      font-size:10px;
-                    "
-                  >
-                    View
-                  </button>
-
-                </td>
-
-              </tr>
-
-            `;
-
-      }).join("")}
-
-        </tbody>
-
-      </table>
-
-    </div>
-
-  `;
-
-    }
-
-
-    document
-      .getElementById(
-        "activitySearch"
-      )
-      .addEventListener(
-        "input",
-        renderActivity
-      );
-
-
-    /* =========================================================
-       CONTACTS
-    ========================================================= */
-
-    function openContactModal(
-      type = "customer",
-      name = "",
-      phone = "",
-      id = ""
-    ) {
-
-      document.getElementById(
-        "contactId"
-      ).value =
-        id;
-
-
-      document.getElementById(
-        "contactName"
-      ).value =
-        name;
-
-
-      document.getElementById(
-        "contactPhone"
-      ).value =
-        phone;
-
-
-      document.getElementById(
-        "contactModalTitle"
-      ).textContent =
-        id
-          ? "Edit Contact"
-          : "Add Contact";
-
-
-      createCustomSelect(
-        document.getElementById(
-          "contactTypeControl"
-        ),
-        {
-
-          options: [
-
-            {
-              value: "customer",
-              label: "Customer"
-            },
-
-            {
-              value: "vendor",
-              label: "Vendor"
-            }
-
-          ],
-
-          value: type,
-
-          placeholder: "Select type",
-
-          onChange: (value) => {
-
-            document
-              .getElementById(
-                "contactTypeControl"
-              )
-              .dataset.value =
-              value;
-
-          }
-
-        }
-      );
-
-
-      document
-        .getElementById(
-          "contactTypeControl"
-        )
-        .dataset.value =
-        type;
-
-
-      openModal(
-        "contactModal"
-      );
-
-    }
-    document
-      .getElementById("contactForm")
-      .addEventListener(
-        "submit",
-        event => {
-
-          event.preventDefault();
-
-
-          const id =
-            document.getElementById(
-              "contactId"
-            ).value;
-
-
-          const name =
-            document.getElementById(
-              "contactName"
-            ).value.trim();
-
-
-          const phone =
-            document.getElementById(
-              "contactPhone"
-            ).value.trim();
-
-
-          const typeControl =
-            document.getElementById(
-              "contactTypeControl"
-            );
-
-
-          const type =
-            typeControl.dataset.value ||
-            "customer";
-
-
-          if (!name) {
-
-            showToast(
-              "Please enter a contact name.",
-              "error",
-              "Missing Name"
-            );
-
-            return;
-
-          }
-
-
-          /*
-            Contacts are stored separately from
-            the simple customer/vendor arrays
-            used by transaction dropdowns.
-          */
-
-          const contactKey =
-            type === "customer"
-              ? "baltracker_contact_customers"
-              : "baltracker_contact_vendors";
-
-
-          let contactList =
-            JSON.parse(
-              localStorage.getItem(
-                contactKey
-              ) || "[]"
-            );
-
-
-          const contact = {
-
-            id:
-              id ||
-              "contact_" +
-              Date.now() +
-              "_" +
-              Math.random()
-                .toString(36)
-                .slice(2, 7),
-
-            name,
-
-            phone,
-
-            type
-
-          };
-
-
-          if (id) {
-
-            contactList =
-              contactList.map(
-                item =>
-                  item.id === id
-                    ? contact
-                    : item
-              );
-
-          } else {
-
-            contactList.push(
-              contact
-            );
-
-          }
-
-
-          localStorage.setItem(
-            contactKey,
-            JSON.stringify(contactList)
-          );
-
-
-          /*
-            Also make sure the name is available
-            in the transaction dropdown.
-          */
-
-          if (type === "customer") {
-
-            if (
-              !customers.some(
-                existing =>
-                  existing.toLowerCase() ===
-                  name.toLowerCase()
-              )
-            ) {
-
-              customers.push(name);
-
-            }
-
-          } else {
-
-            if (
-              !vendors.some(
-                existing =>
-                  existing.toLowerCase() ===
-                  name.toLowerCase()
-              )
-            ) {
-
-              vendors.push(name);
-
-            }
-
-          }
-
-
-          save();
-
-
-          closeModal(
-            "contactModal"
-          );
-
-
-          renderContacts();
-
-
-          showToast(
-            id
-              ? "Contact updated successfully."
-              : "Contact added successfully.",
-            "success",
-            id
-              ? "Contact Updated"
-              : "Contact Added"
-          );
-
-        }
-      );
-
-
-    /* =========================================================
-       CONTACT STORAGE
-    ========================================================= */
-
-    function getContacts(type) {
-
-      const key =
-        type === "customer"
-          ? "baltracker_contact_customers"
-          : "baltracker_contact_vendors";
-
-
-      return JSON.parse(
-        localStorage.getItem(key) ||
-        "[]"
-      );
-
-    }
-
-
-    function saveContacts(
-      type,
-      list
-    ) {
-
-      const key =
-        type === "customer"
-          ? "baltracker_contact_customers"
-          : "baltracker_contact_vendors";
-
-
-      localStorage.setItem(
-        key,
-        JSON.stringify(list)
-      );
-
-    }
-
-
-    /* =========================================================
-       CONTACT RENDERING
-    ========================================================= */
-
-    function renderContacts() {
-
-      const container =
-        document.getElementById(
-          "contactsGrid"
-        );
-
-
-      if (!container) return;
-
-
-      const customerContacts =
-        getContacts("customer");
-
-      const vendorContacts =
-        getContacts("vendor");
-
-
-      /*
-        Build fallback contacts from the
-        customer/vendor dropdown arrays so
-        existing names are still visible.
-      */
-
-      const customerNames =
-        new Set(
-          customerContacts.map(
-            contact => contact.name
-          )
-        );
-
-
-      customers.forEach(name => {
-
-        if (!customerNames.has(name)) {
-
-          customerContacts.push({
-
-            id:
-              "legacy_customer_" +
-              name,
-
-            name,
-
-            phone: "",
-
-            type: "customer"
-
-          });
-
-        }
-
-      });
-
-
-      const vendorNames =
-        new Set(
-          vendorContacts.map(
-            contact => contact.name
-          )
-        );
-
-
-      vendors.forEach(name => {
-
-        if (!vendorNames.has(name)) {
-
-          vendorContacts.push({
-
-            id:
-              "legacy_vendor_" +
-              name,
-
-            name,
-
-            phone: "",
-
-            type: "vendor"
-
-          });
-
-        }
-
-      });
-
-
-      const allContacts = [
-
-        ...customerContacts,
-
-        ...vendorContacts
-
-      ];
-
-
-      if (!allContacts.length) {
-
-        container.innerHTML = `
-
-      <div
-        class="empty"
-        style="grid-column:1/-1;"
-      >
-
-        <div class="empty-icon">
-          ♙
-        </div>
-
-        <strong>
-          No contacts yet
-        </strong>
-
-        <span>
-          Add a customer or vendor to get started.
-        </span>
-
-      </div>
-
-    `;
-
-        return;
-
-      }
-
-
-      container.innerHTML =
-        allContacts
-          .map(contact => {
-
-            const contactTransactions =
-              transactions.filter(
-                transaction =>
-                  transaction.party ===
-                  contact.name
-              );
-
-
-            let outstanding = 0;
-
-
-            contactTransactions.forEach(
-              transaction => {
-
-                if (
-                  transaction.type ===
-                  "credit"
-                ) {
-
-                  outstanding +=
-                    Number(
-                      transaction.balance ??
-                      transaction.amount
-                    ) || 0;
-
-                }
-
-
-                if (
-                  transaction.type ===
-                  "debit"
-                ) {
-
-                  outstanding +=
-                    Number(
-                      transaction.balance ??
-                      transaction.amount
-                    ) || 0;
-
-                }
-
-              }
-            );
-
-
-            return `
-
-          <div class="contact-card">
-
-            <div class="contact-head">
-
-              <div class="contact-avatar">
-                ${escapeHTML(
-              initials(
-                contact.name
-              )
-            )}
-              </div>
-
-              <div style="min-width:0;">
-
-                <div class="contact-name">
-                  ${escapeHTML(
-              contact.name
-            )}
-                </div>
-
-                <div class="contact-type">
-                  ${contact.type ===
-                "customer"
-                ? "Customer"
-                : "Vendor"
-              }
-                </div>
-
-              </div>
-
-            </div>
-
-
-            ${contact.phone
-
-                ? `
-
-                  <div
-                    style="
-                      margin-top:12px;
-                      color:var(--muted);
-                      font-size:10px;
-                    "
-                  >
-                    ${escapeHTML(
-                  contact.phone
-                )}
-                  </div>
-
-                `
-
-                : ""
-              }
-
-
-            <div class="contact-value">
-
-              ${formatMoney(
-                outstanding
-              )}
-
-            </div>
-
-
-            <div class="contact-meta">
-
-              ${contact.type ===
-                "customer"
-
-                ? "Outstanding customer credit"
-
-                : "Outstanding business debit"
-
-              }
-
-            </div>
-
-
-            <div
-              style="
-                display:flex;
-                gap:7px;
-                margin-top:16px;
-              "
-            >
-
-              <button
-                class="btn btn-outline"
-                style="
-                  min-height:34px;
-                  padding:0 10px;
-                  font-size:10px;
-                "
-                onclick="editContact(
-                  '${escapeHTML(
-                contact.id
-              )}',
-                  '${escapeHTML(
-                contact.type
-              )}',
-                  '${escapeHTML(
-                contact.name
-              )}',
-                  '${escapeHTML(
-                contact.phone || ""
-              )}'
-                )"
-              >
-                Edit
-              </button>
-
-
-              <button
-                class="btn btn-danger"
-                style="
-                  min-height:34px;
-                  padding:0 10px;
-                  font-size:10px;
-                "
-                onclick="deleteContact(
-                  '${escapeHTML(
-                contact.id
-              )}',
-                  '${escapeHTML(
-                contact.type
-              )}',
-                  '${escapeHTML(
-                contact.name
-              )}'
-                )"
-              >
-                Delete
-              </button>
-
-            </div>
-
-          </div>
-
-        `;
-
-          })
-          .join("");
-
-    }
-
-
-    /* =========================================================
-       EDIT CONTACT
-    ========================================================= */
-
-    function editContact(
-      id,
-      type,
-      name,
-      phone
-    ) {
-
-      openContactModal(
-        type,
-        name,
-        phone,
-        id
-      );
-
-    }
-
-
-    /* =========================================================
-       DELETE CONTACT
-    ========================================================= */
-
-    function deleteContact(
-      id,
-      type,
-      name
-    ) {
-
-      /*
-        Legacy contacts are generated from
-        the customer/vendor arrays and do not
-        have a separately saved contact record.
-      */
-
-      showConfirm(
-        `Delete ${name} from your contacts?`,
-        () => {
-
-          const list =
-            getContacts(type);
-
-
-          const filtered =
-            list.filter(
-              contact =>
-                contact.id !== id
-            );
-
-
-          saveContacts(
-            type,
-            filtered
-          );
-
-
-          /*
-            Remove the name from the dropdown
-            list only if it is not referenced
-            by any transaction.
-          */
-
-          const stillUsed =
-            transactions.some(
-              transaction =>
-                transaction.party ===
-                name
-            );
-
-
-          if (!stillUsed) {
-
-            if (type === "customer") {
-
-              customers =
-                customers.filter(
-                  customer =>
-                    customer !== name
-                );
-
-            } else {
-
-              vendors =
-                vendors.filter(
-                  vendor =>
-                    vendor !== name
-                );
-
-            }
-
-          }
-
-
-          save();
-
-          renderContacts();
-
-
-          showToast(
-            "Contact deleted successfully.",
-            "success",
-            "Contact Deleted"
-          );
-
-        },
-        "Delete Contact"
-      );
-
-    }
-
-
-    /* =========================================================
-       SETTINGS
-    ========================================================= */
-
-    function saveSettings() {
-
-      const businessName =
-        document.getElementById(
-          "businessName"
-        ).value.trim();
-
-
-      if (!businessName) {
-
-        showToast(
-          "Please enter a business name.",
-          "error",
-          "Missing Business Name"
-        );
-
-        return;
-
-      }
-
-
-      localStorage.setItem(
-        "baltracker_business_name",
-        businessName
-      );
-
-
-      showToast(
-        "Business settings saved.",
-        "success",
-        "Settings Saved"
-      );
-
-    }
-
-
-    function loadSettings() {
-
-      const saved =
-        localStorage.getItem(
-          "baltracker_business_name"
-        );
-
-
-      if (saved) {
-
-        document.getElementById(
-          "businessName"
-        ).value =
-          saved;
-
-      }
-
-    }
-
-
-    /* =========================================================
-       CLEAR ALL DATA
-    ========================================================= */
-
-    function clearAllData() {
-
-      showConfirm(
-        "This will permanently remove all locally stored BalTracker transactions, customers and vendors from this browser. Continue?",
-        () => {
-
-          transactions = [];
-
-          customers = [];
-
-          vendors = [];
-
-
-          localStorage.removeItem(
-            "baltracker_transactions"
-          );
-
-          localStorage.removeItem(
-            "baltracker_customers"
-          );
-
-          localStorage.removeItem(
-            "baltracker_vendors"
-          );
-
-          localStorage.removeItem(
-            "baltracker_contact_customers"
-          );
-
-          localStorage.removeItem(
-            "baltracker_contact_vendors"
-          );
-
-
-          renderAll();
-
-
-          showToast(
-            "All local BalTracker data has been cleared.",
-            "success",
-            "Data Cleared"
-          );
-
-        },
-        "Clear All Data"
-      );
-
-    }
-
-
-    /* =========================================================
-       RENDER EVERYTHING
-    ========================================================= */
-
-    function renderAll() {
-
-      renderDashboard();
-
-      renderSales();
-
-      renderExpenses();
-
-      renderCredit();
-
-      renderDebit();
-
-      renderActivity();
-
-      renderContacts();
-
-    }
-
-
-    /* =========================================================
-       KEYBOARD SHORTCUTS
-    ========================================================= */
-
-    document.addEventListener(
-      "keydown",
-      event => {
-
-        if (
-          event.key === "Escape"
-        ) {
-
-          document
-            .querySelectorAll(
-              ".modal-overlay.show"
-            )
-            .forEach(modal => {
-
-              modal.classList.remove(
-                "show"
-              );
-
-            });
-
-          document.body.style.overflow =
-            "";
-
-        }
-
-      }
-    );
-
-
-    /* =========================================================
-       INITIALIZE
-    ========================================================= */
-
-    document.addEventListener(
-      "DOMContentLoaded",
-      () => {
-
-        loadSettings();
-
-        renderAll();
-
-      }
-    );
-
-  </script>
-
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded",initializeAuth);
+</script>
 </body>
-
 </html>
