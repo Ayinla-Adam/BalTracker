@@ -755,6 +755,17 @@
       : `Don't have an account? <button type="button" class="auth-link" data-auth-action="signup">Sign Up</button>`;
   }
 
+  function bindAuthNavigation(){
+    document.addEventListener("click", event => {
+      const control = event.target.closest("[data-auth-action]");
+      if (!control) return;
+      const action = control.dataset.authAction;
+      if (action === "signin" || action === "signup" || action === "forgot") {
+        switchAuth(action);
+      }
+    });
+  }
+
   function showForgotPassword(){
     switchAuth("forgot");
     const email=document.getElementById("signInEmail")?.value.trim();
