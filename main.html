@@ -2849,7 +2849,9 @@
   
     <div class="toast-container" id="toastContainer"></div>
 
-  <script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-client.js"></script>
+<script>
     
         /* =========================================================
        BALTRACKER DATA
@@ -2881,26 +2883,201 @@
            SAVE
         ========================================================= */
     
+        let balTrackerSyncTimer = null;
+        let balTrackerSyncRunning = false;
+        let balTrackerSyncPending = false;
+
         function save() {
-    
-          localStorage.setItem(
-            "baltracker_transactions",
-            JSON.stringify(transactions)
-          );
-    
-          localStorage.setItem(
-            "baltracker_customers",
-            JSON.stringify(customers)
-          );
-    
-          localStorage.setItem(
-            "baltracker_vendors",
-            JSON.stringify(vendors)
-          );
-    
+          localStorage.setItem("baltracker_transactions", JSON.stringify(transactions));
+          localStorage.setItem("baltracker_customers", JSON.stringify(customers));
+          localStorage.setItem("baltracker_vendors", JSON.stringify(vendors));
+          queueSupabaseSync();
         }
-    
-    
+
+        function queueSupabaseSync() {
+          if (!balTrackerAuthUser || !window.supabaseClient) return;
+          if (balTrackerSyncTimer) clearTimeout(balTrackerSyncTimer);
+          balTrackerSyncTimer = setTimeout(() => {
+            syncBalTrackerDataToCloud().catch(error => {
+              console.error("BalTracker cloud sync failed:", error);
+              showToast("Saved on this device, but cloud sync failed. Check your connection and try again.", "error", "Sync Issue");
+            });
+          }, 350);
+        }
+
+        function safeArray(value) {
+          return Array.isArray(value) ? value : [];
+        }
+
+        function stablePartyId(type, name) {
+          return type + ":" + String(name || "").trim().toLowerCase();
+        }
+
+        function normalizedDbType(type) {
+          return ({sale:"sales", expense:"expenses", credit:"owed_to_me", debit:"i_owe"})[type] || null;
+        }
+
+        function normalizedAppType(type) {
+          return ({sales:"sale", expenses:"expense", owed_to_me:"credit", i_owe:"debit"})[type] || "sale";
+        }
+
+        function contactRows(type) {
+          const names = type === "customer" ? customers : vendors;
+          const stored = safeArray(getContacts(type));
+          const byName = new Map();
+          stored.forEach(c => {
+            if (c && c.name && !byName.has(String(c.name).trim().toLowerCase())) byName.set(String(c.name).trim().toLowerCase(), c);
+          });
+          names.forEach(name => {
+            const key = String(name || "").trim().toLowerCase();
+            if (key && !byName.has(key)) byName.set(key, {id:"legacy_" + stablePartyId(type,name),name:String(name),phone:"",email:"",notes:"",type});
+          });
+          return [...byName.values()].map(c => ({
+            app_id: String(c.id || stablePartyId(type,c.name)),
+            name: String(c.name || "").trim(),
+            phone: c.phone || null,
+            email: c.email || null,
+            notes: c.notes || null,
+            type
+          })).filter(c => c.name);
+        }
+
+        async function syncBalTrackerDataToCloud() {
+          if (!balTrackerAuthUser || !window.supabaseClient) return;
+          if (balTrackerSyncRunning) { balTrackerSyncPending = true; return; }
+          balTrackerSyncRunning = true;
+          try {
+            const uid = balTrackerAuthUser.id;
+            const client = window.supabaseClient;
+            const customerRows = contactRows("customer").map(c => ({...c,user_id:uid}));
+            const vendorRows = contactRows("vendor").map(c => ({...c,user_id:uid}));
+
+            let customerIdByName = new Map();
+            if (customerRows.length) {
+              const {data,error} = await client.from("customers").upsert(customerRows,{onConflict:"user_id,app_id"}).select("id,app_id,name");
+              if (error) throw error;
+              (data || []).forEach(c => customerIdByName.set(String(c.name).trim().toLowerCase(),c.id));
+            }
+            if (vendorRows.length) {
+              const {error} = await client.from("vendors").upsert(vendorRows,{onConflict:"user_id,app_id"});
+              if (error) throw error;
+            }
+
+            const transactionRows = safeArray(transactions).map(t => {
+              const type = normalizedDbType(t.type);
+              const partyType = (t.type === "sale" || t.type === "credit") ? "customer" : "vendor";
+              const partyName = String(t.party || "").trim();
+              return {
+                user_id:uid,
+                app_id:String(t.id),
+                transaction_type:type,
+                amount:Number(t.amount),
+                description:t.description || null,
+                transaction_date:t.date || today(),
+                party_name:partyName || null,
+                party_type:partyName ? partyType : null,
+                customer_id:partyName && partyType === "customer" ? (customerIdByName.get(partyName.toLowerCase()) || null) : null
+              };
+            }).filter(t => t.transaction_type && t.app_id && Number.isFinite(t.amount) && t.amount > 0);
+
+            const transactionIdByAppId = new Map();
+            if (transactionRows.length) {
+              const {data,error} = await client.from("transactions").upsert(transactionRows,{onConflict:"user_id,app_id"}).select("id,app_id");
+              if (error) throw error;
+              (data || []).forEach(t => transactionIdByAppId.set(t.app_id,t.id));
+            }
+
+            const paymentRows = [];
+            safeArray(transactions).forEach(t => {
+              const dbTransactionId = transactionIdByAppId.get(String(t.id));
+              if (!dbTransactionId) return;
+              safeArray(t.payments).forEach((p,index) => {
+                if (!(Number(p.amount) > 0)) return;
+                paymentRows.push({
+                  user_id:uid,
+                  transaction_id:dbTransactionId,
+                  app_id:String(p.id || (t.id + "_payment_" + index)),
+                  amount:Number(p.amount),
+                  payment_date:p.date || today(),
+                  notes:p.notes || null
+                });
+              });
+            });
+            if (paymentRows.length) {
+              const {error} = await client.from("debt_payments").upsert(paymentRows,{onConflict:"user_id,app_id"});
+              if (error) throw error;
+            }
+
+            const businessName = localStorage.getItem("baltracker_business_name");
+            const {error:profileError} = await client.from("profiles").upsert({
+              user_id:uid,
+              business_name:businessName || null,
+              display_name:balTrackerAuthUser.user_metadata?.display_name || null
+            },{onConflict:"user_id"});
+            if (profileError) throw profileError;
+          } finally {
+            balTrackerSyncRunning = false;
+            if (balTrackerSyncPending) {
+              balTrackerSyncPending = false;
+              queueSupabaseSync();
+            }
+          }
+        }
+
+        async function loadBalTrackerDataFromCloud() {
+          const client = window.supabaseClient;
+          const uid = balTrackerAuthUser.id;
+          const [cr,vr,tr,pr] = await Promise.all([
+            client.from("customers").select("id,app_id,name,phone,email,notes").eq("user_id",uid),
+            client.from("vendors").select("id,app_id,name,phone,email,notes").eq("user_id",uid),
+            client.from("transactions").select("id,app_id,transaction_type,amount,description,transaction_date,party_name,party_type,customer_id").eq("user_id",uid).order("transaction_date",{ascending:false}),
+            client.from("debt_payments").select("id,app_id,transaction_id,amount,payment_date,notes").eq("user_id",uid).order("payment_date",{ascending:true})
+          ]);
+          for (const result of [cr,vr,tr,pr]) if (result.error) throw result.error;
+
+          const remoteHasData = (cr.data||[]).length+(vr.data||[]).length+(tr.data||[]).length+(pr.data||[]).length > 0;
+          const localHasData = safeArray(transactions).length+safeArray(customers).length+safeArray(vendors).length+
+            safeArray(getContacts("customer")).length+safeArray(getContacts("vendor")).length > 0;
+
+          if (!remoteHasData && localHasData) {
+            await syncBalTrackerDataToCloud();
+            return;
+          }
+          if (!remoteHasData) return;
+
+          const customerNameById = new Map((cr.data||[]).map(c => [c.id,c.name]));
+          const paymentsByTransaction = new Map();
+          (pr.data||[]).forEach(p => {
+            if (!paymentsByTransaction.has(p.transaction_id)) paymentsByTransaction.set(p.transaction_id,[]);
+            paymentsByTransaction.get(p.transaction_id).push({id:p.app_id || p.id,amount:Number(p.amount),date:p.payment_date,notes:p.notes || ""});
+          });
+          transactions = (tr.data||[]).map(t => {
+            const amount = Number(t.amount)||0;
+            const payments = paymentsByTransaction.get(t.id)||[];
+            const paid = payments.reduce((sum,p)=>sum+(Number(p.amount)||0),0);
+            const type = normalizedAppType(t.transaction_type);
+            return {
+              id:t.app_id || t.id,
+              type,
+              amount,
+              balance:(type==="credit"||type==="debit") ? Math.max(0,amount-paid) : 0,
+              date:t.transaction_date,
+              party:t.party_name || customerNameById.get(t.customer_id) || "",
+              description:t.description || "",
+              payments,
+              status:(type==="credit"||type==="debit") ? (Math.max(0,amount-paid)===0 ? "Completed":"Part paid") : "Completed",
+              createdAt:t.created_at || new Date().toISOString()
+            };
+          });
+          customers = (cr.data||[]).map(c=>c.name).filter(Boolean);
+          vendors = (vr.data||[]).map(v=>v.name).filter(Boolean);
+          localStorage.setItem("baltracker_transactions",JSON.stringify(transactions));
+          localStorage.setItem("baltracker_customers",JSON.stringify(customers));
+          localStorage.setItem("baltracker_vendors",JSON.stringify(vendors));
+          localStorage.setItem("baltracker_contact_customers",JSON.stringify((cr.data||[]).map(c=>({id:c.app_id||c.id,name:c.name,phone:c.phone||"",email:c.email||"",notes:c.notes||"",type:"customer"}))));
+          localStorage.setItem("baltracker_contact_vendors",JSON.stringify((vr.data||[]).map(v=>({id:v.app_id||v.id,name:v.name,phone:v.phone||"",email:v.email||"",notes:v.notes||"",type:"vendor"}))));
+        }
+
         /* =========================================================
            UTILITIES
         ========================================================= */
@@ -7121,6 +7298,8 @@
           );
     
     
+          queueSupabaseSync();
+
           showToast(
             "Business settings saved.",
             "success",
@@ -7267,51 +7446,13 @@
         ========================================================= */
 
         function getBalTrackerUserInitials() {
-
-          const email =
-            localStorage.getItem("baltracker_user_email") || "";
-
-          let name = "";
-
-          try {
-
-            const accounts = JSON.parse(
-              localStorage.getItem("baltracker_accounts") || "[]"
-            );
-
-            const account = accounts.find(
-              item =>
-                item &&
-                String(item.email || "").toLowerCase() ===
-                  email.toLowerCase()
-            );
-
-            name = account && account.name ? account.name.trim() : "";
-
-          } catch (error) {
-            name = "";
+          const fullName = String(balTrackerAuthUser?.user_metadata?.display_name || "").trim();
+          if (fullName) {
+            const parts = fullName.split(/\s+/).filter(Boolean);
+            return (parts.length > 1 ? parts[0][0] + parts[parts.length - 1][0] : parts[0].slice(0,2)).toUpperCase();
           }
-
-          if (name) {
-
-            const parts = name
-              .split(/\s+/)
-              .filter(Boolean);
-
-            if (parts.length >= 2) {
-              return (parts[0][0] + parts[parts.length - 1][0])
-                .toUpperCase();
-            }
-
-            return parts[0].slice(0, 2).toUpperCase();
-
-          }
-
-          const emailName =
-            email.split("@")[0].replace(/[^a-zA-Z]/g, "");
-
-          return emailName.slice(0, 2).toUpperCase() || "BT";
-
+          const email = balTrackerAuthUser?.email || localStorage.getItem("baltracker_user_email") || "";
+          return email.split("@")[0].replace(/[^a-zA-Z]/g,"").slice(0,2).toUpperCase() || "BT";
         }
 
         function initializeUserAvatar() {
@@ -7332,64 +7473,50 @@
 
 
         /* =========================================================
-           AUTHENTICATION / LOGIN
+           SUPABASE AUTHENTICATION / STARTUP
         ========================================================= */
-    
-        function isBalTrackerLoggedIn() {
-    
-          return localStorage.getItem(
-            "baltracker_session"
-          ) === "active";
-    
+        let balTrackerAuthUser = null;
+
+        async function logoutBalTracker() {
+          const { error } = await window.supabaseClient.auth.signOut();
+          if (error) {
+            showToast("Could not sign out. Please try again.", "error", "Sign Out");
+            return;
+          }
+          window.location.href = "index.html";
         }
-    
-    
-        
-    
-    
-        
-    
-    
-        
-    
-    
-        function logoutBalTracker() {
-    
-          localStorage.removeItem(
-            "baltracker_session"
-          );
-    
-          window.location.href = "login.html";
-    
-        }
-    
-    
-        
-    
-    
-        /* =========================================================
-           INITIALIZE
-        ========================================================= */
-    
-        document.addEventListener(
-          "DOMContentLoaded",
-          () => {
-    
-            if (
-              localStorage.getItem("baltracker_session") !== "active"
-            ) {
-              window.location.href = "login.html";
+
+        document.addEventListener("DOMContentLoaded", async () => {
+          try {
+            const { data, error } = await window.supabaseClient.auth.getSession();
+            if (error || !data?.session) {
+              window.location.href = "index.html";
               return;
             }
-    
+            balTrackerAuthUser = data.session.user;
+            localStorage.setItem("baltracker_user_email", balTrackerAuthUser.email || "");
+
+            const { data: profile, error: profileError } = await window.supabaseClient
+              .from("profiles")
+              .select("display_name,business_name,currency_code")
+              .eq("user_id", balTrackerAuthUser.id)
+              .maybeSingle();
+            if (profileError) console.warn("Could not load profile:", profileError.message);
+            if (profile?.business_name) localStorage.setItem("baltracker_business_name", profile.business_name);
+
+            await loadBalTrackerDataFromCloud();
             loadSettings();
             renderAll();
             initializeUserAvatar();
-    
+            window.supabaseClient.auth.onAuthStateChange((event, session) => {
+              if (event === "SIGNED_OUT" || !session) window.location.href = "index.html";
+            });
+          } catch (error) {
+            console.error("BalTracker initialization error:", error);
+            showToast("Could not load your cloud data. Check your connection and Supabase setup, then refresh.", "error", "Connection Error");
           }
-        );
-    
-      
+        });
+
   </script>
 </body>
 </html>
