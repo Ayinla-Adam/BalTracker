@@ -7232,29 +7232,43 @@
     
           showConfirm(
             `Delete ${name} from your contacts?`,
-            () => {
-    
-              const list =
-                getContacts(type);
-    
-    
-              const filtered =
-                list.filter(
-                  contact =>
-                    contact.id !== id
-                );
-    
-    
-              saveContacts(
-                type,
-                filtered
-              );
-    
-    
+            async () => {
               /*
-                Remove the contact from the customer/vendor
-                selection list as well. Historical transactions
-                keep their original party name.
+                For vendors, remove the cloud row before changing local
+                state. Clearing a queued sync first helps prevent an
+                already-scheduled upsert from immediately restoring it.
+              */
+              if (type === "vendor" && balTrackerAuthUser && window.supabaseClient) {
+                if (balTrackerSyncTimer) {
+                  clearTimeout(balTrackerSyncTimer);
+                  balTrackerSyncTimer = null;
+                }
+
+                const { error } = await window.supabaseClient
+                  .from("vendors")
+                  .delete()
+                  .eq("user_id", balTrackerAuthUser.id)
+                  .eq("app_id", String(id));
+
+                if (error) {
+                  console.error("Could not delete vendor from Supabase:", error);
+                  showToast(
+                    "Could not delete this vendor from the cloud. Please try again.",
+                    "error",
+                    "Delete Failed"
+                  );
+                  return;
+                }
+              }
+
+              const list = getContacts(type);
+              const filtered = list.filter(contact => contact.id !== id);
+
+              saveContacts(type, filtered);
+
+              /*
+                Remove the contact from the customer/vendor selection
+                list as well. Historical transactions keep their party name.
               */
               if (type === "customer") {
                 customers = customers.filter(
@@ -7267,16 +7281,24 @@
               }
 
               save();
-    
+
+              /*
+                saveContacts/save() queue a full sync. Reset its timer after
+                local state is updated so it can only sync the updated lists.
+              */
+              if (type === "vendor" && balTrackerAuthUser && window.supabaseClient) {
+                if (balTrackerSyncTimer) clearTimeout(balTrackerSyncTimer);
+                balTrackerSyncTimer = null;
+                queueSupabaseSync();
+              }
+
               renderContacts();
-    
-    
+
               showToast(
                 "Contact deleted successfully.",
                 "success",
                 "Contact Deleted"
               );
-    
             },
             "Delete Contact"
           );
