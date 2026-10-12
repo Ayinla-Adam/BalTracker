@@ -2937,8 +2937,7 @@
             name: String(c.name || "").trim(),
             phone: c.phone || null,
             email: c.email || null,
-            notes: c.notes || null,
-            type
+            notes: c.notes || null
           })).filter(c => c.name);
         }
 
@@ -3009,11 +3008,14 @@
             }
 
             const businessName = localStorage.getItem("baltracker_business_name");
-            const {error:profileError} = await client.from("profiles").upsert({
-              user_id:uid,
-              business_name:businessName || null,
-              display_name:balTrackerAuthUser.user_metadata?.display_name || null
-            },{onConflict:"user_id"});
+            const profileRow = { user_id: uid };
+            if (businessName) profileRow.business_name = businessName;
+            const displayName = balTrackerAuthUser.user_metadata?.display_name;
+            if (displayName) profileRow.display_name = displayName;
+            const {error:profileError} = await client.from("profiles").upsert(
+              profileRow,
+              {onConflict:"user_id"}
+            );
             if (profileError) throw profileError;
           } finally {
             balTrackerSyncRunning = false;
