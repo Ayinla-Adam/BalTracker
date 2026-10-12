@@ -649,6 +649,8 @@
 
   <div class="toast-container" id="toastContainer"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-client.js"></script>
 <script>
   function escapeHTML(value){
     return String(value ?? "").replace(/[&<>"']/g, char => ({
@@ -761,44 +763,14 @@
     }
   }
 
-  function getAccounts(){
-    try{
-      return JSON.parse(localStorage.getItem("baltracker_accounts") || "[]");
-    }catch{
-      return [];
-    }
-  }
-
-  function saveAccounts(accounts){
-    localStorage.setItem("baltracker_accounts",JSON.stringify(accounts));
-  }
-
-  function setSession(email,remember=true){
-    localStorage.setItem("baltracker_user_email",email);
-    localStorage.setItem("baltracker_session",remember ? "active" : "session");
-  }
-
-  function isBalTrackerLoggedIn(){
-    return localStorage.getItem("baltracker_session")==="active";
-  }
-
-  function bindAuthNavigation(){
-    document.querySelectorAll("[data-auth-action]").forEach(button=>{
-      button.addEventListener("click",()=>{
-        const action=button.dataset.authAction;
-        if(action==="forgot"){
-          showForgotPassword();
-        }else if(action==="signin" || action==="signup"){
-          switchAuth(action);
-        }
-      });
-    });
-  }
-
-  function initializeAuth(){
+  async function initializeAuth(){
     bindAuthNavigation();
 
-    if(isBalTrackerLoggedIn()){
+    const { data: sessionData, error: sessionError } = await window.supabaseClient.auth.getSession();
+    if(sessionError){
+      showToast("Could not verify your session. Please refresh and try again.","error","Connection Error");
+    }
+    if(sessionData?.session){
       window.location.href="main.html";
       return;
     }
@@ -807,177 +779,87 @@
     const signUpForm=document.getElementById("signUpForm");
     const forgotForm=document.getElementById("forgotForm");
 
-    signInForm.addEventListener("submit",event=>{
+    signInForm.addEventListener("submit",async event=>{
       event.preventDefault();
-
       const email=document.getElementById("signInEmail").value.trim().toLowerCase();
       const password=document.getElementById("signInPassword").value;
-      clearErrors([
-        ["signInEmailError","signInEmail"],
-        ["signInPasswordError","signInPassword"]
-      ]);
+      clearErrors([["signInEmailError","signInEmail"],["signInPasswordError","signInPassword"]]);
 
-      if(!email){
-        setCustomError("signInEmailError","signInEmail","Please enter your email address.");
-        document.getElementById("signInEmail").focus();
-        return;
-      }
-      if(!validEmail(email)){
-        setCustomError("signInEmailError","signInEmail","Please enter a valid email address.");
-        document.getElementById("signInEmail").focus();
-        return;
-      }
-      if(!password){
-        setCustomError("signInPasswordError","signInPassword","Please enter your password.");
-        document.getElementById("signInPassword").focus();
-        return;
-      }
-
-      const accounts=getAccounts();
-      const account=accounts.find(item=>item.email===email);
-
-      if(!account){
-        setCustomError("signInEmailError","signInEmail","No BalTracker account was found with this email.");
-        document.getElementById("signInEmail").focus();
-        return;
-      }
-
-      if(account.password!==password){
-        setCustomError("signInPasswordError","signInPassword","The password you entered is incorrect.");
-        document.getElementById("signInPassword").focus();
-        return;
-      }
+      if(!email){setCustomError("signInEmailError","signInEmail","Please enter your email address.");return;}
+      if(!validEmail(email)){setCustomError("signInEmailError","signInEmail","Please enter a valid email address.");return;}
+      if(!password){setCustomError("signInPasswordError","signInPassword","Please enter your password.");return;}
 
       const submit=document.getElementById("signInSubmit");
-      submit.disabled=true;
-      submit.textContent="Signing in…";
-
-      const remember=document.getElementById("rememberSignIn").checked;
-      setSession(email,remember);
-
-      setTimeout(()=>{
-        showToast("Welcome back to BalTracker.","success","Signed In");
-        window.location.href="main.html";
-      },350);
+      submit.disabled=true; submit.textContent="Signing in…";
+      const { error } = await window.supabaseClient.auth.signInWithPassword({email,password});
+      if(error){
+        submit.disabled=false; submit.textContent="Sign In";
+        showToast(error.message || "Sign in failed. Please check your details.","error","Sign In Failed");
+        return;
+      }
+      showToast("Welcome back to BalTracker.","success","Signed In");
+      window.location.href="main.html";
     });
 
-    signUpForm.addEventListener("submit",event=>{
+    signUpForm.addEventListener("submit",async event=>{
       event.preventDefault();
-
       const name=document.getElementById("signUpName").value.trim();
       const email=document.getElementById("signUpEmail").value.trim().toLowerCase();
       const password=document.getElementById("signUpPassword").value;
       const confirm=document.getElementById("signUpConfirm").value;
+      clearErrors([["signUpNameError","signUpName"],["signUpEmailError","signUpEmail"],["signUpPasswordError","signUpPassword"],["signUpConfirmError","signUpConfirm"]]);
 
-      clearErrors([
-        ["signUpNameError","signUpName"],
-        ["signUpEmailError","signUpEmail"],
-        ["signUpPasswordError","signUpPassword"],
-        ["signUpConfirmError","signUpConfirm"]
-      ]);
-
-      if(!name){
-        setCustomError("signUpNameError","signUpName","Please enter your full name.");
-        document.getElementById("signUpName").focus();
-        return;
-      }
-      if(!email){
-        setCustomError("signUpEmailError","signUpEmail","Please enter your email address.");
-        document.getElementById("signUpEmail").focus();
-        return;
-      }
-      if(!validEmail(email)){
-        setCustomError("signUpEmailError","signUpEmail","Please enter a valid email address.");
-        document.getElementById("signUpEmail").focus();
-        return;
-      }
-      if(password.length<6){
-        setCustomError("signUpPasswordError","signUpPassword","Your password must contain at least 6 characters.");
-        document.getElementById("signUpPassword").focus();
-        return;
-      }
-      if(password!==confirm){
-        setCustomError("signUpConfirmError","signUpConfirm","Passwords do not match.");
-        document.getElementById("signUpConfirm").focus();
-        return;
-      }
-
-      const accounts=getAccounts();
-      if(accounts.some(item=>item.email===email)){
-        setCustomError("signUpEmailError","signUpEmail","An account with this email already exists. Please Sign In.");
-        document.getElementById("signUpEmail").focus();
-        return;
-      }
-
-      accounts.push({name,email,password});
-      saveAccounts(accounts);
-      setSession(email,true);
+      if(!name){setCustomError("signUpNameError","signUpName","Please enter your full name.");return;}
+      if(!email){setCustomError("signUpEmailError","signUpEmail","Please enter your email address.");return;}
+      if(!validEmail(email)){setCustomError("signUpEmailError","signUpEmail","Please enter a valid email address.");return;}
+      if(password.length<6){setCustomError("signUpPasswordError","signUpPassword","Your password must contain at least 6 characters.");return;}
+      if(password!==confirm){setCustomError("signUpConfirmError","signUpConfirm","Passwords do not match.");return;}
 
       const submit=document.getElementById("signUpSubmit");
-      submit.disabled=true;
-      submit.textContent="Creating account…";
-
-      setTimeout(()=>{
+      submit.disabled=true; submit.textContent="Creating account…";
+      const { data, error } = await window.supabaseClient.auth.signUp({
+        email,password,options:{data:{display_name:name}}
+      });
+      if(error){
+        submit.disabled=false; submit.textContent="Create Account";
+        showToast(error.message || "Could not create your account.","error","Sign Up Failed");
+        return;
+      }
+      if(data.session){
         showToast("Your BalTracker account has been created.","success","Account Created");
         window.location.href="main.html";
-      },350);
+      }else{
+        submit.disabled=false; submit.textContent="Create Account";
+        showToast("Check your email to confirm your account, then sign in.","success","Confirm Your Email");
+        switchAuth("signin");
+        document.getElementById("signInEmail").value=email;
+      }
     });
 
-    forgotForm.addEventListener("submit",event=>{
+    forgotForm.addEventListener("submit",async event=>{
       event.preventDefault();
-
       const email=document.getElementById("forgotEmail").value.trim().toLowerCase();
       clearCustomError("forgotEmailError","forgotEmail");
+      if(!email){setCustomError("forgotEmailError","forgotEmail","Please enter your email address.");return;}
+      if(!validEmail(email)){setCustomError("forgotEmailError","forgotEmail","Please enter a valid email address.");return;}
 
-      if(!email){
-        setCustomError("forgotEmailError","forgotEmail","Please enter your email address.");
-        document.getElementById("forgotEmail").focus();
-        return;
-      }
-      if(!validEmail(email)){
-        setCustomError("forgotEmailError","forgotEmail","Please enter a valid email address.");
-        document.getElementById("forgotEmail").focus();
-        return;
-      }
-
-      const accounts=getAccounts();
-      const exists=accounts.some(item=>item.email===email);
-
-      // Prototype behaviour: never reveal account existence in a real system.
       const submit=document.getElementById("forgotSubmit");
-      submit.disabled=true;
-      submit.textContent="Sending…";
-
-      setTimeout(()=>{
-        submit.disabled=false;
-        submit.textContent="Reset Password";
-        showToast(
-          exists
-            ? "Password reset instructions are ready for this prototype."
-            : "If an account exists for this email, reset instructions would be sent.",
-          "info",
-          "Password Recovery"
-        );
-      },500);
+      submit.disabled=true; submit.textContent="Sending…";
+      const redirectTo=window.location.origin + window.location.pathname;
+      const { error } = await window.supabaseClient.auth.resetPasswordForEmail(email,{redirectTo});
+      submit.disabled=false; submit.textContent="Reset Password";
+      if(error){
+        showToast(error.message || "Could not request a password reset.","error","Password Recovery");
+      }else{
+        showToast("If an account exists for this email, password reset instructions will be sent.","success","Check Your Email");
+      }
     });
 
-    // Clear validation errors while typing.
-    [
-      ["signInEmail","signInEmailError"],
-      ["signInPassword","signInPasswordError"],
-      ["signUpName","signUpNameError"],
-      ["signUpEmail","signUpEmailError"],
-      ["signUpPassword","signUpPasswordError"],
-      ["signUpConfirm","signUpConfirmError"],
-      ["forgotEmail","forgotEmailError"]
-    ].forEach(([inputId,errorId])=>{
+    [["signInEmail","signInEmailError"],["signInPassword","signInPasswordError"],["signUpName","signUpNameError"],["signUpEmail","signUpEmailError"],["signUpPassword","signUpPasswordError"],["signUpConfirm","signUpConfirmError"],["forgotEmail","forgotEmailError"]].forEach(([inputId,errorId])=>{
       const input=document.getElementById(inputId);
-      if(input){
-        input.addEventListener("input",()=>clearCustomError(errorId,inputId));
-      }
+      if(input) input.addEventListener("input",()=>clearCustomError(errorId,inputId));
     });
   }
-
   document.addEventListener("DOMContentLoaded",initializeAuth);
 </script>
 </body>
