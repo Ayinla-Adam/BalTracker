@@ -50,17 +50,17 @@ for each row execute function public.set_updated_at();
 -- Stable app-generated IDs let BalTracker preserve its existing local transaction
 -- identifiers while Supabase uses UUID primary keys internally.
 alter table public.transactions add column if not exists app_id text;
-create unique index if not exists transactions_user_app_id_uidx
-  on public.transactions(user_id, app_id) where app_id is not null;
+alter table public.transactions drop constraint if exists transactions_user_app_id_key;
+alter table public.transactions add constraint transactions_user_app_id_key unique (user_id, app_id);
 
 alter table public.debt_payments add column if not exists app_id text;
-create unique index if not exists debt_payments_user_app_id_uidx
-  on public.debt_payments(user_id, app_id) where app_id is not null;
+alter table public.debt_payments drop constraint if exists debt_payments_user_app_id_key;
+alter table public.debt_payments add constraint debt_payments_user_app_id_key unique (user_id, app_id);
 
 alter table public.customers add column if not exists app_id text;
-create unique index if not exists customers_user_app_id_uidx
-  on public.customers(user_id, app_id) where app_id is not null;
+alter table public.customers drop constraint if exists customers_user_app_id_key;
+alter table public.customers add constraint customers_user_app_id_key unique (user_id, app_id);
 
 alter table public.vendors add column if not exists app_id text;
-create unique index if not exists vendors_user_app_id_uidx
-  on public.vendors(user_id, app_id) where app_id is not null;
+alter table public.vendors drop constraint if exists vendors_user_app_id_key;
+alter table public.vendors add constraint vendors_user_app_id_key unique (user_id, app_id);
