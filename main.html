@@ -3040,7 +3040,21 @@
             safeArray(getContacts("customer")).length+safeArray(getContacts("vendor")).length > 0;
 
           if (!remoteHasData && localHasData) {
-            await syncBalTrackerDataToCloud();
+            const proceed = window.confirm(
+              "BalTracker found data saved in this browser but no cloud data for this account. Import these local transactions, customers, vendors and payment records into the signed-in account? Only continue if this browser data belongs to you. Cancel to leave it on this device and start with the cloud account empty."
+            );
+            if (proceed) {
+              await syncBalTrackerDataToCloud();
+            } else {
+              transactions = [];
+              customers = [];
+              vendors = [];
+              localStorage.setItem("baltracker_transactions","[]");
+              localStorage.setItem("baltracker_customers","[]");
+              localStorage.setItem("baltracker_vendors","[]");
+              localStorage.setItem("baltracker_contact_customers","[]");
+              localStorage.setItem("baltracker_contact_vendors","[]");
+            }
             return;
           }
           if (!remoteHasData) return;
@@ -6841,6 +6855,7 @@
             key,
             JSON.stringify(list)
           );
+          queueSupabaseSync();
     
         }
     
