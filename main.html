@@ -233,6 +233,24 @@
       font-size: 13px;
     }
 
+    .user-avatar {
+      border: 0;
+      padding: 0;
+      cursor: pointer;
+      transition: .18s ease;
+    }
+
+    .user-avatar:hover {
+      background: #dbeafe;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(15, 98, 254, .14);
+    }
+
+    .user-avatar:focus-visible {
+      outline: 3px solid rgba(37, 99, 235, .2);
+      outline-offset: 2px;
+    }
+
     .content {
       padding: 28px;
       max-width: 1500px;
@@ -1807,7 +1825,13 @@
     + Add Transaction
   </button>
   
-            <div class="user-avatar" id="userAvatar">BT</div>
+            <button
+              type="button"
+              class="user-avatar"
+              id="userAvatar"
+              aria-label="Open Settings"
+              title="Open Settings"
+            >BT</button>
           </div>
   
         </header>
@@ -7239,6 +7263,75 @@
     
     
         /* =========================================================
+           USER PROFILE / AVATAR
+        ========================================================= */
+
+        function getBalTrackerUserInitials() {
+
+          const email =
+            localStorage.getItem("baltracker_user_email") || "";
+
+          let name = "";
+
+          try {
+
+            const accounts = JSON.parse(
+              localStorage.getItem("baltracker_accounts") || "[]"
+            );
+
+            const account = accounts.find(
+              item =>
+                item &&
+                String(item.email || "").toLowerCase() ===
+                  email.toLowerCase()
+            );
+
+            name = account && account.name ? account.name.trim() : "";
+
+          } catch (error) {
+            name = "";
+          }
+
+          if (name) {
+
+            const parts = name
+              .split(/\s+/)
+              .filter(Boolean);
+
+            if (parts.length >= 2) {
+              return (parts[0][0] + parts[parts.length - 1][0])
+                .toUpperCase();
+            }
+
+            return parts[0].slice(0, 2).toUpperCase();
+
+          }
+
+          const emailName =
+            email.split("@")[0].replace(/[^a-zA-Z]/g, "");
+
+          return emailName.slice(0, 2).toUpperCase() || "BT";
+
+        }
+
+        function initializeUserAvatar() {
+
+          const avatar =
+            document.getElementById("userAvatar");
+
+          if (!avatar) return;
+
+          avatar.textContent =
+            getBalTrackerUserInitials();
+
+          avatar.addEventListener("click", () => {
+            navigate("settings");
+          });
+
+        }
+
+
+        /* =========================================================
            AUTHENTICATION / LOGIN
         ========================================================= */
     
@@ -7291,6 +7384,7 @@
     
             loadSettings();
             renderAll();
+            initializeUserAvatar();
     
           }
         );
