@@ -7234,26 +7234,67 @@
             `Delete ${name} from your contacts?`,
             async () => {
               /*
-                For vendors, remove the cloud row before changing local
-                state. Clearing a queued sync first helps prevent an
-                already-scheduled upsert from immediately restoring it.
+                Remove the cloud contact before changing local state. Clear
+                any pending sync first so an old queued upsert cannot restore it.
               */
-              if (type === "vendor" && balTrackerAuthUser && window.supabaseClient) {
+              if ((type === "vendor" || type === "customer") && balTrackerAuthUser && window.supabaseClient) {
                 if (balTrackerSyncTimer) {
                   clearTimeout(balTrackerSyncTimer);
                   balTrackerSyncTimer = null;
                 }
 
-                const { error } = await window.supabaseClient
-                  .from("vendors")
-                  .delete()
-                  .eq("user_id", balTrackerAuthUser.id)
-                  .eq("app_id", String(id));
+                const client = window.supabaseClient;
+                const table = type === "customer" ? "customers" : "vendors";
 
+                if (type === "customer") {
+                  // Preserve historical transactions while removing the customer:
+                  // detach their foreign-key link but keep party_name on each transaction.
+                  const { data: matchingCustomers, error: lookupError } = await client
+                    .from("customers")
+                    .select("id")
+                    .eq("user_id", balTrackerAuthUser.id)
+                    .eq("name", name);
+
+                  if (lookupError) {
+                    console.error("Could not find customer in Supabase:", lookupError);
+                    showToast("Could not delete this customer from the cloud. Please try again.", "error", "Delete Failed");
+                    return;
+                  }
+
+                  const customerIds = (matchingCustomers || []).map(customer => customer.id);
+                  if (customerIds.length) {
+                    const { error: detachError } = await client
+                      .from("transactions")
+                      .update({ customer_id: null })
+                      .eq("user_id", balTrackerAuthUser.id)
+                      .in("customer_id", customerIds);
+
+                    if (detachError) {
+                      console.error("Could not detach customer from transactions:", detachError);
+                      showToast("Could not delete this customer because their records could not be updated.", "error", "Delete Failed");
+                      return;
+                    }
+                  }
+                }
+
+                let deleteQuery = client
+                  .from(table)
+                  .delete()
+                  .eq("user_id", balTrackerAuthUser.id);
+
+                // Use the saved app ID when available. Customer records can also
+                // be legacy contacts, so fall back to the exact contact name.
+                if (type === "vendor") {
+                  deleteQuery = deleteQuery.eq("app_id", String(id));
+                } else {
+                  deleteQuery = deleteQuery.eq("name", name);
+                }
+
+                const { error } = await deleteQuery;
                 if (error) {
-                  console.error("Could not delete vendor from Supabase:", error);
+                  console.error(`Could not delete ${type} from Supabase:`, error);
                   showToast(
-                    "Could not delete this vendor from the cloud. Please try again.",
+                    `Could not delete this ${type} from the cloud. Please try again.`,
                     "error",
                     "Delete Failed"
                   );
