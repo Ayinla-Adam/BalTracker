@@ -7570,7 +7570,8 @@
           try {
             const { data, error } = await window.supabaseClient.auth.getSession();
             if (error || !data?.session) {
-              window.location.href = "index.html";
+              const confirmedFlag = new URLSearchParams(window.location.search).get("emailConfirmed")==="1";
+              window.location.href = confirmedFlag ? "index.html?emailConfirmed=1" : "index.html";
               return;
             }
             balTrackerAuthUser = data.session.user;
@@ -7588,6 +7589,15 @@
             loadSettings();
             renderAll();
             initializeUserAvatar();
+
+            const params = new URLSearchParams(window.location.search);
+            if(params.get("emailConfirmed")==="1"){
+              showToast("Your email address has been confirmed. Welcome to BalTracker!","success","Email Confirmed");
+              params.delete("emailConfirmed");
+              const cleanUrl=window.location.pathname + (params.toString() ? "?" + params.toString() : "") + window.location.hash;
+              window.history.replaceState({},document.title,cleanUrl);
+            }
+
             window.supabaseClient.auth.onAuthStateChange((event, session) => {
               if (event === "SIGNED_OUT" || !session) window.location.href = "index.html";
             });
