@@ -3042,24 +3042,47 @@
             safeArray(getContacts("customer")).length+safeArray(getContacts("vendor")).length > 0;
 
           if (!remoteHasData && localHasData) {
-            const proceed = window.confirm(
-              "BalTracker found data saved in this browser but no cloud data for this account. Import these local transactions, customers, vendors and payment records into the signed-in account? Only continue if this browser data belongs to you. Cancel to leave it on this device and start with the cloud account empty."
-            );
-            if (proceed) {
-              await syncBalTrackerDataToCloud();
-            } else {
-              transactions = [];
-              customers = [];
-              vendors = [];
-              localStorage.setItem("baltracker_transactions","[]");
-              localStorage.setItem("baltracker_customers","[]");
-              localStorage.setItem("baltracker_vendors","[]");
-              localStorage.setItem("baltracker_contact_customers","[]");
-              localStorage.setItem("baltracker_contact_vendors","[]");
+            // Browser localStorage is shared by accounts using this app in the same browser.
+            // Legacy local data has no reliable account owner, so do not import it automatically.
+            // Preserve a backup before clearing the active working keys for this signed-in account.
+            const backupKey = "baltracker_unassigned_local_backup_v1";
+            if (!localStorage.getItem(backupKey)) {
+              localStorage.setItem(backupKey, JSON.stringify({
+                savedAt: new Date().toISOString(),
+                transactions: safeArray(transactions),
+                customers: safeArray(customers),
+                vendors: safeArray(vendors),
+                contactCustomers: safeArray(getContacts("customer")),
+                contactVendors: safeArray(getContacts("vendor"))
+              }));
             }
+
+            transactions = [];
+            customers = [];
+            vendors = [];
+            localStorage.setItem("baltracker_transactions","[]");
+            localStorage.setItem("baltracker_customers","[]");
+            localStorage.setItem("baltracker_vendors","[]");
+            localStorage.setItem("baltracker_contact_customers","[]");
+            localStorage.setItem("baltracker_contact_vendors","[]");
+            showToast(
+              "This account has no cloud data. Unassigned browser data was not imported because it may belong to another account. A local backup was preserved.",
+              "info",
+              "Separate account data"
+            );
             return;
           }
-          if (!remoteHasData) return;
+          if (!remoteHasData) {
+            transactions = [];
+            customers = [];
+            vendors = [];
+            localStorage.setItem("baltracker_transactions","[]");
+            localStorage.setItem("baltracker_customers","[]");
+            localStorage.setItem("baltracker_vendors","[]");
+            localStorage.setItem("baltracker_contact_customers","[]");
+            localStorage.setItem("baltracker_contact_vendors","[]");
+            return;
+          }
 
           const customerNameById = new Map((cr.data||[]).map(c => [c.id,c.name]));
           const paymentsByTransaction = new Map();
