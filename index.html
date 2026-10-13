@@ -431,6 +431,15 @@
   box-shadow:0 0 0 3px rgba(220,38,38,.08) !important;
 }
   
+/* Persistent, accessible authentication feedback */
+.auth-feedback{
+  display:none;padding:11px 12px;border:1px solid #fecaca;border-radius:11px;
+  background:#fff1f2;color:#b91c1c;font-size:12px;line-height:1.5;overflow-wrap:anywhere;
+}
+.auth-feedback.show{display:block;}
+.auth-feedback.success{border-color:#bbf7d0;background:#f0fdf4;color:#166534;}
+.auth-feedback.info{border-color:#bfdbfe;background:#eff6ff;color:#1d4ed8;}
+
 /* =========================
    AUTH MODE SWITCHING
 ========================= */
@@ -530,6 +539,7 @@
 
           <!-- SIGN IN -->
           <form class="login-form auth-form active" id="signInForm" novalidate>
+            <div class="auth-feedback" role="alert" aria-live="polite"></div>
             <div class="login-field">
               <label class="login-label" for="signInEmail">Email address</label>
               <input class="login-input" id="signInEmail" type="email"
@@ -563,6 +573,7 @@
 
           <!-- SIGN UP -->
           <form class="login-form auth-form" id="signUpForm" novalidate style="display:none;">
+            <div class="auth-feedback" role="alert" aria-live="polite"></div>
             <div class="login-field">
               <label class="login-label" for="signUpName">Full name</label>
               <input class="login-input" id="signUpName" type="text"
@@ -619,6 +630,7 @@
           </div>
 
           <form class="login-form" id="forgotForm" novalidate>
+            <div class="auth-feedback" role="alert" aria-live="polite"></div>
             <div class="login-field">
               <label class="login-label" for="forgotEmail">Email address</label>
               <input class="login-input" id="forgotEmail" type="email"
@@ -680,6 +692,19 @@
       toast.style.transform="translateY(8px)";
       setTimeout(()=>toast.remove(),250);
     },3200);
+  }
+
+  function showAuthFeedback(formId,message,type="error"){
+    const form=document.getElementById(formId);
+    const feedback=form?.querySelector(".auth-feedback");
+    if(!feedback) return;
+    feedback.textContent=message;
+    feedback.className="auth-feedback show"+(type==="success"?" success":type==="info"?" info":"");
+  }
+
+  function clearAuthFeedback(formId){
+    const feedback=document.getElementById(formId)?.querySelector(".auth-feedback");
+    if(feedback){feedback.textContent="";feedback.className="auth-feedback";}
   }
 
   function clearCustomError(errorId,inputId){
@@ -824,7 +849,9 @@
     }
 
     if(!window.supabaseClient?.auth){
-      showToast("BalTracker couldn't connect to Supabase. Refresh the page and check that the Supabase client script loaded.","error","Connection Error");
+      const message="BalTracker couldn't connect to Supabase. Check your internet connection, then refresh this page.";
+      ["signInForm","signUpForm","forgotForm"].forEach(id=>showAuthFeedback(id,message));
+      showToast(message,"error","Connection Error");
       return;
     }
 
@@ -833,11 +860,16 @@
       ({data:sessionData,error:sessionError}=await window.supabaseClient.auth.getSession());
     }catch(error){
       console.error("Supabase session check failed:",error);
-      showToast(getAuthErrorMessage(error,"session"),"error","Connection Error");
+      const message=getAuthErrorMessage(error,"session");
+      ["signInForm","signUpForm","forgotForm"].forEach(id=>showAuthFeedback(id,message));
+      showToast(message,"error","Connection Error");
       return;
     }
     if(sessionError){
-      showToast("Could not verify your session. Please refresh and try again.","error","Connection Error");
+      const message="Could not verify your session. Please refresh and try again.";
+      showAuthFeedback("signInForm",message);
+      showAuthFeedback("signUpForm",message);
+      showToast(message,"error","Connection Error");
     }
     if(sessionData?.session){
       window.location.href="main.html";
@@ -853,6 +885,7 @@
       const email=document.getElementById("signInEmail").value.trim().toLowerCase();
       const password=document.getElementById("signInPassword").value;
       clearErrors([["signInEmailError","signInEmail"],["signInPasswordError","signInPassword"]]);
+      clearAuthFeedback("signInForm");
 
       if(!email){setCustomError("signInEmailError","signInEmail","Please enter your email address.");return;}
       if(!validEmail(email)){setCustomError("signInEmailError","signInEmail","Please enter a valid email address.");return;}
@@ -864,7 +897,9 @@
         const { error } = await window.supabaseClient.auth.signInWithPassword({email,password});
         if(error){
           submit.disabled=false; submit.textContent="Sign In";
-          showToast(getAuthErrorMessage(error,"signin"),"error","Sign In Failed");
+          const message=getAuthErrorMessage(error,"signin");
+          showAuthFeedback("signInForm",message);
+          showToast(message,"error","Sign In Failed");
           if(String(error.code || "").toLowerCase()==="email_not_confirmed" || String(error.message || "").toLowerCase().includes("email not confirmed")){
             switchAuth("signin");
           }
@@ -875,7 +910,9 @@
       }catch(error){
         console.error("Supabase sign-in request failed:",error);
         submit.disabled=false; submit.textContent="Sign In";
-        showToast(getAuthErrorMessage(error,"signin"),"error","Connection Error");
+        const message=getAuthErrorMessage(error,"signin");
+        showAuthFeedback("signInForm",message);
+        showToast(message,"error","Connection Error");
       }
     });
 
@@ -886,6 +923,7 @@
       const password=document.getElementById("signUpPassword").value;
       const confirm=document.getElementById("signUpConfirm").value;
       clearErrors([["signUpNameError","signUpName"],["signUpEmailError","signUpEmail"],["signUpPasswordError","signUpPassword"],["signUpConfirmError","signUpConfirm"]]);
+      clearAuthFeedback("signUpForm");
 
       if(!name){setCustomError("signUpNameError","signUpName","Please enter your full name.");return;}
       if(!email){setCustomError("signUpEmailError","signUpEmail","Please enter your email address.");return;}
@@ -906,7 +944,9 @@
         });
         if(error){
           submit.disabled=false; submit.textContent="Create Account";
-          showToast(getAuthErrorMessage(error,"signup"),"error","Sign Up Failed");
+          const message=getAuthErrorMessage(error,"signup");
+          showAuthFeedback("signUpForm",message);
+          showToast(message,"error","Sign Up Failed");
           return;
         }
 
@@ -914,7 +954,9 @@
         // already-registered email, to avoid revealing whether an account exists.
         if(data.user && Array.isArray(data.user.identities) && data.user.identities.length===0){
           submit.disabled=false; submit.textContent="Create Account";
-          showToast("An account may already exist for this email. Try signing in or use Forgot Password.","error","Account May Already Exist");
+          const message="An account may already exist for this email. Try signing in or use Forgot Password.";
+          showAuthFeedback("signUpForm",message);
+          showToast(message,"error","Account May Already Exist");
           switchAuth("signin");
           document.getElementById("signInEmail").value=email;
           return;
@@ -925,14 +967,18 @@
           window.location.href="main.html";
         }else{
           submit.disabled=false; submit.textContent="Create Account";
-          showToast("Your account request was received. Open the confirmation email to verify your address before signing in.","success","Check Your Email");
+          const message="Your account request was received. Open the confirmation email to verify your address before signing in.";
+          showAuthFeedback("signInForm",message,"success");
+          showToast(message,"success","Check Your Email");
           switchAuth("signin");
           document.getElementById("signInEmail").value=email;
         }
       }catch(error){
         console.error("Supabase sign-up request failed:",error);
         submit.disabled=false; submit.textContent="Create Account";
-        showToast(getAuthErrorMessage(error,"signup"),"error","Connection Error");
+        const message=getAuthErrorMessage(error,"signup");
+        showAuthFeedback("signUpForm",message);
+        showToast(message,"error","Connection Error");
       }
     });
 
@@ -940,6 +986,7 @@
       event.preventDefault();
       const email=document.getElementById("forgotEmail").value.trim().toLowerCase();
       clearCustomError("forgotEmailError","forgotEmail");
+      clearAuthFeedback("forgotForm");
       if(!email){setCustomError("forgotEmailError","forgotEmail","Please enter your email address.");return;}
       if(!validEmail(email)){setCustomError("forgotEmailError","forgotEmail","Please enter a valid email address.");return;}
 
@@ -950,14 +997,20 @@
         const { error } = await window.supabaseClient.auth.resetPasswordForEmail(email,{redirectTo});
         submit.disabled=false; submit.textContent="Reset Password";
         if(error){
-          showToast(getAuthErrorMessage(error,"reset"),"error","Password Recovery");
+          const message=getAuthErrorMessage(error,"reset");
+          showAuthFeedback("forgotForm",message);
+          showToast(message,"error","Password Recovery");
         }else{
-          showToast("If an account exists for this email, password reset instructions will be sent.","success","Check Your Email");
+          const message="If an account exists for this email, password reset instructions will be sent.";
+          showAuthFeedback("forgotForm",message,"success");
+          showToast(message,"success","Check Your Email");
         }
       }catch(error){
         console.error("Supabase password-reset request failed:",error);
         submit.disabled=false; submit.textContent="Reset Password";
-        showToast(getAuthErrorMessage(error,"reset"),"error","Connection Error");
+        const message=getAuthErrorMessage(error,"reset");
+        showAuthFeedback("forgotForm",message);
+        showToast(message,"error","Connection Error");
       }
     });
 
