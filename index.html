@@ -636,8 +636,8 @@
         </div>
 
         <div class="login-demo-note">
-          Prototype mode: authentication is currently stored locally in this browser.
-          Connect Supabase Auth before production.
+          Your account is connected to Supabase. If email confirmation is required,
+          open the confirmation email to finish setting up your account.
         </div>
       </div>
 
@@ -710,6 +710,44 @@
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   }
 
+  function getAuthErrorMessage(error, operation){
+    const message=String(error?.message || "").toLowerCase();
+    const code=String(error?.code || "").toLowerCase();
+    const status=Number(error?.status || 0);
+
+    if(code==="email_not_confirmed" || message.includes("email not confirmed")){
+      return "Your email address has not been confirmed yet. Open the confirmation email we sent you, then try signing in again.";
+    }
+    if(code==="invalid_credentials" || message.includes("invalid login credentials") || message.includes("invalid credentials")){
+      return "The email or password is incorrect. Check your details and try again.";
+    }
+    if(code==="user_already_exists" || message.includes("user already registered") || message.includes("already been registered")){
+      return "An account may already exist for this email. Try signing in or use Forgot Password.";
+    }
+    if(code==="weak_password" || message.includes("password should be") || message.includes("password is too weak")){
+      return "This password is too weak. Please choose a stronger password and try again.";
+    }
+    if(code==="email_address_invalid" || message.includes("invalid email")){
+      return "That email address looks invalid. Check it and try again.";
+    }
+    if(code==="over_email_send_rate_limit" || message.includes("rate limit") || status===429){
+      return "Too many attempts were made in a short time. Please wait a few minutes and try again.";
+    }
+    if(message.includes("fetch") || message.includes("network") || message.includes("failed to") || status===0){
+      return "BalTracker could not reach Supabase. Check your internet connection and try again.";
+    }
+    if(operation==="signin"){
+      return "We couldn't sign you in. Check your email and password, and try again.";
+    }
+    if(operation==="signup"){
+      return "We couldn't create your account. Check your details and try again.";
+    }
+    if(operation==="reset"){
+      return "We couldn't send the password-reset request. Check your connection and try again.";
+    }
+    return "Something went wrong while contacting Supabase. Please try again.";
+  }
+
   function togglePassword(inputId,button){
     const input=document.getElementById(inputId);
     if(!input) return;
@@ -777,7 +815,27 @@
   async function initializeAuth(){
     bindAuthNavigation();
 
-    const { data: sessionData, error: sessionError } = await window.supabaseClient.auth.getSession();
+    const params=new URLSearchParams(window.location.search);
+    if(params.get("emailConfirmed")==="1"){
+      showToast("Your email confirmation link was opened. You can now sign in if you are not signed in already.","success","Email Confirmed");
+      params.delete("emailConfirmed");
+      const cleanUrl=window.location.pathname + (params.toString() ? "?" + params.toString() : "") + window.location.hash;
+      window.history.replaceState({},document.title,cleanUrl);
+    }
+
+    if(!window.supabaseClient?.auth){
+      showToast("BalTracker couldn't connect to Supabase. Refresh the page and check that the Supabase client script loaded.","error","Connection Error");
+      return;
+    }
+
+    let sessionData, sessionError;
+    try{
+      ({data:sessionData,error:sessionError}=await window.supabaseClient.auth.getSession());
+    }catch(error){
+      console.error("Supabase session check failed:",error);
+      showToast(getAuthErrorMessage(error,"session"),"error","Connection Error");
+      return;
+    }
     if(sessionError){
       showToast("Could not verify your session. Please refresh and try again.","error","Connection Error");
     }
@@ -802,14 +860,23 @@
 
       const submit=document.getElementById("signInSubmit");
       submit.disabled=true; submit.textContent="Signing in…";
-      const { error } = await window.supabaseClient.auth.signInWithPassword({email,password});
-      if(error){
+      try{
+        const { error } = await window.supabaseClient.auth.signInWithPassword({email,password});
+        if(error){
+          submit.disabled=false; submit.textContent="Sign In";
+          showToast(getAuthErrorMessage(error,"signin"),"error","Sign In Failed");
+          if(String(error.code || "").toLowerCase()==="email_not_confirmed" || String(error.message || "").toLowerCase().includes("email not confirmed")){
+            switchAuth("signin");
+          }
+          return;
+        }
+        showToast("Welcome back to BalTracker.","success","Signed In");
+        window.location.href="main.html";
+      }catch(error){
+        console.error("Supabase sign-in request failed:",error);
         submit.disabled=false; submit.textContent="Sign In";
-        showToast(error.message || "Sign in failed. Please check your details.","error","Sign In Failed");
-        return;
+        showToast(getAuthErrorMessage(error,"signin"),"error","Connection Error");
       }
-      showToast("Welcome back to BalTracker.","success","Signed In");
-      window.location.href="main.html";
     });
 
     signUpForm.addEventListener("submit",async event=>{
@@ -828,22 +895,44 @@
 
       const submit=document.getElementById("signUpSubmit");
       submit.disabled=true; submit.textContent="Creating account…";
-      const { data, error } = await window.supabaseClient.auth.signUp({
-        email,password,options:{data:{display_name:name}}
-      });
-      if(error){
+      try{
+        const { data, error } = await window.supabaseClient.auth.signUp({
+          email,
+          password,
+          options:{
+            data:{display_name:name},
+            emailRedirectTo:new URL("main.html?emailConfirmed=1",window.location.href).href
+          }
+        });
+        if(error){
+          submit.disabled=false; submit.textContent="Create Account";
+          showToast(getAuthErrorMessage(error,"signup"),"error","Sign Up Failed");
+          return;
+        }
+
+        // Supabase can intentionally return a user with no identities for an
+        // already-registered email, to avoid revealing whether an account exists.
+        if(data.user && Array.isArray(data.user.identities) && data.user.identities.length===0){
+          submit.disabled=false; submit.textContent="Create Account";
+          showToast("An account may already exist for this email. Try signing in or use Forgot Password.","error","Account May Already Exist");
+          switchAuth("signin");
+          document.getElementById("signInEmail").value=email;
+          return;
+        }
+
+        if(data.session){
+          showToast("Your BalTracker account has been created successfully.","success","Account Created");
+          window.location.href="main.html";
+        }else{
+          submit.disabled=false; submit.textContent="Create Account";
+          showToast("Your account request was received. Open the confirmation email to verify your address before signing in.","success","Check Your Email");
+          switchAuth("signin");
+          document.getElementById("signInEmail").value=email;
+        }
+      }catch(error){
+        console.error("Supabase sign-up request failed:",error);
         submit.disabled=false; submit.textContent="Create Account";
-        showToast(error.message || "Could not create your account.","error","Sign Up Failed");
-        return;
-      }
-      if(data.session){
-        showToast("Your BalTracker account has been created.","success","Account Created");
-        window.location.href="main.html";
-      }else{
-        submit.disabled=false; submit.textContent="Create Account";
-        showToast("Check your email to confirm your account, then sign in.","success","Confirm Your Email");
-        switchAuth("signin");
-        document.getElementById("signInEmail").value=email;
+        showToast(getAuthErrorMessage(error,"signup"),"error","Connection Error");
       }
     });
 
@@ -856,13 +945,19 @@
 
       const submit=document.getElementById("forgotSubmit");
       submit.disabled=true; submit.textContent="Sending…";
-      const redirectTo=window.location.origin + window.location.pathname;
-      const { error } = await window.supabaseClient.auth.resetPasswordForEmail(email,{redirectTo});
-      submit.disabled=false; submit.textContent="Reset Password";
-      if(error){
-        showToast(error.message || "Could not request a password reset.","error","Password Recovery");
-      }else{
-        showToast("If an account exists for this email, password reset instructions will be sent.","success","Check Your Email");
+      const redirectTo=window.location.href.split("#")[0].split("?")[0];
+      try{
+        const { error } = await window.supabaseClient.auth.resetPasswordForEmail(email,{redirectTo});
+        submit.disabled=false; submit.textContent="Reset Password";
+        if(error){
+          showToast(getAuthErrorMessage(error,"reset"),"error","Password Recovery");
+        }else{
+          showToast("If an account exists for this email, password reset instructions will be sent.","success","Check Your Email");
+        }
+      }catch(error){
+        console.error("Supabase password-reset request failed:",error);
+        submit.disabled=false; submit.textContent="Reset Password";
+        showToast(getAuthErrorMessage(error,"reset"),"error","Connection Error");
       }
     });
 
