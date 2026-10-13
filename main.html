@@ -2857,19 +2857,151 @@
        BALTRACKER DATA
     ========================================================= */
     
-        let transactions = JSON.parse(
-          localStorage.getItem("baltracker_transactions") || "[]"
-        );
-    
-        let customers = JSON.parse(
-          localStorage.getItem("baltracker_customers") ||
-          '[]'
-        );
-    
-        let vendors = JSON.parse(
-          localStorage.getItem("baltracker_vendors") ||
-          '[]'
-        );
+        /*
+         * Account-scoped local cache.
+         * Legacy shared keys are backed up but are never assigned to a user.
+         */
+        let balTrackerAuthUser = null;
+
+        const BALTRACKER_USERS_STORAGE_KEY = "baltracker_users_v1";
+        const BALTRACKER_LEGACY_BACKUP_KEY = "baltracker_unassigned_local_backup_v1";
+        const BALTRACKER_STORAGE_FIELDS = {
+          baltracker_transactions: "transactions",
+          baltracker_customers: "customers",
+          baltracker_vendors: "vendors",
+          baltracker_contact_customers: "contactCustomers",
+          baltracker_contact_vendors: "contactVendors",
+          baltracker_business_name: "businessName"
+        };
+
+        function readBalTrackerUsers() {
+          try {
+            const parsed = JSON.parse(localStorage.getItem(BALTRACKER_USERS_STORAGE_KEY) || "{}");
+            return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+          } catch (error) {
+            console.warn("Could not read the BalTracker account cache:", error);
+            return {};
+          }
+        }
+
+        function getCurrentBalTrackerBucket(create = false) {
+          const uid = balTrackerAuthUser?.id;
+          if (!uid) return null;
+          const users = readBalTrackerUsers();
+          if (!users[uid] && create) {
+            users[uid] = {
+              transactions: [],
+              customers: [],
+              vendors: [],
+              contactCustomers: [],
+              contactVendors: [],
+              businessName: ""
+            };
+            localStorage.setItem(BALTRACKER_USERS_STORAGE_KEY, JSON.stringify(users));
+          }
+          return users[uid] || null;
+        }
+
+        function setCurrentBalTrackerBucket(bucket) {
+          const uid = balTrackerAuthUser?.id;
+          if (!uid) return;
+          const users = readBalTrackerUsers();
+          users[uid] = {
+            transactions: safeArray(bucket.transactions),
+            customers: safeArray(bucket.customers),
+            vendors: safeArray(bucket.vendors),
+            contactCustomers: safeArray(bucket.contactCustomers),
+            contactVendors: safeArray(bucket.contactVendors),
+            businessName: String(bucket.businessName || "")
+          };
+          localStorage.setItem(BALTRACKER_USERS_STORAGE_KEY, JSON.stringify(users));
+        }
+
+        function balTrackerStorageGet(key) {
+          const field = BALTRACKER_STORAGE_FIELDS[key];
+          if (!field) return localStorage.getItem(key);
+          const bucket = getCurrentBalTrackerBucket();
+          if (!bucket || bucket[field] === undefined || bucket[field] === null) return null;
+          return field === "businessName" ? String(bucket[field] || "") : JSON.stringify(bucket[field]);
+        }
+
+        function balTrackerStorageSet(key, value) {
+          const field = BALTRACKER_STORAGE_FIELDS[key];
+          if (!field) {
+            localStorage.setItem(key, value);
+            return;
+          }
+          if (!balTrackerAuthUser?.id) return;
+          const bucket = getCurrentBalTrackerBucket(true);
+          if (field === "businessName") {
+            bucket[field] = String(value || "");
+          } else {
+            try {
+              const parsed = JSON.parse(value || "[]");
+              bucket[field] = Array.isArray(parsed) ? parsed : [];
+            } catch (error) {
+              console.warn("Skipped invalid account-scoped data for", key, error);
+              return;
+            }
+          }
+          setCurrentBalTrackerBucket(bucket);
+        }
+
+        function balTrackerStorageRemove(key) {
+          const field = BALTRACKER_STORAGE_FIELDS[key];
+          if (!field) {
+            localStorage.removeItem(key);
+            return;
+          }
+          const bucket = getCurrentBalTrackerBucket();
+          if (!bucket) return;
+          if (field === "businessName") bucket[field] = "";
+          else bucket[field] = [];
+          setCurrentBalTrackerBucket(bucket);
+        }
+
+        function backupUnassignedLegacyData() {
+          if (localStorage.getItem(BALTRACKER_LEGACY_BACKUP_KEY)) return;
+          const keys = [
+            "baltracker_transactions",
+            "baltracker_customers",
+            "baltracker_vendors",
+            "baltracker_contact_customers",
+            "baltracker_contact_vendors"
+          ];
+          const hasLegacyData = keys.some(key => {
+            const raw = localStorage.getItem(key);
+            if (!raw) return false;
+            try {
+              const parsed = JSON.parse(raw);
+              return Array.isArray(parsed) && parsed.length > 0;
+            } catch (error) {
+              return false;
+            }
+          });
+          if (!hasLegacyData) return;
+          const parseLegacy = key => {
+            try {
+              const value = JSON.parse(localStorage.getItem(key) || "[]");
+              return Array.isArray(value) ? value : [];
+            } catch (error) {
+              return [];
+            }
+          };
+          localStorage.setItem(BALTRACKER_LEGACY_BACKUP_KEY, JSON.stringify({
+            savedAt: new Date().toISOString(),
+            reason: "Legacy records had no verified Supabase account owner; kept separate to prevent cross-account import.",
+            transactions: parseLegacy("baltracker_transactions"),
+            customers: parseLegacy("baltracker_customers"),
+            vendors: parseLegacy("baltracker_vendors"),
+            contactCustomers: parseLegacy("baltracker_contact_customers"),
+            contactVendors: parseLegacy("baltracker_contact_vendors")
+          }));
+        }
+
+        let transactions = [];
+        let customers = [];
+        let vendors = [];
     
         let currentPartyMode = {
           customer: "existing",
@@ -2888,9 +3020,9 @@
         let balTrackerSyncPending = false;
 
         function save() {
-          localStorage.setItem("baltracker_transactions", JSON.stringify(transactions));
-          localStorage.setItem("baltracker_customers", JSON.stringify(customers));
-          localStorage.setItem("baltracker_vendors", JSON.stringify(vendors));
+          balTrackerStorageSet("baltracker_transactions", JSON.stringify(transactions));
+          balTrackerStorageSet("baltracker_customers", JSON.stringify(customers));
+          balTrackerStorageSet("baltracker_vendors", JSON.stringify(vendors));
           queueSupabaseSync();
         }
 
@@ -3007,7 +3139,7 @@
               if (error) throw error;
             }
 
-            const businessName = localStorage.getItem("baltracker_business_name");
+            const businessName = balTrackerStorageGet("baltracker_business_name");
             const profileRow = { user_id: uid };
             if (businessName) profileRow.business_name = businessName;
             const displayName = balTrackerAuthUser.user_metadata?.display_name;
@@ -3029,6 +3161,7 @@
         async function loadBalTrackerDataFromCloud() {
           const client = window.supabaseClient;
           const uid = balTrackerAuthUser.id;
+          backupUnassignedLegacyData();
           const [cr,vr,tr,pr] = await Promise.all([
             client.from("customers").select("id,app_id,name,phone,email,notes").eq("user_id",uid),
             client.from("vendors").select("id,app_id,name,phone,email,notes").eq("user_id",uid),
@@ -3038,49 +3171,34 @@
           for (const result of [cr,vr,tr,pr]) if (result.error) throw result.error;
 
           const remoteHasData = (cr.data||[]).length+(vr.data||[]).length+(tr.data||[]).length+(pr.data||[]).length > 0;
-          const localHasData = safeArray(transactions).length+safeArray(customers).length+safeArray(vendors).length+
-            safeArray(getContacts("customer")).length+safeArray(getContacts("vendor")).length > 0;
 
-          if (!remoteHasData && localHasData) {
-            // Browser localStorage is shared by accounts using this app in the same browser.
-            // Legacy local data has no reliable account owner, so do not import it automatically.
-            // Preserve a backup before clearing the active working keys for this signed-in account.
-            const backupKey = "baltracker_unassigned_local_backup_v1";
-            if (!localStorage.getItem(backupKey)) {
-              localStorage.setItem(backupKey, JSON.stringify({
-                savedAt: new Date().toISOString(),
-                transactions: safeArray(transactions),
-                customers: safeArray(customers),
-                vendors: safeArray(vendors),
-                contactCustomers: safeArray(getContacts("customer")),
-                contactVendors: safeArray(getContacts("vendor"))
-              }));
-            }
-
-            transactions = [];
-            customers = [];
-            vendors = [];
-            localStorage.setItem("baltracker_transactions","[]");
-            localStorage.setItem("baltracker_customers","[]");
-            localStorage.setItem("baltracker_vendors","[]");
-            localStorage.setItem("baltracker_contact_customers","[]");
-            localStorage.setItem("baltracker_contact_vendors","[]");
-            showToast(
-              "This account has no cloud data. Unassigned browser data was not imported because it may belong to another account. A local backup was preserved.",
-              "info",
-              "Separate account data"
-            );
-            return;
-          }
           if (!remoteHasData) {
-            transactions = [];
-            customers = [];
-            vendors = [];
-            localStorage.setItem("baltracker_transactions","[]");
-            localStorage.setItem("baltracker_customers","[]");
-            localStorage.setItem("baltracker_vendors","[]");
-            localStorage.setItem("baltracker_contact_customers","[]");
-            localStorage.setItem("baltracker_contact_vendors","[]");
+            /*
+             * Only this Supabase user's cache can be restored here. Unassigned
+             * legacy browser records are never read into the active account.
+             */
+            const bucket = getCurrentBalTrackerBucket();
+            transactions = safeArray(bucket?.transactions);
+            customers = safeArray(bucket?.customers);
+            vendors = safeArray(bucket?.vendors);
+            balTrackerStorageSet("baltracker_contact_customers", JSON.stringify(safeArray(bucket?.contactCustomers)));
+            balTrackerStorageSet("baltracker_contact_vendors", JSON.stringify(safeArray(bucket?.contactVendors)));
+            balTrackerStorageSet("baltracker_transactions", JSON.stringify(transactions));
+            balTrackerStorageSet("baltracker_customers", JSON.stringify(customers));
+            balTrackerStorageSet("baltracker_vendors", JSON.stringify(vendors));
+
+            const cacheHasData = transactions.length + customers.length + vendors.length +
+              safeArray(bucket?.contactCustomers).length + safeArray(bucket?.contactVendors).length > 0;
+            if (cacheHasData) {
+              await syncBalTrackerDataToCloud();
+              showToast("Your saved data for this account has been restored.", "success", "Account Data Restored");
+            } else {
+              showToast(
+                "This account has no cloud data yet. Older browser data, if present, was kept in a separate backup and was not imported.",
+                "info",
+                "New Account"
+              );
+            }
             return;
           }
 
@@ -3110,11 +3228,11 @@
           });
           customers = (cr.data||[]).map(c=>c.name).filter(Boolean);
           vendors = (vr.data||[]).map(v=>v.name).filter(Boolean);
-          localStorage.setItem("baltracker_transactions",JSON.stringify(transactions));
-          localStorage.setItem("baltracker_customers",JSON.stringify(customers));
-          localStorage.setItem("baltracker_vendors",JSON.stringify(vendors));
-          localStorage.setItem("baltracker_contact_customers",JSON.stringify((cr.data||[]).map(c=>({id:c.app_id||c.id,name:c.name,phone:c.phone||"",email:c.email||"",notes:c.notes||"",type:"customer"}))));
-          localStorage.setItem("baltracker_contact_vendors",JSON.stringify((vr.data||[]).map(v=>({id:v.app_id||v.id,name:v.name,phone:v.phone||"",email:v.email||"",notes:v.notes||"",type:"vendor"}))));
+          balTrackerStorageSet("baltracker_transactions",JSON.stringify(transactions));
+          balTrackerStorageSet("baltracker_customers",JSON.stringify(customers));
+          balTrackerStorageSet("baltracker_vendors",JSON.stringify(vendors));
+          balTrackerStorageSet("baltracker_contact_customers",JSON.stringify((cr.data||[]).map(c=>({id:c.app_id||c.id,name:c.name,phone:c.phone||"",email:c.email||"",notes:c.notes||"",type:"customer"}))));
+          balTrackerStorageSet("baltracker_contact_vendors",JSON.stringify((vr.data||[]).map(v=>({id:v.app_id||v.id,name:v.name,phone:v.phone||"",email:v.email||"",notes:v.notes||"",type:"vendor"}))));
         }
 
         /* =========================================================
@@ -6733,9 +6851,7 @@
     
               let contactList =
                 JSON.parse(
-                  localStorage.getItem(
-                    contactKey
-                  ) || "[]"
+                  balTrackerStorageGet(contactKey) || "[]"
                 );
     
     
@@ -6778,7 +6894,7 @@
               }
     
     
-              localStorage.setItem(
+              balTrackerStorageSet(
                 contactKey,
                 JSON.stringify(contactList)
               );
@@ -6858,8 +6974,7 @@
     
     
           return JSON.parse(
-            localStorage.getItem(key) ||
-            "[]"
+            balTrackerStorageGet(key) || "[]"
           );
     
         }
@@ -6876,7 +6991,7 @@
               : "baltracker_contact_vendors";
     
     
-          localStorage.setItem(
+          balTrackerStorageSet(
             key,
             JSON.stringify(list)
           );
@@ -7395,7 +7510,7 @@
           }
     
     
-          localStorage.setItem(
+          balTrackerStorageSet(
             "baltracker_business_name",
             businessName
           );
@@ -7415,7 +7530,7 @@
         function loadSettings() {
     
           const saved =
-            localStorage.getItem(
+            balTrackerStorageGet(
               "baltracker_business_name"
             );
     
@@ -7449,25 +7564,11 @@
               vendors = [];
     
     
-              localStorage.removeItem(
-                "baltracker_transactions"
-              );
-    
-              localStorage.removeItem(
-                "baltracker_customers"
-              );
-    
-              localStorage.removeItem(
-                "baltracker_vendors"
-              );
-    
-              localStorage.removeItem(
-                "baltracker_contact_customers"
-              );
-    
-              localStorage.removeItem(
-                "baltracker_contact_vendors"
-              );
+              balTrackerStorageSet("baltracker_transactions", "[]");
+              balTrackerStorageSet("baltracker_customers", "[]");
+              balTrackerStorageSet("baltracker_vendors", "[]");
+              balTrackerStorageSet("baltracker_contact_customers", "[]");
+              balTrackerStorageSet("baltracker_contact_vendors", "[]");
     
     
               renderAll();
@@ -7578,8 +7679,6 @@
         /* =========================================================
            SUPABASE AUTHENTICATION / STARTUP
         ========================================================= */
-        let balTrackerAuthUser = null;
-
         async function logoutBalTracker() {
           const { error } = await window.supabaseClient.auth.signOut();
           if (error) {
@@ -7606,7 +7705,7 @@
               .eq("user_id", balTrackerAuthUser.id)
               .maybeSingle();
             if (profileError) console.warn("Could not load profile:", profileError.message);
-            if (profile?.business_name) localStorage.setItem("baltracker_business_name", profile.business_name);
+            if (profile?.business_name) balTrackerStorageSet("baltracker_business_name", profile.business_name);
 
             await loadBalTrackerDataFromCloud();
             loadSettings();
