@@ -647,6 +647,45 @@
           </div>
         </div>
 
+        <!-- SET NEW PASSWORD: opened only from a valid recovery link -->
+        <div id="resetPasswordView" class="auth-view">
+          <button type="button" class="auth-back" data-auth-action="signin">← Back to Sign In</button>
+
+          <div class="login-heading">
+            <h1>Set a new password</h1>
+            <p>Choose a new password for your BalTracker account.</p>
+          </div>
+
+          <form class="login-form" id="resetPasswordForm" novalidate>
+            <div class="auth-feedback" role="alert" aria-live="polite"></div>
+
+            <div class="login-field">
+              <label class="login-label" for="newPassword">New password</label>
+              <div class="login-input-wrap">
+                <input class="login-input password" id="newPassword" type="password"
+                       autocomplete="new-password" placeholder="Enter your new password">
+                <button type="button" class="password-toggle" onclick="togglePassword('newPassword', this)"
+                        aria-label="Show password">◉</button>
+              </div>
+              <div class="custom-form-error" id="newPasswordError"></div>
+              <div class="password-requirements">Use at least 6 characters.</div>
+            </div>
+
+            <div class="login-field">
+              <label class="login-label" for="confirmNewPassword">Confirm new password</label>
+              <div class="login-input-wrap">
+                <input class="login-input password" id="confirmNewPassword" type="password"
+                       autocomplete="new-password" placeholder="Enter your new password again">
+                <button type="button" class="password-toggle" onclick="togglePassword('confirmNewPassword', this)"
+                        aria-label="Show password">◉</button>
+              </div>
+              <div class="custom-form-error" id="confirmNewPasswordError"></div>
+            </div>
+
+            <button type="submit" class="login-submit" id="saveNewPasswordSubmit">Save New Password</button>
+          </form>
+        </div>
+
         <div class="login-demo-note">
           Your account is connected to Supabase. If email confirmation is required,
           open the confirmation email to finish setting up your account.
@@ -784,6 +823,7 @@
   function switchAuth(mode){
     const main=document.getElementById("mainAuthView");
     const forgot=document.getElementById("forgotView");
+    const reset=document.getElementById("resetPasswordView");
     const signIn=document.getElementById("signInForm");
     const signUp=document.getElementById("signUpForm");
     const signInTab=document.getElementById("signInTab");
@@ -795,11 +835,20 @@
     if(mode==="forgot"){
       main.classList.remove("active");
       forgot.classList.add("active");
+      reset.classList.remove("active");
+      return;
+    }
+
+    if(mode==="reset"){
+      main.classList.remove("active");
+      forgot.classList.remove("active");
+      reset.classList.add("active");
       return;
     }
 
     main.classList.add("active");
     forgot.classList.remove("active");
+    reset.classList.remove("active");
 
     const isSignUp=mode==="signup";
     signIn.style.display=isSignUp ? "none" : "flex";
@@ -850,10 +899,81 @@
 
     if(!window.supabaseClient?.auth){
       const message="BalTracker couldn't connect to Supabase. Check your internet connection, then refresh this page.";
-      ["signInForm","signUpForm","forgotForm"].forEach(id=>showAuthFeedback(id,message));
+      ["signInForm","signUpForm","forgotForm","resetPasswordForm"].forEach(id=>showAuthFeedback(id,message));
       showToast(message,"error","Connection Error");
       return;
     }
+
+    const resetPasswordForm=document.getElementById("resetPasswordForm");
+    const resetParams=new URLSearchParams(window.location.search);
+    const resetHashParams=new URLSearchParams(window.location.hash.replace(/^#/,""));
+    const recoveryError=resetParams.get("error_description") || resetHashParams.get("error_description");
+    const isPasswordRecovery=
+      resetParams.get("passwordRecovery")==="1" ||
+      resetParams.get("type")==="recovery" ||
+      resetHashParams.get("type")==="recovery";
+
+    if(recoveryError){
+      switchAuth("signin");
+      const message="This password-reset link is invalid or has expired. Please request a new one.";
+      showAuthFeedback("signInForm",message);
+      showToast(message,"error","Password Reset Link");
+      window.history.replaceState({},document.title,window.location.pathname);
+    }
+
+    resetPasswordForm.addEventListener("submit",async event=>{
+      event.preventDefault();
+      const password=document.getElementById("newPassword").value;
+      const confirmation=document.getElementById("confirmNewPassword").value;
+      clearErrors([["newPasswordError","newPassword"],["confirmNewPasswordError","confirmNewPassword"]]);
+      clearAuthFeedback("resetPasswordForm");
+
+      if(password.length<6){
+        setCustomError("newPasswordError","newPassword","Your password must contain at least 6 characters.");
+        return;
+      }
+      if(password!==confirmation){
+        setCustomError("confirmNewPasswordError","confirmNewPassword","Passwords do not match.");
+        return;
+      }
+
+      const submit=document.getElementById("saveNewPasswordSubmit");
+      submit.disabled=true;
+      submit.textContent="Saving…";
+      try{
+        const {error}=await window.supabaseClient.auth.updateUser({password});
+        if(error){
+          const message=getAuthErrorMessage(error,"reset");
+          showAuthFeedback("resetPasswordForm",message);
+          showToast(message,"error","Password Update Failed");
+          submit.disabled=false;
+          submit.textContent="Save New Password";
+          return;
+        }
+
+        const {error:signOutError}=await window.supabaseClient.auth.signOut({scope:"local"});
+        if(signOutError) console.warn("Password updated, but local sign-out failed:",signOutError.message);
+
+        document.getElementById("newPassword").value="";
+        document.getElementById("confirmNewPassword").value="";
+        window.history.replaceState({},document.title,window.location.pathname);
+        switchAuth("signin");
+        showAuthFeedback("signInForm","Your password has been updated. Please sign in with your new password.","success");
+        showToast("Your password has been changed successfully.","success","Password Updated");
+        submit.disabled=false;
+        submit.textContent="Save New Password";
+      }catch(error){
+        console.error("BalTracker password update failed:",error);
+        const message=getAuthErrorMessage(error,"reset");
+        showAuthFeedback("resetPasswordForm",message);
+        showToast(message,"error","Password Update Failed");
+        submit.disabled=false;
+        submit.textContent="Save New Password";
+      }
+    });
+
+    document.getElementById("newPassword").addEventListener("input",()=>clearCustomError("newPasswordError","newPassword"));
+    document.getElementById("confirmNewPassword").addEventListener("input",()=>clearCustomError("confirmNewPasswordError","confirmNewPassword"));
 
     let sessionData, sessionError;
     try{
@@ -871,6 +991,23 @@
       showAuthFeedback("signUpForm",message);
       showToast(message,"error","Connection Error");
     }
+    if(isPasswordRecovery){
+      if(sessionData?.session){
+        switchAuth("reset");
+        // Supabase has processed the recovery callback. Remove tokens/codes from
+        // the visible URL only after the client has had a chance to establish session.
+        window.history.replaceState({},document.title,window.location.pathname);
+      }else{
+        switchAuth("reset");
+        const message="This password-reset link is invalid or has expired. Please request a new one.";
+        showAuthFeedback("resetPasswordForm",message);
+        showToast(message,"error","Password Reset Link");
+        const saveButton=document.getElementById("saveNewPasswordSubmit");
+        saveButton.disabled=true;
+      }
+      return;
+    }
+
     if(sessionData?.session){
       window.location.href="main.html";
       return;
@@ -992,9 +1129,10 @@
 
       const submit=document.getElementById("forgotSubmit");
       submit.disabled=true; submit.textContent="Sending…";
-      const redirectTo=window.location.href.split("#")[0].split("?")[0];
+      const redirectTo=new URL(window.location.pathname,window.location.origin);
+      redirectTo.searchParams.set("passwordRecovery","1");
       try{
-        const { error } = await window.supabaseClient.auth.resetPasswordForEmail(email,{redirectTo});
+        const { error } = await window.supabaseClient.auth.resetPasswordForEmail(email,{redirectTo:redirectTo.href});
         submit.disabled=false; submit.textContent="Reset Password";
         if(error){
           const message=getAuthErrorMessage(error,"reset");
