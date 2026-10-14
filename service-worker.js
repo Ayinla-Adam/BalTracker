@@ -7,7 +7,6 @@ const APP_SHELL = [
   "./pwa.js",
   "./manifest.json",
   "./balTracker-logo.png",
-  "./baltracker-pwa-icon.svg"
 ];
 
 self.addEventListener("install", (event) => {
@@ -68,7 +67,7 @@ self.addEventListener("fetch", (event) => {
   const shellPath = url.pathname.split("/").pop();
   const cacheableFiles = new Set([
     "index.html", "main.html", "supabase-client.js", "pwa.js",
-    "manifest.json", "balTracker-logo.png", "baltracker-pwa-icon.svg"
+    "manifest.json", "balTracker-logo.png"
   ]);
   if (!cacheableFiles.has(shellPath)) return;
 
