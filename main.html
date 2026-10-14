@@ -1724,7 +1724,80 @@
   box-shadow:0 0 0 3px rgba(220,38,38,.08) !important;
 }
 
-  </style>
+  
+/* =========================
+   RESPONSIVE LAYOUT HARDENING
+========================= */
+html, body { width: 100%; max-width: 100%; }
+body { overflow-x: hidden; }
+.app, .main, .content, .card, .card-body, .card-header,
+.dashboard-grid, .stats-grid, .contacts-grid, .settings-grid,
+.form-grid, .form-group, .topbar, .page-header { min-width: 0; }
+img, svg, video, canvas { max-width: 100%; }
+button, input, select, textarea { max-width: 100%; }
+.content { width: 100%; }
+.table-wrap { width: 100%; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.table-wrap table { min-width: 620px; }
+.modal-overlay { overflow-y: auto; overscroll-behavior: contain; align-items: center; }
+.modal { width: min(100%, 560px); max-width: 100%; max-height: calc(100vh - 40px); max-height: calc(100dvh - 40px); overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; }
+.modal input, .modal select, .modal textarea, .modal .custom-select { width: 100%; min-width: 0; }
+.toast-container { width: min(360px, calc(100vw - 32px)); right: max(16px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom)); }
+.toast { min-width: 0; width: 100%; overflow-wrap: anywhere; }
+.sidebar { overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; }
+.sidebar-logo img { max-width: 100%; }
+.quick-actions > *, .stats-grid > *, .dashboard-grid > *, .contacts-grid > * { min-width: 0; }
+.page-title, .welcome h1, .card-header, .stat-label, .activity-item, .topbar * { overflow-wrap: anywhere; }
+@media (max-width: 1100px) {
+  .dashboard-grid { grid-template-columns: minmax(0, 1fr); }
+  .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .contacts-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 800px) {
+  .sidebar { width: min(82vw, 300px); max-width: calc(100vw - 44px); padding-top: max(16px, env(safe-area-inset-top)); padding-bottom: max(16px, env(safe-area-inset-bottom)); }
+  .main { margin-left: 0; width: 100%; max-width: 100%; }
+  .topbar { min-height: 64px; height: auto; padding: 10px 14px; gap: 10px; flex-wrap: wrap; }
+  .topbar > * { min-width: 0; }
+  .content { padding: clamp(14px, 3vw, 20px); }
+  .form-grid { grid-template-columns: minmax(0, 1fr); }
+  .form-group.full { grid-column: auto; }
+  .modal-overlay { padding: 12px; }
+  .modal { max-height: calc(100vh - 24px); max-height: calc(100dvh - 24px); }
+  .modal-header { padding: 15px; gap: 10px; }
+  .modal-body { padding: 15px; }
+}
+@media (max-width: 700px) {
+  .stats-grid, .contacts-grid { grid-template-columns: minmax(0, 1fr); }
+  .quick-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .health-gauge { width: min(100%, 360px); padding-inline: 0; }
+  .health-metrics { grid-template-columns: minmax(0, 1fr); }
+  .card-header { align-items: flex-start; flex-wrap: wrap; gap: 10px; }
+  .card-header > * { min-width: 0; }
+  .btn, .quick-btn { max-width: 100%; white-space: normal; }
+  .page-title { font-size: clamp(16px, 4.5vw, 19px); }
+  .welcome h1 { font-size: clamp(21px, 6vw, 25px); }
+}
+@media (max-width: 500px) {
+  .content { padding: 12px; }
+  .topbar { padding: 10px 12px; }
+  .quick-actions { gap: 8px; }
+  .quick-actions > * { min-width: 0; }
+  .card { border-radius: 14px; }
+  .card-header, .card-body { padding: 13px; }
+  .modal-overlay { padding: 8px; align-items: flex-end; }
+  .modal { width: 100%; border-radius: 18px 18px 12px 12px; max-height: calc(100vh - 16px); max-height: calc(100dvh - 16px); }
+  .modal-header, .modal-body { padding: 13px; }
+  .modal-footer { display: flex; flex-wrap: wrap; gap: 8px; }
+  .modal-footer > button { flex: 1 1 120px; }
+  .toast-container { left: 12px; right: 12px; bottom: max(12px, env(safe-area-inset-bottom)); width: auto; }
+}
+@media (max-width: 360px) {
+  .quick-actions { grid-template-columns: minmax(0, 1fr); }
+  .content { padding: 9px; }
+  .topbar { gap: 7px; }
+  .login-card { padding: 16px; }
+}
+
+</style>
 
 </head>
 <body>
