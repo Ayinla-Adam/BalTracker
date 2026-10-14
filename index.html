@@ -907,9 +907,14 @@
     const resetPasswordForm=document.getElementById("resetPasswordForm");
     const resetParams=new URLSearchParams(window.location.search);
     const resetHashParams=new URLSearchParams(window.location.hash.replace(/^#/,""));
-    const recoveryError=resetParams.get("error_description") || resetHashParams.get("error_description");
+    const recoveryError=
+      resetParams.get("error_description") ||
+      resetHashParams.get("error_description") ||
+      resetParams.get("error_code") ||
+      resetHashParams.get("error_code") ||
+      resetParams.get("error") ||
+      resetHashParams.get("error");
     const isPasswordRecovery=
-      resetParams.get("passwordRecovery")==="1" ||
       resetParams.get("type")==="recovery" ||
       resetHashParams.get("type")==="recovery";
 
@@ -1129,10 +1134,11 @@
 
       const submit=document.getElementById("forgotSubmit");
       submit.disabled=true; submit.textContent="Sending…";
-      const redirectTo=new URL(window.location.pathname,window.location.origin);
-      redirectTo.searchParams.set("passwordRecovery","1");
+      // Use the clean auth-page URL. Supabase marks a successful recovery callback
+      // with type=recovery in the URL hash, avoiding a query-specific redirect allowlist.
+      const redirectTo=new URL(window.location.pathname,window.location.origin).href;
       try{
-        const { error } = await window.supabaseClient.auth.resetPasswordForEmail(email,{redirectTo:redirectTo.href});
+        const { error } = await window.supabaseClient.auth.resetPasswordForEmail(email,{redirectTo});
         submit.disabled=false; submit.textContent="Reset Password";
         if(error){
           const message=getAuthErrorMessage(error,"reset");
