@@ -7865,6 +7865,12 @@ button, input, select, textarea { max-width: 100%; }
             // Push that snapshot before downloading cloud data, otherwise a fresh
             // cloud load could overwrite unsynchronized local changes.
             if (localStorage.getItem(BALTRACKER_SYNC_PENDING_PREFIX + balTrackerAuthUser.id) === "1") {
+              const pendingBucket = getCurrentBalTrackerBucket();
+              if (pendingBucket) {
+                transactions = safeArray(pendingBucket.transactions);
+                customers = safeArray(pendingBucket.customers);
+                vendors = safeArray(pendingBucket.vendors);
+              }
               await syncBalTrackerDataToCloud();
             }
             await loadBalTrackerDataFromCloud();
