@@ -3136,8 +3136,9 @@ button, input, select, textarea { max-width: 100%; }
         }
 
         function queueSupabaseSync() {
-          if (!balTrackerAuthUser || !window.supabaseClient) return;
+          if (!balTrackerAuthUser) return;
           markBalTrackerSyncPending();
+          if (!window.supabaseClient) return;
           if (!navigator.onLine) return;
           if (balTrackerSyncTimer) clearTimeout(balTrackerSyncTimer);
           balTrackerSyncTimer = setTimeout(() => {
@@ -3195,6 +3196,65 @@ button, input, select, textarea { max-width: 100%; }
           })).filter(c => c.name);
         }
 
+        function pendingTransactionDeletesKey(uid = balTrackerAuthUser?.id) {
+          return uid ? "baltracker_deleted_transactions_v1:" + uid : null;
+        }
+
+        function queueTransactionDeleteForCloud(appId) {
+          const key = pendingTransactionDeletesKey();
+          if (!key || !appId) return;
+          try {
+            const parsed = JSON.parse(localStorage.getItem(key) || "[]");
+            const ids = Array.isArray(parsed) ? parsed : [];
+            if (!ids.includes(String(appId))) ids.push(String(appId));
+            localStorage.setItem(key, JSON.stringify(ids));
+            markBalTrackerSyncPending();
+          } catch (error) {
+            console.warn("Could not queue transaction deletion:", error);
+          }
+        }
+
+        async function flushPendingTransactionDeletes() {
+          if (!balTrackerAuthUser?.id || !window.supabaseClient || !navigator.onLine) return;
+          const uid = balTrackerAuthUser.id;
+          const key = pendingTransactionDeletesKey(uid);
+          let ids = [];
+          try {
+            const parsed = JSON.parse(localStorage.getItem(key) || "[]");
+            ids = Array.isArray(parsed) ? parsed : [];
+          } catch (error) {}
+          if (!ids.length) return;
+
+          const remaining = [];
+          for (const appId of ids) {
+            try {
+              const { data: row, error: findError } = await window.supabaseClient
+                .from("transactions").select("id")
+                .eq("user_id", uid).eq("app_id", String(appId)).maybeSingle();
+              if (findError) throw findError;
+              if (row?.id) {
+                const { error: paymentError } = await window.supabaseClient
+                  .from("debt_payments").delete()
+                  .eq("user_id", uid).eq("transaction_id", row.id);
+                if (paymentError) throw paymentError;
+                const { error: transactionError } = await window.supabaseClient
+                  .from("transactions").delete().eq("user_id", uid).eq("id", row.id);
+                if (transactionError) throw transactionError;
+              }
+            } catch (error) {
+              console.error("Could not sync transaction deletion:", error);
+              remaining.push(String(appId));
+            }
+          }
+
+          if (remaining.length) {
+            localStorage.setItem(key, JSON.stringify(remaining));
+            markBalTrackerSyncPending();
+            throw new Error("Some deleted transactions are still waiting to sync.");
+          }
+          localStorage.removeItem(key);
+        }
+
         async function syncBalTrackerDataToCloud() {
           if (!balTrackerAuthUser || !window.supabaseClient) return;
           if (balTrackerSyncRunning) { balTrackerSyncPending = true; return; }
@@ -3202,6 +3262,7 @@ button, input, select, textarea { max-width: 100%; }
           try {
             const uid = balTrackerAuthUser.id;
             const client = window.supabaseClient;
+            await flushPendingTransactionDeletes();
             const customerRows = contactRows("customer").map(c => ({...c,user_id:uid}));
             const vendorRows = contactRows("vendor").map(c => ({...c,user_id:uid}));
 
@@ -4331,16 +4392,20 @@ button, input, select, textarea { max-width: 100%; }
           const gaugeDot = document.getElementById("healthGaugeDot");
     
           if (gauge) {
-            const gaugeLength = gauge.getTotalLength();
-            const gaugeScore = h.hasData ? Math.max(0, Math.min(100, h.score)) : 0;
-    
-            gauge.style.strokeDasharray = gaugeLength;
-            gauge.style.strokeDashoffset = gaugeLength * (1 - gaugeScore / 100);
+            const gaugeScore = h.hasData ? Math.max(0, Math.min(100, Number(h.score) || 0)) : 0;
+            let gaugeLength = 282.743;
+            try {
+              if (typeof gauge.getTotalLength === "function") gaugeLength = gauge.getTotalLength() || gaugeLength;
+            } catch (error) {
+              // Use the known semicircle length when SVG metrics are unavailable.
+            }
+            gauge.style.strokeDasharray = String(gaugeLength);
+            gauge.style.strokeDashoffset = String(gaugeLength * (1 - gaugeScore / 100));
             gauge.style.opacity = h.hasData ? "1" : "0";
           }
-    
+
           if (gaugeDot) {
-            const score = h.hasData ? Math.max(0, Math.min(100, h.score)) : 0;
+            const score = h.hasData ? Math.max(0, Math.min(100, Number(h.score) || 0)) : 0;
             const angle = Math.PI - (score / 100) * Math.PI;
             const cx = 110 + 90 * Math.cos(angle);
             const cy = 110 - 90 * Math.sin(angle);
@@ -6593,6 +6658,34 @@ button, input, select, textarea { max-width: 100%; }
            ACTIVITY
         ========================================================= */
     
+        function deleteTransaction(id) {
+          const transaction = transactions.find(t => String(t.id) === String(id));
+          if (!transaction) {
+            showToast("This transaction could not be found.", "error", "Not Found");
+            return;
+          }
+          showConfirm(
+            "Delete this " + typeLabel(transaction.type).toLowerCase() + " of " +
+              formatMoney(transaction.amount) +
+              "? Its repayment history will also be removed. This action cannot be undone.",
+            () => {
+              queueTransactionDeleteForCloud(transaction.id);
+              transactions = transactions.filter(t => String(t.id) !== String(id));
+              save();
+              renderAll();
+              showToast(
+                navigator.onLine
+                  ? "Transaction deleted. Cloud deletion will sync shortly."
+                  : "Transaction deleted on this device. The deletion will sync when you reconnect.",
+                "success",
+                "Transaction Deleted"
+              );
+            },
+            "Delete Transaction"
+          );
+        }
+
+
         function renderActivity() {
     
           const container =
@@ -6786,6 +6879,11 @@ button, input, select, textarea { max-width: 100%; }
                       >
                         View
                       </button>
+                      <button
+                        class="btn btn-danger"
+                        onclick="deleteTransaction('${escapeHTML(t.id)}')"
+                        style="min-height:34px;padding:0 10px;font-size:10px;margin-left:5px;"
+                      >Delete</button>
     
                     </td>
     
@@ -7777,6 +7875,7 @@ button, input, select, textarea { max-width: 100%; }
           transactions = safeArray(bucket.transactions);
           customers = safeArray(bucket.customers);
           vendors = safeArray(bucket.vendors);
+          setCurrentBalTrackerBucket(bucket);
           balTrackerStorageSet("baltracker_contact_customers", JSON.stringify(safeArray(bucket.contactCustomers)));
           balTrackerStorageSet("baltracker_contact_vendors", JSON.stringify(safeArray(bucket.contactVendors)));
           loadSettings();
