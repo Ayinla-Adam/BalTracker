@@ -7861,6 +7861,12 @@ button, input, select, textarea { max-width: 100%; }
             if (profileError) console.warn("Could not load profile:", profileError.message);
             if (profile?.business_name) balTrackerStorageSet("baltracker_business_name", profile.business_name);
 
+            // Offline edits are written to the account-scoped local cache first.
+            // Push that snapshot before downloading cloud data, otherwise a fresh
+            // cloud load could overwrite unsynchronized local changes.
+            if (localStorage.getItem(BALTRACKER_SYNC_PENDING_PREFIX + balTrackerAuthUser.id) === "1") {
+              await syncBalTrackerDataToCloud();
+            }
             await loadBalTrackerDataFromCloud();
             loadSettings();
             renderAll();
