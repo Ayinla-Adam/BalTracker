@@ -2462,6 +2462,11 @@ button, input, select, textarea { max-width: 100%; }
                   </div>
   
                   <div class="form-group">
+                    <label class="form-label" for="businessOwner">Business Owner</label>
+                    <input class="form-input" id="businessOwner" placeholder="Enter business owner name" autocomplete="name">
+                  </div>
+
+                  <div class="form-group">
   
                     <label class="form-label">
                       Currency
@@ -2950,7 +2955,8 @@ button, input, select, textarea { max-width: 100%; }
           baltracker_vendors: "vendors",
           baltracker_contact_customers: "contactCustomers",
           baltracker_contact_vendors: "contactVendors",
-          baltracker_business_name: "businessName"
+          baltracker_business_name: "businessName",
+          baltracker_business_owner: "businessOwner"
         };
 
         function readBalTrackerUsers() {
@@ -2974,11 +2980,21 @@ button, input, select, textarea { max-width: 100%; }
               vendors: [],
               contactCustomers: [],
               contactVendors: [],
-              businessName: ""
+              businessName: "",
+              businessOwner: ""
             };
             localStorage.setItem(BALTRACKER_USERS_STORAGE_KEY, JSON.stringify(users));
           }
-          return users[uid] || null;
+          if (users[uid]) return users[uid];
+          try {
+            const snapshot = JSON.parse(localStorage.getItem("baltracker_account_cache_v1:" + uid) || "null");
+            if (snapshot && typeof snapshot === "object" && !Array.isArray(snapshot)) {
+              users[uid] = snapshot;
+              localStorage.setItem(BALTRACKER_USERS_STORAGE_KEY, JSON.stringify(users));
+              return snapshot;
+            }
+          } catch (error) {}
+          return null;
         }
 
         function setCurrentBalTrackerBucket(bucket) {
@@ -2991,9 +3007,11 @@ button, input, select, textarea { max-width: 100%; }
             vendors: safeArray(bucket.vendors),
             contactCustomers: safeArray(bucket.contactCustomers),
             contactVendors: safeArray(bucket.contactVendors),
-            businessName: String(bucket.businessName || "")
+            businessName: String(bucket.businessName || ""),
+            businessOwner: String(bucket.businessOwner || "")
           };
           localStorage.setItem(BALTRACKER_USERS_STORAGE_KEY, JSON.stringify(users));
+          try { localStorage.setItem("baltracker_account_cache_v1:" + uid, JSON.stringify(users[uid])); } catch (error) {}
         }
 
         function balTrackerStorageGet(key) {
@@ -3246,7 +3264,7 @@ button, input, select, textarea { max-width: 100%; }
             const businessName = balTrackerStorageGet("baltracker_business_name");
             const profileRow = { user_id: uid };
             if (businessName) profileRow.business_name = businessName;
-            const displayName = balTrackerAuthUser.user_metadata?.display_name;
+            const displayName = balTrackerStorageGet("baltracker_business_owner") || balTrackerAuthUser.user_metadata?.display_name;
             if (displayName) profileRow.display_name = displayName;
             const {error:profileError} = await client.from("profiles").upsert(
               profileRow,
@@ -7595,64 +7613,28 @@ button, input, select, textarea { max-width: 100%; }
         ========================================================= */
     
         function saveSettings() {
-    
-          const businessName =
-            document.getElementById(
-              "businessName"
-            ).value.trim();
-    
-    
+          const businessName = document.getElementById("businessName").value.trim();
+          const businessOwner = document.getElementById("businessOwner").value.trim();
           if (!businessName) {
-    
-            showToast(
-              "Please enter a business name.",
-              "error",
-              "Missing Business Name"
-            );
-    
+            showToast("Please enter a business name.", "error", "Missing Business Name");
             return;
-    
           }
-    
-    
-          balTrackerStorageSet(
-            "baltracker_business_name",
-            businessName
-          );
-    
-    
+          balTrackerStorageSet("baltracker_business_name", businessName);
+          balTrackerStorageSet("baltracker_business_owner", businessOwner);
           queueSupabaseSync();
+          showToast("Business settings saved.", "success", "Settings Saved");
+        }
 
-          showToast(
-            "Business settings saved.",
-            "success",
-            "Settings Saved"
-          );
-    
-        }
-    
-    
         function loadSettings() {
-    
-          const saved =
-            balTrackerStorageGet(
-              "baltracker_business_name"
-            );
-    
-    
-          if (saved) {
-    
-            document.getElementById(
-              "businessName"
-            ).value =
-              saved;
-    
-          }
-    
+          const saved = balTrackerStorageGet("baltracker_business_name");
+          if (saved) document.getElementById("businessName").value = saved;
+          const owner = balTrackerStorageGet("baltracker_business_owner");
+          const ownerInput = document.getElementById("businessOwner");
+          if (ownerInput) ownerInput.value = owner || balTrackerAuthUser?.user_metadata?.display_name || "";
         }
-    
-    
-        /* =========================================================
+
+
+                /* =========================================================
            CLEAR ALL DATA
         ========================================================= */
     
@@ -7860,6 +7842,7 @@ button, input, select, textarea { max-width: 100%; }
               .maybeSingle();
             if (profileError) console.warn("Could not load profile:", profileError.message);
             if (profile?.business_name) balTrackerStorageSet("baltracker_business_name", profile.business_name);
+            if (profile?.display_name) balTrackerStorageSet("baltracker_business_owner", profile.display_name);
 
             // Offline edits are written to the account-scoped local cache first.
             // Push that snapshot before downloading cloud data, otherwise a fresh
