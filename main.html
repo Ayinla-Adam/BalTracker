@@ -3097,6 +3097,18 @@ button, input, select, textarea { max-width: 100%; }
         let balTrackerSyncTimer = null;
         let balTrackerSyncRunning = false;
         let balTrackerSyncPending = false;
+        const BALTRACKER_LAST_AUTH_USER_KEY = "baltracker_last_authenticated_user_v1";
+        const BALTRACKER_SYNC_PENDING_PREFIX = "baltracker_sync_pending_v1:";
+
+        function markBalTrackerSyncPending() {
+          if (!balTrackerAuthUser?.id) return;
+          try { localStorage.setItem(BALTRACKER_SYNC_PENDING_PREFIX + balTrackerAuthUser.id, "1"); } catch (error) {}
+        }
+
+        function clearBalTrackerSyncPending() {
+          if (!balTrackerAuthUser?.id) return;
+          try { localStorage.removeItem(BALTRACKER_SYNC_PENDING_PREFIX + balTrackerAuthUser.id); } catch (error) {}
+        }
 
         function save() {
           balTrackerStorageSet("baltracker_transactions", JSON.stringify(transactions));
@@ -3107,14 +3119,27 @@ button, input, select, textarea { max-width: 100%; }
 
         function queueSupabaseSync() {
           if (!balTrackerAuthUser || !window.supabaseClient) return;
+          markBalTrackerSyncPending();
+          if (!navigator.onLine) return;
           if (balTrackerSyncTimer) clearTimeout(balTrackerSyncTimer);
           balTrackerSyncTimer = setTimeout(() => {
             syncBalTrackerDataToCloud().catch(error => {
               console.error("BalTracker cloud sync failed:", error);
-              showToast("Saved on this device, but cloud sync failed. Check your connection and try again.", "error", "Sync Issue");
+              markBalTrackerSyncPending();
+              if (!navigator.onLine) return;
+              showToast("Your changes are saved on this device. Cloud sync will retry when the connection is available.", "error", "Sync Pending");
             });
           }, 350);
         }
+
+        window.addEventListener("online", () => {
+          if (!balTrackerAuthUser) return;
+          const pending = localStorage.getItem(BALTRACKER_SYNC_PENDING_PREFIX + balTrackerAuthUser.id) === "1";
+          if (pending) {
+            showToast("Connection restored. Syncing your saved changes…", "info", "Back Online");
+            queueSupabaseSync();
+          }
+        });
 
         function safeArray(value) {
           return Array.isArray(value) ? value : [];
@@ -3228,6 +3253,7 @@ button, input, select, textarea { max-width: 100%; }
               {onConflict:"user_id"}
             );
             if (profileError) throw profileError;
+            clearBalTrackerSyncPending();
           } finally {
             balTrackerSyncRunning = false;
             if (balTrackerSyncPending) {
@@ -7758,26 +7784,75 @@ button, input, select, textarea { max-width: 100%; }
         /* =========================================================
            SUPABASE AUTHENTICATION / STARTUP
         ========================================================= */
+        async function restoreBalTrackerOffline(userId, email) {
+          if (!userId) return false;
+          balTrackerAuthUser = { id: userId, email: email || "", user_metadata: {} };
+          const bucket = getCurrentBalTrackerBucket();
+          if (!bucket) {
+            balTrackerAuthUser = null;
+            return false;
+          }
+          transactions = safeArray(bucket.transactions);
+          customers = safeArray(bucket.customers);
+          vendors = safeArray(bucket.vendors);
+          balTrackerStorageSet("baltracker_contact_customers", JSON.stringify(safeArray(bucket.contactCustomers)));
+          balTrackerStorageSet("baltracker_contact_vendors", JSON.stringify(safeArray(bucket.contactVendors)));
+          loadSettings();
+          renderAll();
+          initializeUserAvatar();
+          showToast("Offline access is active. Your saved records are available on this device; cloud changes will sync when you're back online.", "info", "Offline Mode");
+          return true;
+        }
+
         async function logoutBalTracker() {
           const { error } = await window.supabaseClient.auth.signOut();
           if (error) {
             showToast("Could not sign out. Please try again.", "error", "Sign Out");
             return;
           }
+          try { localStorage.removeItem(BALTRACKER_LAST_AUTH_USER_KEY); } catch (storageError) {}
           window.location.href = "index.html";
         }
 
         document.addEventListener("DOMContentLoaded", async () => {
+          let sessionData = null;
           try {
             const { data, error } = await window.supabaseClient.auth.getSession();
-            if (error || !data?.session) {
-              const confirmedFlag = new URLSearchParams(window.location.search).get("emailConfirmed")==="1";
-              window.location.href = confirmedFlag ? "index.html?emailConfirmed=1" : "index.html";
-              return;
+            if (error) throw error;
+            sessionData = data?.session || null;
+          } catch (error) {
+            console.warn("BalTracker could not verify the cloud session:", error);
+            if (!navigator.onLine) {
+              let savedIdentity = null;
+              try { savedIdentity = JSON.parse(localStorage.getItem(BALTRACKER_LAST_AUTH_USER_KEY) || "null"); } catch (storageError) {}
+              if (savedIdentity?.id && await restoreBalTrackerOffline(savedIdentity.id, savedIdentity.email)) return;
             }
-            balTrackerAuthUser = data.session.user;
-            localStorage.setItem("baltracker_user_email", balTrackerAuthUser.email || "");
+            showToast("Unable to verify your sign-in. Connect to the internet and try again.", "error", "Connection Required");
+            return;
+          }
 
+          if (!sessionData) {
+            if (!navigator.onLine) {
+              let savedIdentity = null;
+              try { savedIdentity = JSON.parse(localStorage.getItem(BALTRACKER_LAST_AUTH_USER_KEY) || "null"); } catch (storageError) {}
+              if (savedIdentity?.id && await restoreBalTrackerOffline(savedIdentity.id, savedIdentity.email)) return;
+            }
+            const confirmedFlag = new URLSearchParams(window.location.search).get("emailConfirmed")==="1";
+            window.location.href = confirmedFlag ? "index.html?emailConfirmed=1" : "index.html";
+            return;
+          }
+
+          balTrackerAuthUser = sessionData.user;
+          localStorage.setItem("baltracker_user_email", balTrackerAuthUser.email || "");
+          try {
+            localStorage.setItem(BALTRACKER_LAST_AUTH_USER_KEY, JSON.stringify({
+              id: balTrackerAuthUser.id,
+              email: balTrackerAuthUser.email || "",
+              verifiedAt: new Date().toISOString()
+            }));
+          } catch (storageError) {}
+
+          try {
             const { data: profile, error: profileError } = await window.supabaseClient
               .from("profiles")
               .select("display_name,business_name,currency_code")
@@ -7804,6 +7879,7 @@ button, input, select, textarea { max-width: 100%; }
             });
           } catch (error) {
             console.error("BalTracker initialization error:", error);
+            if (!navigator.onLine && await restoreBalTrackerOffline(balTrackerAuthUser.id, balTrackerAuthUser.email)) return;
             showToast("Could not load your cloud data. Check your connection and Supabase setup, then refresh.", "error", "Connection Error");
           }
         });
