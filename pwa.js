@@ -23,11 +23,11 @@
     function updateConnection() {
       if (!navigator.onLine) {
         notice.dataset.state = "offline";
-        notice.textContent = "You're offline. BalTracker's cloud data may not load, and changes may not sync.";
+        notice.textContent = "You're offline. Saved changes stay on this device and will sync when the connection returns.";
         notice.hidden = false;
       } else if (notice.dataset.state === "offline") {
         notice.dataset.state = "online";
-        notice.textContent = "Connection restored. Check that any recent changes were saved.";
+        notice.textContent = "Connection restored. BalTracker will sync saved changes. Refresh if syncing does not start.";
         notice.hidden = false;
       } else {
         notice.hidden = true;
