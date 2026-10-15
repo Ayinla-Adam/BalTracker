@@ -7985,9 +7985,21 @@ button, input, select, textarea { max-width: 100%; }
               if (event === "SIGNED_OUT" || !session) window.location.href = "index.html";
             });
           } catch (error) {
-            console.error("BalTracker initialization error:", error);
+            console.error("BalTracker initialization error:", {
+              message: error?.message,
+              code: error?.code,
+              details: error?.details,
+              hint: error?.hint,
+              status: error?.status,
+              error
+            });
             if (!navigator.onLine && await restoreBalTrackerOffline(balTrackerAuthUser.id, balTrackerAuthUser.email)) return;
-            showToast("Could not load your cloud data. Check your connection and Supabase setup, then refresh.", "error", "Connection Error");
+            const reason = String(error?.message || error?.details || "Unknown error").slice(0, 220);
+            showToast(
+              "Could not load cloud data: " + reason + ". Open the browser console for details.",
+              "error",
+              "Cloud Data Error"
+            );
           }
         });
 
