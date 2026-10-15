@@ -1021,7 +1021,18 @@ input, select, textarea, button { max-width: 100%; }
       ({data:sessionData,error:sessionError}=await window.supabaseClient.auth.getSession());
     }catch(error){
       console.error("Supabase session check failed:",error);
-      const message=getAuthErrorMessage(error,"session");
+      if(!navigator.onLine){
+        try{
+          const savedIdentity=JSON.parse(localStorage.getItem("baltracker_last_authenticated_user_v1")||"null");
+          if(savedIdentity?.id){
+            window.location.href="main.html";
+            return;
+          }
+        }catch(storageError){}
+      }
+      const message=!navigator.onLine
+        ?"You're offline. Sign in online once on this device before using offline access."
+        :getAuthErrorMessage(error,"session");
       ["signInForm","signUpForm","forgotForm"].forEach(id=>showAuthFeedback(id,message));
       showToast(message,"error","Connection Error");
       return;
