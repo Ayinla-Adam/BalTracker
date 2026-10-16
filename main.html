@@ -3032,7 +3032,7 @@ button, input, select, textarea { max-width: 100%; }
           if (!field) return localStorage.getItem(key);
           const bucket = getCurrentBalTrackerBucket();
           if (!bucket || bucket[field] === undefined || bucket[field] === null) return null;
-          return field === "businessName" ? String(bucket[field] || "") : JSON.stringify(bucket[field]);
+          return (field === "businessName" || field === "businessOwner") ? String(bucket[field] || "") : JSON.stringify(bucket[field]);
         }
 
         function balTrackerStorageSet(key, value) {
@@ -3043,7 +3043,7 @@ button, input, select, textarea { max-width: 100%; }
           }
           if (!balTrackerAuthUser?.id) return;
           const bucket = getCurrentBalTrackerBucket(true);
-          if (field === "businessName") {
+          if (field === "businessName" || field === "businessOwner") {
             bucket[field] = String(value || "");
           } else {
             try {
@@ -3338,7 +3338,7 @@ button, input, select, textarea { max-width: 100%; }
             const businessName = balTrackerStorageGet("baltracker_business_name");
             const profileRow = { user_id: uid };
             if (businessName) profileRow.business_name = businessName;
-            const displayName = balTrackerStorageGet("baltracker_business_owner") || balTrackerAuthUser.user_metadata?.display_name;
+            const displayName = balTrackerAuthUser.user_metadata?.display_name || balTrackerStorageGet("baltracker_business_owner");
             if (displayName) profileRow.display_name = displayName;
             const {error:profileError} = await client.from("profiles").upsert(
               profileRow,
@@ -4720,7 +4720,13 @@ button, input, select, textarea { max-width: 100%; }
         );
     
       if(!modal) return;
-    
+
+      transactionSubmissionInProgress = false;
+      const submitButton = document.querySelector('#transactionForm button[type="submit"]');
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = "Add Transaction";
+      }
     
       document.getElementById(
         "transactionModalTitle"
@@ -5537,6 +5543,8 @@ button, input, select, textarea { max-width: 100%; }
            TRANSACTION SUBMISSION
         ========================================================= */
     
+        let transactionSubmissionInProgress = false;
+
         document
           .getElementById("transactionForm")
           .addEventListener(
@@ -5544,6 +5552,23 @@ button, input, select, textarea { max-width: 100%; }
             event => {
     
               event.preventDefault();
+
+              // Ignore rapid double-clicks and repeated submit events.
+              if (transactionSubmissionInProgress) return;
+              transactionSubmissionInProgress = true;
+              const transactionSubmitButton = event.currentTarget.querySelector('button[type="submit"]');
+              if (transactionSubmitButton) {
+                transactionSubmitButton.disabled = true;
+                transactionSubmitButton.dataset.originalText = transactionSubmitButton.textContent;
+                transactionSubmitButton.textContent = "Saving…";
+              }
+              const releaseTransactionSubmission = () => {
+                transactionSubmissionInProgress = false;
+                if (transactionSubmitButton) {
+                  transactionSubmitButton.disabled = false;
+                  transactionSubmitButton.textContent = transactionSubmitButton.dataset.originalText || "Add Transaction";
+                }
+              };
     
     
               /*
@@ -5575,6 +5600,7 @@ button, input, select, textarea { max-width: 100%; }
                   "transactionTypeControl",
                   "Please select a transaction type."
                 );
+                releaseTransactionSubmission();
                 return;
               }
     
@@ -5610,6 +5636,7 @@ button, input, select, textarea { max-width: 100%; }
                   "Enter an amount greater than ₦0."
                 );
                 document.getElementById("transactionAmount")?.focus();
+                releaseTransactionSubmission();
                 return;
               }
     
@@ -5621,6 +5648,7 @@ button, input, select, textarea { max-width: 100%; }
                   "Please select a transaction date."
                 );
                 document.getElementById("transactionDate")?.focus();
+                releaseTransactionSubmission();
                 return;
               }
     
@@ -5665,6 +5693,7 @@ button, input, select, textarea { max-width: 100%; }
                     } name.`
                   );
                   document.getElementById("newPartyInput")?.focus();
+                  releaseTransactionSubmission();
                   return;
                 }
     
@@ -5715,6 +5744,7 @@ button, input, select, textarea { max-width: 100%; }
                         : "Vendor"
                     }.`
                   );
+                  releaseTransactionSubmission();
                   return;
                 }
     
@@ -7740,8 +7770,14 @@ button, input, select, textarea { max-width: 100%; }
           const saved = balTrackerStorageGet("baltracker_business_name");
           if (saved) document.getElementById("businessName").value = saved;
           const owner = balTrackerStorageGet("baltracker_business_owner");
+          const registeredFullName = String(balTrackerAuthUser?.user_metadata?.display_name || "").trim();
           const ownerInput = document.getElementById("businessOwner");
-          if (ownerInput) ownerInput.value = owner || balTrackerAuthUser?.user_metadata?.display_name || "";
+          if (ownerInput) {
+            ownerInput.value = registeredFullName || owner || "";
+            if (registeredFullName && owner !== registeredFullName) {
+              balTrackerStorageSet("baltracker_business_owner", registeredFullName);
+            }
+          }
         }
 
 
