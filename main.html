@@ -1797,7 +1797,24 @@ button, input, select, textarea { max-width: 100%; }
   .login-card { padding: 16px; }
 }
 
-</style>
+
+    /* Showcase readiness: payment reminders and practical insights */
+    .reminder-list, .insight-list { display:flex; flex-direction:column; gap:10px; }
+    .reminder-item, .insight-item { display:flex; align-items:flex-start; gap:12px; padding:12px; border:1px solid var(--border); border-radius:12px; background:#fff; }
+    .reminder-marker, .insight-marker { width:9px; height:9px; border-radius:50%; background:var(--primary); flex:0 0 9px; margin-top:5px; }
+    .reminder-item.overdue, .insight-item.warning { border-color:#fecaca; background:#fff7f7; }
+    .reminder-item.overdue .reminder-marker, .insight-item.warning .insight-marker { background:var(--red); }
+    .reminder-item.due-today { border-color:#fed7aa; background:#fffaf5; }
+    .reminder-item.due-today .reminder-marker { background:var(--orange); }
+    .reminder-copy, .insight-copy { min-width:0; flex:1; }
+    .reminder-title, .insight-title { font-size:12px; font-weight:800; margin-bottom:4px; }
+    .reminder-detail, .insight-detail { color:var(--muted); font-size:11px; line-height:1.5; overflow-wrap:anywhere; }
+    .reminder-date { color:var(--muted); font-size:10px; font-weight:750; white-space:nowrap; }
+    .insight-item.good .insight-marker { background:var(--green); }
+    .insight-item.neutral .insight-marker { background:#94a3b8; }
+    @media (max-width: 600px) { .reminder-date { white-space:normal; text-align:right; } }
+
+  </style>
 
 </head>
 <body>
@@ -2020,6 +2037,16 @@ button, input, select, textarea { max-width: 100%; }
                   <div id="recentActivity"></div>
   
                 </div>
+
+                <div class="card" style="margin-top:18px;">
+                  <div class="card-header">
+                    <div class="card-title">Payment Reminders</div>
+                    <span style="font-size:11px;color:var(--muted);">Next 7 days</span>
+                  </div>
+                  <div class="card-body" id="dueReminders">
+                    <div class="empty"><span>Add due dates to credit or debit transactions to see reminders.</span></div>
+                  </div>
+                </div>
   
               </div>
   
@@ -2198,6 +2225,16 @@ button, input, select, textarea { max-width: 100%; }
   
               </div>
   
+            </div>
+  
+            <div class="card" style="margin-top:18px;">
+              <div class="card-header">
+                <div class="card-title">Financial Insights</div>
+                <span style="font-size:11px;color:var(--muted);">Based on your records</span>
+              </div>
+              <div class="card-body" id="financialInsights">
+                <div class="empty"><span>Add transactions to see useful financial insights.</span></div>
+              </div>
             </div>
   
           </section>
@@ -3301,6 +3338,7 @@ button, input, select, textarea { max-width: 100%; }
                 amount:Number(t.amount),
                 description:t.description || null,
                 transaction_date:t.date || today(),
+                due_date:t.dueDate || null,
                 party_name:partyName || null,
                 party_type:partyName ? partyType : null,
                 customer_id:partyName && partyType === "customer" ? (customerIdByName.get(partyName.toLowerCase()) || null) : null
@@ -3362,7 +3400,7 @@ button, input, select, textarea { max-width: 100%; }
           const [cr,vr,tr,pr] = await Promise.all([
             client.from("customers").select("id,app_id,name,phone,email,notes").eq("user_id",uid),
             client.from("vendors").select("id,app_id,name,phone,email,notes").eq("user_id",uid),
-            client.from("transactions").select("id,app_id,transaction_type,amount,description,transaction_date,party_name,party_type,customer_id").eq("user_id",uid).order("transaction_date",{ascending:false}),
+            client.from("transactions").select("id,app_id,transaction_type,amount,description,transaction_date,due_date,party_name,party_type,customer_id").eq("user_id",uid).order("transaction_date",{ascending:false}),
             client.from("debt_payments").select("id,app_id,transaction_id,amount,payment_date,notes").eq("user_id",uid).order("payment_date",{ascending:true})
           ]);
           for (const result of [cr,vr,tr,pr]) if (result.error) throw result.error;
@@ -3416,6 +3454,7 @@ button, input, select, textarea { max-width: 100%; }
               amount,
               balance:(type==="credit"||type==="debit") ? Math.max(0,amount-paid) : 0,
               date:t.transaction_date,
+              dueDate:t.due_date || "",
               party:t.party_name || customerNameById.get(t.customer_id) || "",
               description:t.description || "",
               payments,
@@ -4020,9 +4059,7 @@ button, input, select, textarea { max-width: 100%; }
            BUSINESS HEALTH
         ========================================================= */
     
-        function calculateHealth() {
-    
-          const t = totals();
+        function calculateHealth(t = totals()) {
     
           // No financial data yet
           if (
@@ -4308,8 +4345,29 @@ button, input, select, textarea { max-width: 100%; }
               "You have outstanding obligations but no recorded revenue yet.";
     
           }
-    
-    
+
+          const hasOverdueOpenDebt = transactions.some(x =>
+            (x.type === "credit" || x.type === "debit") &&
+            x.dueDate && x.dueDate < today() &&
+            Number(x.balance !== undefined ? x.balance : x.amount) > 0
+          );
+
+          if (revenue <= 0 && (costs > 0 || debit > 0)) {
+            score = Math.min(score, 49);
+            status = "Attention";
+            message = "There are recorded costs or obligations but no recorded revenue yet. Review your entries and cash commitments.";
+          } else if (cash < 0) {
+            score = Math.min(score, 74);
+            status = score < 50 ? "Attention" : "Watch";
+            message = "Recorded cash paid exceeds cash received. Review available cash before taking on more obligations.";
+          } else if ((debit > revenue && revenue > 0) || hasOverdueOpenDebt) {
+            score = Math.min(score, 74);
+            status = score < 50 ? "Attention" : "Watch";
+            message = hasOverdueOpenDebt
+              ? "At least one payment is overdue. Follow up on collections or plan the required payment."
+              : "Outstanding obligations are higher than recorded revenue. Keep a close eye on cash commitments.";
+          }
+
           return {
     
             score,
@@ -4565,6 +4623,8 @@ button, input, select, textarea { max-width: 100%; }
     
     
           renderRecentActivity();
+          renderDueReminders();
+          renderFinancialInsights();
     
         }
     
@@ -5444,19 +5504,23 @@ button, input, select, textarea { max-width: 100%; }
           </div>
     
     
+          ${type === "credit" || type === "debit" ? '<div class="form-group"><label class="form-label" for="transactionDueDate">Payment Due Date <span style="color:var(--muted);font-weight:500;">(optional)</span></label><input class="form-input" type="date" id="transactionDueDate"><div class="custom-form-error" id="transactionDueDateError"></div></div>' : ""}
+    
           <div class="form-group">
-    
-            <label class="form-label">
-              Description
+            <label class="form-label" for="transactionDescription">
+              Description <span style="color:var(--red);">*</span>
             </label>
-    
             <input
               class="form-input"
               type="text"
               id="transactionDescription"
-              placeholder="Optional description"
+              placeholder="e.g. Stock purchase or goods sold"
+              maxlength="160"
+              autocomplete="off"
+              oninput="clearCustomError('transactionDescriptionError','transactionDescription')"
+              required
             >
-    
+            <div class="custom-form-error" id="transactionDescriptionError"></div>
           </div>
     
         </div>
@@ -5591,7 +5655,9 @@ button, input, select, textarea { max-width: 100%; }
               clearFormErrors([
                 ["partyError", null],
                 ["transactionAmountError", "transactionAmount"],
-                ["transactionDateError", "transactionDate"]
+                ["transactionDateError", "transactionDate"],
+                ["transactionDescriptionError", "transactionDescription"],
+                ["transactionDueDateError", "transactionDueDate"]
               ]);
     
               if(!type){
@@ -5624,6 +5690,9 @@ button, input, select, textarea { max-width: 100%; }
                   "transactionDescription"
                 )?.value.trim() ||
                 "";
+
+              const dueDate =
+                document.getElementById("transactionDueDate")?.value || "";
     
     
               if(
@@ -5648,6 +5717,28 @@ button, input, select, textarea { max-width: 100%; }
                   "Please select a transaction date."
                 );
                 document.getElementById("transactionDate")?.focus();
+                releaseTransactionSubmission();
+                return;
+              }
+
+              if(!description){
+                setCustomError(
+                  "transactionDescriptionError",
+                  "transactionDescription",
+                  "Please enter a description for this transaction."
+                );
+                document.getElementById("transactionDescription")?.focus();
+                releaseTransactionSubmission();
+                return;
+              }
+
+              if(dueDate && (type === "credit" || type === "debit") && dueDate < date){
+                setCustomError(
+                  "transactionDueDateError",
+                  "transactionDueDate",
+                  "The payment due date cannot be earlier than the transaction date."
+                );
+                document.getElementById("transactionDueDate")?.focus();
                 releaseTransactionSubmission();
                 return;
               }
@@ -5775,6 +5866,8 @@ button, input, select, textarea { max-width: 100%; }
     
                 date,
     
+                dueDate: (type === "credit" || type === "debit") ? dueDate : "",
+    
                 party,
     
                 description,
@@ -5830,6 +5923,142 @@ button, input, select, textarea { max-width: 100%; }
             }
           );
     
+
+        /* =========================================================
+           PAYMENT REMINDERS
+        ========================================================= */
+        function renderDueReminders() {
+          const container = document.getElementById("dueReminders");
+          if (!container) return;
+          const todayKey = today();
+          const limit = new Date(todayKey + "T00:00:00");
+          limit.setDate(limit.getDate() + 7);
+          const limitKey = [limit.getFullYear(), String(limit.getMonth()+1).padStart(2,"0"), String(limit.getDate()).padStart(2,"0")].join("-");
+          const openDebts = transactions.filter(t =>
+            (t.type === "credit" || t.type === "debit") &&
+            Number(t.balance !== undefined ? t.balance : t.amount) > 0
+          );
+          const dueSoon = openDebts.filter(t => t.dueDate && t.dueDate <= limitKey)
+            .sort((a,b) => String(a.dueDate).localeCompare(String(b.dueDate)));
+          container.innerHTML = "";
+          if (!dueSoon.length) {
+            const empty = document.createElement("div");
+            empty.className = "empty";
+            const title = document.createElement("strong");
+            title.textContent = "No upcoming dated payments";
+            const detail = document.createElement("span");
+            detail.textContent = openDebts.some(t => !t.dueDate)
+              ? "Add due dates to open credit or debit records to receive reminders."
+              : "There are no overdue or due-soon payments in your records.";
+            empty.append(title, detail);
+            container.appendChild(empty);
+            return;
+          }
+          const list = document.createElement("div");
+          list.className = "reminder-list";
+          dueSoon.forEach(t => {
+            const balance = Number(t.balance !== undefined ? t.balance : t.amount) || 0;
+            const overdue = t.dueDate < todayKey;
+            const dueToday = t.dueDate === todayKey;
+            const due = new Date(t.dueDate + "T00:00:00");
+            const days = Math.round((due.getTime() - new Date(todayKey + "T00:00:00").getTime()) / 86400000);
+            const dueLabel = overdue ? "Overdue" : dueToday ? "Due today" : "Due in " + days + " day" + (days === 1 ? "" : "s");
+            const party = t.party || (t.type === "credit" ? "Customer" : "Vendor");
+            const direction = t.type === "credit" ? "Collect from " : "Pay ";
+            const item = document.createElement("div");
+            item.className = "reminder-item" + (overdue ? " overdue" : dueToday ? " due-today" : "");
+            const marker = document.createElement("span");
+            marker.className = "reminder-marker";
+            const copy = document.createElement("div");
+            copy.className = "reminder-copy";
+            const title = document.createElement("div");
+            title.className = "reminder-title";
+            title.textContent = dueLabel + " · " + direction + party;
+            const detail = document.createElement("div");
+            detail.className = "reminder-detail";
+            detail.textContent = (t.description || "Transaction") + " · Outstanding: " + formatMoney(balance);
+            copy.append(title, detail);
+            const date = document.createElement("div");
+            date.className = "reminder-date";
+            date.textContent = formatDate(t.dueDate);
+            item.append(marker, copy, date);
+            list.appendChild(item);
+          });
+          container.appendChild(list);
+        }
+
+
+        /* =========================================================
+           FINANCIAL INSIGHTS (TRANSPARENT, RULE-BASED)
+        ========================================================= */
+        function renderFinancialInsights() {
+          const container = document.getElementById("financialInsights");
+          if (!container) return;
+          container.innerHTML = "";
+          if (!transactions.length) {
+            const empty = document.createElement("div");
+            empty.className = "empty";
+            const title = document.createElement("strong");
+            title.textContent = "Your insights will appear here";
+            const detail = document.createElement("span");
+            detail.textContent = "Record a sale, expense, credit or debit to get started.";
+            empty.append(title, detail);
+            container.appendChild(empty);
+            return;
+          }
+          const t = totals();
+          const insights = [];
+          const openCredit = transactions.filter(x => x.type === "credit" && Number(x.balance !== undefined ? x.balance : x.amount) > 0);
+          const openDebit = transactions.filter(x => x.type === "debit" && Number(x.balance !== undefined ? x.balance : x.amount) > 0);
+          const overdue = transactions.filter(x =>
+            (x.type === "credit" || x.type === "debit") && x.dueDate && x.dueDate < today() &&
+            Number(x.balance !== undefined ? x.balance : x.amount) > 0
+          );
+          const overdueTotal = overdue.reduce((sum,x) => sum + (Number(x.balance !== undefined ? x.balance : x.amount) || 0), 0);
+          if (t.estimatedProfit < 0) {
+            insights.push({kind:"warning",title:"Recorded costs exceed revenue",detail:"Recorded costs are higher than recorded revenue by " + formatMoney(Math.abs(t.estimatedProfit)) + ". Review expenses and outstanding purchases."});
+          } else if (t.totalRevenue > 0) {
+            insights.push({kind:"good",title:"Recorded revenue is covering recorded costs",detail:"Estimated profit from recorded transactions is " + formatMoney(t.estimatedProfit) + ". This is an estimate, not a substitute for full accounting."});
+          } else {
+            insights.push({kind:"warning",title:"No revenue recorded yet",detail:"You have records, but no sales or credit revenue recorded. Check whether your transactions are complete."});
+          }
+          if (overdue.length) {
+            insights.push({kind:"warning",title:overdue.length + " overdue payment record" + (overdue.length === 1 ? "" : "s"),detail:"Outstanding amount across overdue customer credits and vendor debits: " + formatMoney(overdueTotal) + ". Follow up or plan payment where appropriate."});
+          }
+          if (t.credit > 0) {
+            insights.push({kind:"neutral",title:"Customers still owe your business",detail:openCredit.length + " open customer credit record" + (openCredit.length === 1 ? "" : "s") + " total " + formatMoney(t.credit) + ". Track repayments to keep this figure current."});
+          }
+          if (t.debit > 0) {
+            insights.push({kind:"neutral",title:"Your business has outstanding obligations",detail:openDebit.length + " open debit record" + (openDebit.length === 1 ? "" : "s") + " total " + formatMoney(t.debit) + ". Plan repayments against available cash."});
+          }
+          if (t.cashPosition < 0) {
+            insights.push({kind:"warning",title:"Recorded cash position is negative",detail:"Recorded cash paid exceeds cash received by " + formatMoney(Math.abs(t.cashPosition)) + ". Verify entries and plan upcoming payments."});
+          } else {
+            insights.push({kind:"good",title:"Recorded cash position is non-negative",detail:"Cash received minus recorded cash paid is " + formatMoney(t.cashPosition) + ". Outstanding debts are shown separately."});
+          }
+          const list = document.createElement("div");
+          list.className = "insight-list";
+          insights.forEach(entry => {
+            const item = document.createElement("div");
+            item.className = "insight-item " + entry.kind;
+            const marker = document.createElement("span");
+            marker.className = "insight-marker";
+            const copy = document.createElement("div");
+            copy.className = "insight-copy";
+            const title = document.createElement("div");
+            title.className = "insight-title";
+            title.textContent = entry.title;
+            const detail = document.createElement("div");
+            detail.className = "insight-detail";
+            detail.textContent = entry.detail;
+            copy.append(title, detail);
+            item.append(marker, copy);
+            list.appendChild(item);
+          });
+          container.appendChild(list);
+        }
+
+
         /* =========================================================
            TABLE HELPERS
         ========================================================= */
