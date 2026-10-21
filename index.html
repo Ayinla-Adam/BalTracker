@@ -1361,15 +1361,14 @@ input, select, textarea, button { max-width: 100%; }
           return;
         }
 
-        // Supabase can intentionally return a user with no identities for an
-        // already-registered email, to avoid revealing whether an account exists.
+        // Supabase may return a user with no identities when this email is
+        // already registered. Keep the person on Sign Up so the validation
+        // message remains visible; do not imply that a new account was created.
         if(data.user && Array.isArray(data.user.identities) && data.user.identities.length===0){
           submit.disabled=false; submit.textContent="Create Account";
-          const message="An account may already exist for this email. Try signing in or use Forgot Password.";
+          const message="An account may already exist for this email. No new account was created. Please use Sign In or Forgot Password.";
           showAuthFeedback("signUpForm",message);
-          showToast(message,"error","Account May Already Exist");
-          switchAuth("signin");
-          document.getElementById("signInEmail").value=email;
+          showToast(message,"error","Email May Already Be Registered");
           return;
         }
 
