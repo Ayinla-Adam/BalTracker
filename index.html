@@ -937,6 +937,47 @@ input, select, textarea, button { max-width: 100%; }
     }
   }
 
+  async function continueAfterAuthentication(){
+    try{
+      const {data:userData,error:userError}=await window.supabaseClient.auth.getUser();
+      if(userError || !userData?.user){
+        showAuthFeedback("signInForm","We couldn't verify your account. Please sign in again.","error");
+        return false;
+      }
+
+      const {data:profile,error:profileError}=await window.supabaseClient
+        .from("profiles")
+        .select("role")
+        .eq("user_id",userData.user.id)
+        .maybeSingle();
+
+      if(profileError || !profile?.role){
+        console.error("BalTracker account role lookup failed:",profileError);
+        showAuthFeedback("signInForm","We couldn't verify your account type. Please refresh and try again.","error");
+        return false;
+      }
+
+      if(profile.role==="customer"){
+        await window.supabaseClient.auth.signOut({scope:"local"});
+        switchAuth("signin");
+        showAuthFeedback("signInForm","Your customer account is registered, but the customer portal is still being built. Please return later; your account has been saved.","info");
+        return false;
+      }
+
+      if(profile.role!=="business_owner"){
+        showAuthFeedback("signInForm","This account has an unsupported account type. Please contact support.","error");
+        return false;
+      }
+
+      window.location.href="main.html";
+      return true;
+    }catch(error){
+      console.error("BalTracker account routing failed:",error);
+      showAuthFeedback("signInForm","We couldn't verify your account type. Check your connection and try again.","error");
+      return false;
+    }
+  }
+
   async function initializeAuth(){
     bindAuthNavigation();
 
@@ -1077,7 +1118,7 @@ input, select, textarea, button { max-width: 100%; }
     }
 
     if(sessionData?.session){
-      window.location.href="main.html";
+      await continueAfterAuthentication();
       return;
     }
 
@@ -1137,8 +1178,7 @@ input, select, textarea, button { max-width: 100%; }
           }
           return;
         }
-        showToast("Welcome back to BalTracker.","success","Signed In");
-        window.location.href="main.html";
+        await continueAfterAuthentication();
       }catch(error){
         console.error("Supabase sign-in request failed:",error);
         submit.disabled=false; submit.textContent="Sign In";
@@ -1178,7 +1218,7 @@ input, select, textarea, button { max-width: 100%; }
               role,
               business_name:role==="business_owner" ? businessName : null
             },
-            emailRedirectTo:new URL("main.html?emailConfirmed=1",window.location.href).href
+            emailRedirectTo:new URL("index.html?emailConfirmed=1",window.location.href).href
           }
         });
         if(error){
@@ -1203,7 +1243,7 @@ input, select, textarea, button { max-width: 100%; }
 
         if(data.session){
           showToast("Your BalTracker account has been created successfully.","success","Account Created");
-          window.location.href="main.html";
+          await continueAfterAuthentication();
         }else{
           submit.disabled=false; submit.textContent="Create Account";
           const message="Your account request was received. Open the confirmation email to verify your address before signing in.";
