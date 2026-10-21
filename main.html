@@ -8073,6 +8073,33 @@ button, input, select, textarea { max-width: 100%; }
               balTrackerStorageSet("baltracker_business_owner", registeredFullName);
             }
           }
+
+          // Recover the official Business ID from Supabase on each signed-in session,
+          // so it remains available on another browser/device after local storage is cleared.
+          if (balTrackerAuthUser?.id && window.supabaseClient && navigator.onLine) {
+            window.supabaseClient
+              .from("businesses")
+              .select("business_id,business_name")
+              .eq("owner_user_id", balTrackerAuthUser.id)
+              .maybeSingle()
+              .then(({ data, error }) => {
+                if (error) {
+                  console.warn("Could not load registered business details:", error.message);
+                  return;
+                }
+                if (!data) return;
+                if (data.business_id) {
+                  balTrackerStorageSet("baltracker_business_id", data.business_id);
+                  if (businessIdInput) businessIdInput.value = data.business_id;
+                }
+                if (data.business_name) {
+                  balTrackerStorageSet("baltracker_business_name", data.business_name);
+                  const nameInput = document.getElementById("businessName");
+                  if (nameInput) nameInput.value = data.business_name;
+                }
+              })
+              .catch(error => console.warn("Could not load registered business details:", error));
+          }
         }
 
 
