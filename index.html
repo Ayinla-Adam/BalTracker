@@ -545,6 +545,83 @@ input, select, textarea, button { max-width: 100%; }
   .login-screen { align-items: flex-start; }
 }
 
+
+/* Account type dropdown matches the dashboard transaction-type control. */
+.custom-select {
+  position: relative;
+  width: 100%;
+}
+.custom-select-trigger {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid #dbe3ec;
+  background: #fff;
+  border-radius: 12px;
+  padding: 0 13px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: #142033;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  transition: .18s ease;
+}
+.custom-select-trigger:hover { border-color: #cbd5e1; }
+.custom-select.open .custom-select-trigger {
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, .08);
+}
+.custom-select-arrow {
+  color: #64748b;
+  font-size: 12px;
+  transition: transform .18s ease;
+}
+.custom-select.open .custom-select-arrow { transform: rotate(180deg); }
+.custom-select-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: #fff;
+  border: 1px solid #dbe3ec;
+  border-radius: 12px;
+  padding: 6px;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, .16);
+  max-height: 240px;
+  overflow-y: auto;
+  display: none;
+}
+.custom-select.open .custom-select-menu { display: block; }
+.custom-option {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: 10px 11px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+  transition: .15s ease;
+}
+.custom-option:hover { background: #f1f5f9; color: #0f172a; }
+.custom-option.selected { background: #eaf2ff; color: #0f62fe; }
+.custom-option-check { color: #0f62fe; font-weight: 900; }
+.custom-select.input-error .custom-select-trigger {
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 3px rgba(220,38,38,.08) !important;
+}
+@media (max-width: 500px) {
+  .custom-select-trigger { min-height: 46px; }
+}
+
 </style>
 
 </head>
@@ -618,8 +695,30 @@ input, select, textarea, button { max-width: 100%; }
 
             <div class="login-field">
               <label class="login-label" for="signUpRole">Account type</label>
-              <select class="login-input" id="signUpRole" autocomplete="off">
-                <option value="business_owner">Business Owner</option>
+              <div class="custom-select account-type-select" id="signUpRoleControl" data-value="business_owner">
+                <button
+                  type="button"
+                  class="custom-select-trigger"
+                  id="signUpRoleTrigger"
+                  aria-haspopup="listbox"
+                  aria-expanded="false"
+                  aria-labelledby="signUpRoleLabel signUpRoleValue"
+                  onclick="toggleSignupRoleSelect()"
+                >
+                  <span class="custom-select-value" id="signUpRoleValue">Business Owner</span>
+                  <span class="custom-select-arrow" aria-hidden="true">▾</span>
+                </button>
+                <div class="custom-select-menu" id="signUpRoleMenu" role="listbox" aria-labelledby="signUpRoleLabel">
+                  <button type="button" class="custom-option selected" role="option" aria-selected="true" data-value="business_owner" onclick="chooseSignupRole('business_owner')">
+                    <span>Business Owner</span><span class="custom-option-check" aria-hidden="true">✓</span>
+                  </button>
+                  <button type="button" class="custom-option" role="option" aria-selected="false" data-value="customer" onclick="chooseSignupRole('customer')">
+                    <span>Customer</span><span class="custom-option-check" aria-hidden="true" style="visibility:hidden">✓</span>
+                  </button>
+                </div>
+              </div>
+              <select id="signUpRole" autocomplete="off" tabindex="-1" aria-hidden="true" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;">
+                <option value="business_owner" selected>Business Owner</option>
                 <option value="customer">Customer</option>
               </select>
               <div class="password-requirements">Choose how you will use BalTracker.</div>
@@ -1139,6 +1238,39 @@ input, select, textarea, button { max-width: 100%; }
     const forgotForm=document.getElementById("forgotForm");
 
     const signUpRole=document.getElementById("signUpRole");
+    const signUpRoleControl=document.getElementById("signUpRoleControl");
+    window.toggleSignupRoleSelect=()=>{
+      const isOpen=signUpRoleControl.classList.toggle("open");
+      document.getElementById("signUpRoleTrigger").setAttribute("aria-expanded",String(isOpen));
+    };
+    window.chooseSignupRole=(role)=>{
+      if(!["business_owner","customer"].includes(role)) return;
+      signUpRole.value=role;
+      signUpRoleControl.dataset.value=role;
+      document.getElementById("signUpRoleValue").textContent=role==="business_owner" ? "Business Owner" : "Customer";
+      signUpRoleControl.querySelectorAll(".custom-option").forEach(option=>{
+        const selected=option.dataset.value===role;
+        option.classList.toggle("selected",selected);
+        option.setAttribute("aria-selected",String(selected));
+        const check=option.querySelector(".custom-option-check");
+        if(check) check.style.visibility=selected ? "visible" : "hidden";
+      });
+      signUpRoleControl.classList.remove("open");
+      document.getElementById("signUpRoleTrigger").setAttribute("aria-expanded","false");
+      signUpRole.dispatchEvent(new Event("change",{bubbles:true}));
+    };
+    document.addEventListener("click",event=>{
+      if(!signUpRoleControl.contains(event.target)){
+        signUpRoleControl.classList.remove("open");
+        document.getElementById("signUpRoleTrigger").setAttribute("aria-expanded","false");
+      }
+    });
+    document.addEventListener("keydown",event=>{
+      if(event.key==="Escape"){
+        signUpRoleControl.classList.remove("open");
+        document.getElementById("signUpRoleTrigger").setAttribute("aria-expanded","false");
+      }
+    });
     const businessNameField=document.getElementById("signUpBusinessNameField");
     const signUpBusinessName=document.getElementById("signUpBusinessName");
     const updateSignupRoleFields=()=>{
