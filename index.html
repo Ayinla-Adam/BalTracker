@@ -1023,6 +1023,9 @@ input, select, textarea, button { max-width: 100%; }
       if (!control) return;
       const action = control.dataset.authAction;
       if (action === "signin" || action === "signup" || action === "forgot") {
+        // Clear stale feedback only when the user deliberately changes views.
+        // Programmatic redirects can still show their own messages afterwards.
+        ["signInForm","signUpForm","forgotForm","resetPasswordForm"].forEach(clearAuthFeedback);
         switchAuth(action);
       }
     });
@@ -1310,7 +1313,11 @@ input, select, textarea, button { max-width: 100%; }
           }
           return;
         }
-        await continueAfterAuthentication();
+        const continued=await continueAfterAuthentication();
+        if(!continued){
+          submit.disabled=false;
+          submit.textContent="Sign In";
+        }
       }catch(error){
         console.error("Supabase sign-in request failed:",error);
         submit.disabled=false; submit.textContent="Sign In";
@@ -1374,7 +1381,11 @@ input, select, textarea, button { max-width: 100%; }
 
         if(data.session){
           showToast("Your BalTracker account has been created successfully.","success","Account Created");
-          await continueAfterAuthentication();
+          const continued=await continueAfterAuthentication();
+          if(!continued){
+            submit.disabled=false;
+            submit.textContent="Create Account";
+          }
         }else{
           submit.disabled=false; submit.textContent="Create Account";
           const message="Your account request was received. Open the confirmation email to verify your address before signing in.";
