@@ -1362,7 +1362,28 @@ input, select, textarea, button { max-width: 100%; }
         });
         if(error){
           submit.disabled=false; submit.textContent="Create Account";
-          const message=getAuthErrorMessage(error,"signup");
+          const rawMessage=String(error.message || "").toLowerCase();
+          let message=getAuthErrorMessage(error,"signup");
+
+          // A duplicate business name is enforced by the database when the
+          // auth signup trigger attempts to create the owner's business row.
+          // Supabase can mask that trigger exception as a generic database error,
+          // so give business-owner signups a useful next step without claiming
+          // certainty when the underlying cause is not exposed.
+          const isGenericDatabaseSignupFailure =
+            rawMessage.includes("database error saving new user") ||
+            rawMessage.includes("error creating user") ||
+            rawMessage.includes("duplicate key") ||
+            rawMessage.includes("businesses_normalized_business_name");
+          if(role==="business_owner" && isGenericDatabaseSignupFailure){
+            message="We couldn't create this business-owner account. The business name may already be registered. Try a different business name; if the problem continues, check the details and try again.";
+          }
+
+          console.error("BalTracker sign-up failed:",{
+            code:error.code || null,
+            message:error.message || null,
+            status:error.status || null
+          });
           showAuthFeedback("signUpForm",message);
           showToast(message,"error","Sign Up Failed");
           return;
