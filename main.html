@@ -2504,6 +2504,12 @@ button, input, select, textarea { max-width: 100%; }
                   </div>
 
                   <div class="form-group">
+                    <label class="form-label" for="businessId">BalTracker Business ID</label>
+                    <input class="form-input" id="businessId" value="Not registered yet" readonly aria-describedby="businessIdHelp">
+                    <small id="businessIdHelp" style="color:var(--muted);line-height:1.5;">Register your business name to generate a unique ID customers can use to find your business.</small>
+                  </div>
+
+                  <div class="form-group">
   
                     <label class="form-label">
                       Currency
@@ -7982,25 +7988,85 @@ button, input, select, textarea { max-width: 100%; }
            SETTINGS
         ========================================================= */
     
-        function saveSettings() {
+        async function saveSettings() {
           const businessName = document.getElementById("businessName").value.trim();
           const businessOwner = document.getElementById("businessOwner").value.trim();
+          const saveButton = document.querySelector('#page-settings button[onclick="saveSettings()"]');
+          const businessIdInput = document.getElementById("businessId");
+
           if (!businessName) {
             showToast("Please enter a business name.", "error", "Missing Business Name");
+            document.getElementById("businessName").focus();
             return;
           }
-          balTrackerStorageSet("baltracker_business_name", businessName);
-          balTrackerStorageSet("baltracker_business_owner", businessOwner);
-          queueSupabaseSync();
-          showToast("Business settings saved.", "success", "Settings Saved");
+
+          if (!balTrackerAuthUser || !window.supabaseClient) {
+            showToast("Sign in to register your business and generate its Business ID.", "error", "Sign In Required");
+            return;
+          }
+
+          if (!navigator.onLine) {
+            showToast("Connect to the internet to register or update your business name.", "error", "Connection Required");
+            return;
+          }
+
+          if (saveButton) {
+            saveButton.disabled = true;
+            saveButton.dataset.originalText = saveButton.textContent.trim();
+            saveButton.textContent = "Saving...";
+          }
+
+          try {
+            const { data, error } = await window.supabaseClient.rpc("register_my_business", {
+              p_business_name: businessName
+            });
+            if (error) throw error;
+
+            const registration = Array.isArray(data) ? data[0] : data;
+            if (!registration?.business_id) {
+              throw new Error("Business registration returned no Business ID. Please try again.");
+            }
+
+            balTrackerStorageSet("baltracker_business_name", registration.business_name || businessName);
+            balTrackerStorageSet("baltracker_business_owner", businessOwner);
+            balTrackerStorageSet("baltracker_business_id", registration.business_id);
+            if (businessIdInput) businessIdInput.value = registration.business_id;
+            queueSupabaseSync();
+            showToast("Business registered successfully. Your Business ID is " + registration.business_id + ".", "success", "Business Registered");
+          } catch (error) {
+            console.error("Business registration failed:", error);
+            const rawMessage = String(error?.message || "");
+            let message = "We couldn't save your business details. Please try again.";
+            if (/duplicate key|businesses_normalized_business_name|normalized_business_name/i.test(rawMessage)) {
+              message = "That business name is already registered. Please choose a different business name.";
+            } else if (/register_my_business|function .* does not exist|schema cache/i.test(rawMessage)) {
+              message = "Business registration setup is not complete yet. Run migrations/20261021_business_registration.sql in the Supabase SQL Editor, then try again.";
+            } else if (/Only business-owner accounts/i.test(rawMessage)) {
+              message = "This account is not registered as a business owner. Your existing account has not been changed.";
+            } else if (/You must be signed in/i.test(rawMessage)) {
+              message = "Your session has expired. Please sign in again.";
+            } else if (/Please enter a business name/i.test(rawMessage)) {
+              message = "Please enter a valid business name.";
+            }
+            showToast(message, "error", "Business Registration Failed");
+          } finally {
+            if (saveButton) {
+              saveButton.disabled = false;
+              saveButton.textContent = saveButton.dataset.originalText || "Save Changes";
+              delete saveButton.dataset.originalText;
+            }
+          }
         }
 
         function loadSettings() {
           const saved = balTrackerStorageGet("baltracker_business_name");
           if (saved) document.getElementById("businessName").value = saved;
           const owner = balTrackerStorageGet("baltracker_business_owner");
+          const savedBusinessId = balTrackerStorageGet("baltracker_business_id");
           const registeredFullName = String(balTrackerAuthUser?.user_metadata?.display_name || "").trim();
           const ownerInput = document.getElementById("businessOwner");
+          const businessIdInput = document.getElementById("businessId");
+          if (businessIdInput) businessIdInput.value = savedBusinessId || "Not registered yet";
           if (ownerInput) {
             ownerInput.value = registeredFullName || owner || "";
             if (registeredFullName && owner !== registeredFullName) {
