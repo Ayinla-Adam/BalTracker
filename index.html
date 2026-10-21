@@ -617,6 +617,22 @@ input, select, textarea, button { max-width: 100%; }
             </div>
 
             <div class="login-field">
+              <label class="login-label" for="signUpRole">Account type</label>
+              <select class="login-input" id="signUpRole" autocomplete="off">
+                <option value="business_owner">Business Owner</option>
+                <option value="customer">Customer</option>
+              </select>
+              <div class="password-requirements">Choose how you will use BalTracker.</div>
+            </div>
+
+            <div class="login-field" id="signUpBusinessNameField">
+              <label class="login-label" for="signUpBusinessName">Business name</label>
+              <input class="login-input" id="signUpBusinessName" type="text"
+                     autocomplete="organization" placeholder="Enter your business name">
+              <div class="custom-form-error" id="signUpBusinessNameError"></div>
+            </div>
+
+            <div class="login-field">
               <label class="login-label" for="signUpEmail">Email address</label>
               <input class="login-input" id="signUpEmail" type="email"
                      autocomplete="email" placeholder="you@example.com">
@@ -1081,6 +1097,21 @@ input, select, textarea, button { max-width: 100%; }
     const signUpForm=document.getElementById("signUpForm");
     const forgotForm=document.getElementById("forgotForm");
 
+    const signUpRole=document.getElementById("signUpRole");
+    const businessNameField=document.getElementById("signUpBusinessNameField");
+    const signUpBusinessName=document.getElementById("signUpBusinessName");
+    const updateSignupRoleFields=()=>{
+      const isBusinessOwner=signUpRole.value==="business_owner";
+      businessNameField.style.display=isBusinessOwner ? "flex" : "none";
+      signUpBusinessName.required=isBusinessOwner;
+      if(!isBusinessOwner){
+        signUpBusinessName.value="";
+        clearCustomError("signUpBusinessNameError","signUpBusinessName");
+      }
+    };
+    signUpRole.addEventListener("change",updateSignupRoleFields);
+    updateSignupRoleFields();
+
     signInForm.addEventListener("submit",async event=>{
       event.preventDefault();
       const email=document.getElementById("signInEmail").value.trim().toLowerCase();
@@ -1120,13 +1151,16 @@ input, select, textarea, button { max-width: 100%; }
     signUpForm.addEventListener("submit",async event=>{
       event.preventDefault();
       const name=document.getElementById("signUpName").value.trim();
+      const role=document.getElementById("signUpRole").value;
+      const businessName=document.getElementById("signUpBusinessName").value.trim().replace(/\s+/g," ");
       const email=document.getElementById("signUpEmail").value.trim().toLowerCase();
       const password=document.getElementById("signUpPassword").value;
       const confirm=document.getElementById("signUpConfirm").value;
-      clearErrors([["signUpNameError","signUpName"],["signUpEmailError","signUpEmail"],["signUpPasswordError","signUpPassword"],["signUpConfirmError","signUpConfirm"]]);
+      clearErrors([["signUpNameError","signUpName"],["signUpBusinessNameError","signUpBusinessName"],["signUpEmailError","signUpEmail"],["signUpPasswordError","signUpPassword"],["signUpConfirmError","signUpConfirm"]]);
       clearAuthFeedback("signUpForm");
 
       if(!name){setCustomError("signUpNameError","signUpName","Please enter your full name.");return;}
+      if(role==="business_owner" && !businessName){setCustomError("signUpBusinessNameError","signUpBusinessName","Please enter your business name.");return;}
       if(!email){setCustomError("signUpEmailError","signUpEmail","Please enter your email address.");return;}
       if(!validEmail(email)){setCustomError("signUpEmailError","signUpEmail","Please enter a valid email address.");return;}
       if(password.length<6){setCustomError("signUpPasswordError","signUpPassword","Your password must contain at least 6 characters.");return;}
@@ -1139,7 +1173,11 @@ input, select, textarea, button { max-width: 100%; }
           email,
           password,
           options:{
-            data:{display_name:name},
+            data:{
+              display_name:name,
+              role,
+              business_name:role==="business_owner" ? businessName : null
+            },
             emailRedirectTo:new URL("main.html?emailConfirmed=1",window.location.href).href
           }
         });
@@ -1218,7 +1256,7 @@ input, select, textarea, button { max-width: 100%; }
       }
     });
 
-    [["signInEmail","signInEmailError"],["signInPassword","signInPasswordError"],["signUpName","signUpNameError"],["signUpEmail","signUpEmailError"],["signUpPassword","signUpPasswordError"],["signUpConfirm","signUpConfirmError"],["forgotEmail","forgotEmailError"]].forEach(([inputId,errorId])=>{
+    [["signInEmail","signInEmailError"],["signInPassword","signInPasswordError"],["signUpName","signUpNameError"],["signUpBusinessName","signUpBusinessNameError"],["signUpEmail","signUpEmailError"],["signUpPassword","signUpPasswordError"],["signUpConfirm","signUpConfirmError"],["forgotEmail","forgotEmailError"]].forEach(([inputId,errorId])=>{
       const input=document.getElementById(inputId);
       if(input) input.addEventListener("input",()=>clearCustomError(errorId,inputId));
     });
