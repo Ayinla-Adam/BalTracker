@@ -248,10 +248,10 @@
     });
 
     const signOut = async () => {
-      $("signOutButton").disabled = true;
+      $("sidebarSignOut").disabled = true;
       const { error } = await window.supabaseClient.auth.signOut();
       if (error) {
-        $("signOutButton").disabled = false;
+        $("sidebarSignOut").disabled = false;
         showMessage($("searchMessage"), "Could not sign out. Please try again.", "error");
         return;
       }
