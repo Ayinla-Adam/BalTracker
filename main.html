@@ -1872,6 +1872,12 @@ button, input, select, textarea { max-width: 100%; }
             <span class="nav-icon">☷</span>
             Activity
           </button>
+
+          <button class="nav-btn" data-page="requests">
+            <span class="nav-icon">↗</span>
+            Pending Requests
+            <span id="pendingRequestsBadge" style="display:none;margin-left:auto;background:#dbeafe;color:#1d4ed8;border-radius:999px;padding:2px 7px;font-size:10px;font-weight:800;">0</span>
+          </button>
   
           <button class="nav-btn" data-page="contacts">
             <span class="nav-icon">♙</span>
@@ -2464,6 +2470,23 @@ button, input, select, textarea { max-width: 100%; }
            SETTINGS PAGE
       ========================= -->
   
+          <section class="page" id="page-requests">
+            <div class="welcome">
+              <h1>Pending Requests</h1>
+              <p>Review transactions customers have sent for authorization. Approving a request here records the decision only; it does not automatically create a sale or debt balance.</p>
+            </div>
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Customer transaction requests</div>
+                <button class="btn btn-secondary" type="button" onclick="loadPendingCustomerRequests()">Refresh</button>
+              </div>
+              <div class="card-body">
+                <div id="pendingRequestsMessage" style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:12px;">Loading requests…</div>
+                <div id="pendingRequestsList"></div>
+              </div>
+            </div>
+          </section>
+
           <section class="page" id="page-settings">
   
             <div class="welcome">
@@ -3810,6 +3833,7 @@ button, input, select, textarea { max-width: 100%; }
           credit: "Customer Credit",
           debit: "Business Debit",
           activity: "Activity",
+          requests: "Pending Requests",
           contacts: "Customers & Vendors",
           settings: "Settings"
     
@@ -3889,6 +3913,12 @@ button, input, select, textarea { max-width: 100%; }
     
           }
     
+          if (page === "requests") {
+
+            loadPendingCustomerRequests();
+
+          }
+
           if (page === "contacts") {
     
             renderContacts();
@@ -8147,6 +8177,72 @@ button, input, select, textarea { max-width: 100%; }
            RENDER EVERYTHING
         ========================================================= */
     
+        async function loadPendingCustomerRequests() {
+          const list = document.getElementById("pendingRequestsList");
+          const message = document.getElementById("pendingRequestsMessage");
+          if (!list || !message || !window.supabaseClient) return;
+          message.textContent = "Loading requests…";
+          try {
+            const { data, error } = await window.supabaseClient
+              .from("customer_transaction_requests")
+              .select("id,customer_user_id,customer_name,item_name,quantity,amount,payment_type,description,status,owner_note,created_at,business_id")
+              .eq("status", "pending").order("created_at", { ascending: false }).limit(100);
+            if (error) throw error;
+            const requests = data || [];
+            const badge = document.getElementById("pendingRequestsBadge");
+            if (badge) { badge.textContent = String(requests.length); badge.style.display = requests.length ? "inline-flex" : "none"; }
+            message.textContent = requests.length ? requests.length + " pending request(s). Review each request before approving." : "You're all caught up. There are no pending transaction requests.";
+            if (!requests.length) { list.innerHTML = '<div style="padding:20px 0;color:var(--muted);font-size:13px;">No requests to review right now.</div>'; return; }
+            const money = value => new Intl.NumberFormat("en-NG", {style:"currency",currency:"NGN",maximumFractionDigits:2}).format(Number(value)||0);
+            const esc = value => String(value ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+            list.innerHTML = '<div style="display:grid;gap:14px;">' + requests.map(r => `
+              <article style="border:1px solid var(--border);border-radius:14px;padding:18px;background:#fff;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+                  <div><div style="font-size:15px;font-weight:800;color:var(--text);">${esc(r.item_name)}</div>
+                    <div style="font-size:12px;color:var(--muted);margin-top:5px;">From ${esc(r.customer_name)} · ${esc(new Date(r.created_at).toLocaleString())}</div></div>
+                  <span style="font-size:10px;font-weight:800;padding:5px 9px;border-radius:999px;background:#fff7e6;color:#9a6700;">PENDING</span>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:12px;margin:16px 0;">
+                  <div><div style="font-size:11px;color:var(--muted);">Quantity</div><strong>${esc(r.quantity)}</strong></div>
+                  <div><div style="font-size:11px;color:var(--muted);">Proposed amount</div><strong>${money(r.amount)}</strong></div>
+                  <div><div style="font-size:11px;color:var(--muted);">Payment arrangement</div><strong>${r.payment_type==="pay_later"?"Pay later / credit":"Pay now"}</strong></div>
+                </div>
+                <div style="background:var(--bg);padding:12px;border-radius:10px;font-size:12px;line-height:1.6;"><strong>Description</strong><div>${esc(r.description)}</div></div>
+                <label for="ownerNote-${r.id}" style="display:block;margin-top:12px;font-size:12px;font-weight:700;">Optional note to customer</label>
+                <input id="ownerNote-${r.id}" class="form-input" maxlength="500" placeholder="Add a note (optional)" style="width:100%;margin-top:6px;">
+                <div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:13px;">
+                  <button class="btn btn-primary" type="button" onclick="reviewCustomerTransactionRequest('${r.id}','approved')">Approve request</button>
+                  <button class="btn btn-secondary" type="button" onclick="reviewCustomerTransactionRequest('${r.id}','declined')">Decline</button>
+                </div>
+              </article>`).join("") + '</div>';
+          } catch (error) {
+            console.error("Could not load customer requests:", error);
+            message.textContent = String(error?.message || "").toLowerCase().includes("does not exist") || String(error?.message || "").toLowerCase().includes("schema cache")
+              ? "The customer authorization migration hasn't been applied yet. Apply migrations/20261022_request_business_connection.sql in Supabase SQL Editor, then refresh."
+              : "Couldn't load requests. Check the database migration and access policies, then refresh.";
+            list.innerHTML = "";
+          }
+        }
+        async function reviewCustomerTransactionRequest(requestId, decision) {
+          const noteInput = document.getElementById("ownerNote-" + requestId);
+          const note = noteInput ? noteInput.value.trim() : "";
+          const label = decision === "approved" ? "approve" : "decline";
+          if (!confirm("Are you sure you want to " + label + " this customer transaction request?")) return;
+          try {
+            const { data, error } = await window.supabaseClient.rpc("review_customer_transaction_request", {
+              p_request_id: requestId, p_decision: decision, p_owner_note: note || null
+            });
+            if (error) throw error;
+            showToast(decision === "approved" ? "Request approved. No sale or debt was recorded automatically." : "Request declined.", "success", "Request Updated");
+            await loadPendingCustomerRequests();
+          } catch (error) {
+            console.error("Could not review customer request:", error);
+            showToast("Couldn't update this request. Make sure the latest customer authorization migration is applied.", "error", "Request Failed");
+          }
+        }
+        window.loadPendingCustomerRequests = loadPendingCustomerRequests;
+        window.reviewCustomerTransactionRequest = reviewCustomerTransactionRequest;
+
         function renderAll() {
     
           renderDashboard();
