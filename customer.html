@@ -79,6 +79,24 @@
     .topbar{height:64px}
     .content{padding:18px 15px}
   }
+
+  .nav-btn{cursor:pointer}.nav-btn[aria-current="page"]{background:rgba(15,98,254,.18);color:#93c5fd}
+  .page-section{display:none}.page-section.active{display:block}
+  .stats-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:18px 0}
+  .stat-card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:18px;box-shadow:var(--shadow)}
+  .stat-label{font-size:12px;color:var(--muted);font-weight:650}.stat-value{font-size:26px;font-weight:850;letter-spacing:-.6px;margin-top:8px}
+  .field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+  .field{display:flex;flex-direction:column;gap:7px;min-width:0}.field label{font-size:12px;font-weight:750;color:#334155}
+  .field input,.field select,.field textarea{width:100%;min-width:0;border:1px solid #cbd5e1;border-radius:11px;padding:11px 12px;background:#fff;color:var(--text);font-size:13px;outline-offset:2px}
+  .field textarea{min-height:94px;resize:vertical}.field input:focus,.field select:focus,.field textarea:focus{outline:2px solid rgba(15,98,254,.2);border-color:var(--primary)}
+  .field.full{grid-column:1/-1}.section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:16px}
+  .table-wrap{overflow:auto;border:1px solid var(--border);border-radius:12px}
+  table{width:100%;border-collapse:collapse;min-width:590px;background:#fff}th,td{text-align:left;padding:12px 14px;border-bottom:1px solid #edf0f5;font-size:12px;vertical-align:top}th{color:var(--muted);font-weight:750;background:#f8fafc}tbody tr:last-child td{border-bottom:0}
+  .pill{display:inline-flex;align-items:center;border-radius:999px;padding:5px 9px;font-size:10px;font-weight:800;text-transform:capitalize}.pill.pending{background:#fff7e6;color:#9a6700}.pill.approved,.pill.confirmed{background:#eaf8ef;color:#166534}.pill.declined{background:#fff0f0;color:#b91c1c}
+  .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.hint{font-size:12px;color:var(--muted);line-height:1.6;margin-top:10px}.notice{border-radius:11px;padding:12px 14px;background:var(--primary-soft);color:#17469e;font-size:12px;line-height:1.6;margin:14px 0}
+  .business-lookup{display:flex;gap:10px;flex-wrap:wrap}.business-lookup input{flex:1 1 230px}
+  @media(max-width:700px){.stats-grid{grid-template-columns:1fr 1fr}.field-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.section-head{flex-direction:column}}
+  @media(max-width:420px){.stats-grid{grid-template-columns:1fr}.stat-card{padding:14px}}
 </style>
 </head>
 <body>
@@ -88,14 +106,13 @@
         <img src="balTracker-logo.png" alt="BalTracker" onerror="this.onerror=null;this.src='balTracker-logo';">
       </div>
       <nav class="nav" aria-label="Customer navigation">
-        <div class="nav-section">Overview</div>
-        <button class="nav-btn active" type="button" aria-current="page">
-          <span class="nav-icon">⌕</span> Find a business
-        </button>
-        <div class="nav-section">Your account</div>
-        <div class="nav-btn" style="cursor:default" aria-label="Account privacy">
-          <span class="nav-icon">◇</span> Privacy & security
-        </div>
+        <div class="nav-section">Workspace</div>
+        <button class="nav-btn active" type="button" data-section="dashboard" aria-current="page"><span class="nav-icon">⌂</span> Dashboard</button>
+        <button class="nav-btn" type="button" data-section="send"><span class="nav-icon">↗</span> Send transaction</button>
+        <button class="nav-btn" type="button" data-section="requests"><span class="nav-icon">☷</span> My requests</button>
+        <button class="nav-btn" type="button" data-section="activity"><span class="nav-icon">◷</span> Activity</button>
+        <div class="nav-section">Account</div>
+        <button class="nav-btn" type="button" data-section="profile"><span class="nav-icon">♙</span> My account</button>
       </nav>
       <div class="sidebar-bottom">
         <button class="nav-btn" id="sidebarSignOut" type="button"><span class="nav-icon">↪</span> Sign out</button>
@@ -105,7 +122,7 @@
       <header class="topbar">
         <div style="display:flex;align-items:center;gap:12px">
           <button class="mobile-menu" id="mobileMenu" type="button" aria-label="Open navigation">☰</button>
-          <div class="page-title">Find a business</div>
+          <div class="page-title" id="customerPageTitle">Dashboard</div>
         </div>
         <div class="topbar-right">
           <div class="user-avatar" id="userAvatar" aria-label="Customer account">BT</div>
@@ -115,26 +132,49 @@
         <div class="wrap">
     <section class="welcome">
       <div class="eyebrow">Customer portal</div>
-      <h1>Find a business to shop with.</h1>
-      <p class="sub">Search with the Business ID shared by a business owner. You can view the business's public name before requesting a connection.</p>
+      <h1 id="welcomeTitle">Your BalTracker customer space</h1>
+      <p class="sub">Send a transaction to a business for authorization, follow its status, and keep track of your activity in one place.</p>
     </section>
-    <section class="panel" aria-labelledby="searchTitle">
-      <h2 id="searchTitle">Find a business</h2>
-      <p class="help">Enter the Business ID exactly as provided. Letter case and surrounding spaces don't matter.</p>
-      <form id="businessSearchForm">
-        <input id="businessIdInput" name="businessId" autocomplete="off" autocapitalize="characters" maxlength="40" placeholder="e.g. BT-AB12CD34EF56" aria-label="Business ID" required>
-        <button class="primary" id="searchButton" type="submit">Search business</button>
-      </form>
-      <div class="message" id="searchMessage" role="status" aria-live="polite"></div>
-      <article class="result" id="businessResult" aria-live="polite">
-        <div class="status">Public business profile</div>
-        <p class="business-name" id="resultBusinessName"></p>
-        <div class="idline">Business ID: <strong id="resultBusinessId"></strong></div>
-        <button class="request-btn" id="connectButton" type="button">Request connection</button>
-        <div class="message" id="connectMessage" role="status" aria-live="polite"></div>
-      </article>
+
+    <section class="page-section active" id="section-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-label">Requests sent</div><div class="stat-value" id="statTotal">0</div></div>
+        <div class="stat-card"><div class="stat-label">Awaiting approval</div><div class="stat-value" id="statPending">0</div></div>
+        <div class="stat-card"><div class="stat-label">Approved requests</div><div class="stat-value" id="statApproved">0</div></div>
+      </div>
+      <div class="panel">
+        <div class="section-head"><div><h2>Get started</h2><p class="help">You don't need a separate connection request. Send the transaction details to the business owner and they can authorize it.</p></div><button class="btn btn-primary" type="button" data-go="send">+ Send transaction</button></div>
+        <div class="notice">The business owner reviews the item, quantity, amount, and whether you intend to pay now or request pay-later credit. The request does not become a recorded sale or debt until the owner confirms it through the business workflow.</div>
+      </div>
+      <div class="panel"><div class="section-head"><div><h2>Recent requests</h2><p class="help">Your latest transaction requests and their current status.</p></div><button class="btn btn-secondary" type="button" data-go="requests">View all</button></div><div id="recentRequests" class="empty">Your requests will appear here.</div></div>
     </section>
-    <p class="footer">Your account and business connections are separate from each business owner's private financial records.</p>
+
+    <section class="page-section" id="section-send">
+      <div class="panel">
+        <div class="section-head"><div><h2>Send transaction for authorization</h2><p class="help">Fill in the transaction and send it to the business owner for approval.</p></div></div>
+        <form id="transactionRequestForm">
+          <div class="field full"><label for="requestBusinessId">Business ID *</label><div class="business-lookup"><input id="requestBusinessId" name="businessId" placeholder="e.g. BT-AB12CD34EF56" maxlength="40" autocomplete="off" required><button class="btn btn-secondary" id="lookupBusinessButton" type="button">Find business</button></div><div id="selectedBusiness" class="hint">Enter a Business ID, then select Find business to verify the recipient.</div></div>
+          <div class="field"><label for="requestItem">Item / transaction *</label><input id="requestItem" name="item" maxlength="160" placeholder="What are you buying?" required></div>
+          <div class="field"><label for="requestQuantity">Quantity *</label><input id="requestQuantity" name="quantity" type="number" min="0.01" max="1000000" step="0.01" placeholder="e.g. 2" required></div>
+          <div class="field"><label for="requestAmount">Total amount (₦) *</label><input id="requestAmount" name="amount" type="number" min="0.01" step="0.01" placeholder="Enter agreed total" required></div>
+          <div class="field"><label for="requestPaymentType">Payment arrangement *</label><select id="requestPaymentType" name="paymentType" required><option value="pay_now">Pay now</option><option value="pay_later">Request pay-later / credit</option></select></div>
+          <div class="field full"><label for="requestDescription">Description *</label><textarea id="requestDescription" name="description" maxlength="1000" placeholder="Add any details the business owner needs to authorize this transaction." required></textarea></div>
+          <div class="field full"><div id="submitMessage" class="message" role="status" aria-live="polite"></div><div class="btn-row"><button class="btn btn-primary" id="submitRequestButton" type="submit">Send for authorization</button><button class="btn btn-secondary" type="reset">Clear form</button></div><p class="hint">The amount is the amount you are proposing, not a confirmed payment. For pay-later requests, the business owner must explicitly approve the credit arrangement.</p></div>
+        </form>
+      </div>
+    </section>
+
+    <section class="page-section" id="section-requests">
+      <div class="panel"><div class="section-head"><div><h2>My transaction requests</h2><p class="help">Track requests you have sent to businesses.</p></div><button class="btn btn-secondary" type="button" id="refreshRequests">Refresh</button></div><div id="allRequests" class="empty">Loading your requests…</div></div>
+    </section>
+
+    <section class="page-section" id="section-activity">
+      <div class="panel"><div class="section-head"><div><h2>Activity</h2><p class="help">A chronological view of your transaction requests and their decisions.</p></div></div><div id="activityList" class="empty">Your activity will appear here.</div></div>
+    </section>
+
+    <section class="page-section" id="section-profile">
+      <div class="panel"><h2>Your account</h2><p class="help">Your customer account is separate from each business's private financial records.</p><div class="field-grid"><div class="field"><label>Display name</label><input id="profileName" readonly></div><div class="field"><label>Account email</label><input id="profileEmail" readonly></div></div><div class="notice">To update your account details, use the authentication and profile options provided by BalTracker. Never share your password or verification codes.</div></div>
+    </section>
         </div>
       </div>
     </main>
@@ -144,138 +184,108 @@
   <script>
   (() => {
     const $ = id => document.getElementById(id);
-    let foundBusiness = null;
-    let currentUser = null;
-    const showMessage = (element, message, type = "info") => {
-      element.textContent = message;
-      element.className = "message show " + type;
-    };
-    const hideMessage = element => {
-      element.textContent = "";
-      element.className = "message";
-    };
-    const normalizeError = error => String(error?.message || "").toLowerCase();
-    const friendlyError = error => {
-      const msg = normalizeError(error);
-      if (msg.includes("function") && (msg.includes("not found") || msg.includes("schema cache"))) return "Business search is not available yet. Please refresh later or contact the BalTracker team.";
-      if (msg.includes("business_customer_links") || msg.includes("request_business_connection")) return "Business connection requests are being set up. You can search for businesses now; please try requesting a connection later.";
-      if (msg.includes("already exists") || msg.includes("duplicate key")) return "You've already requested or connected to this business.";
-      return "We couldn't complete that request. Please check your connection and try again.";
-    };
-
-    async function start() {
-      if (!window.supabaseClient?.auth) {
-        showMessage($("searchMessage"), "BalTracker couldn't connect to its service. Refresh the page and try again.", "error");
-        $("searchButton").disabled = true;
-        return;
-      }
-      const { data, error } = await window.supabaseClient.auth.getSession();
-      if (error || !data?.session?.user) {
-        window.location.replace("index.html");
-        return;
-      }
-      currentUser = data.session.user;
-      const { data: profile, error: profileError } = await window.supabaseClient
-        .from("profiles").select("role,display_name").eq("user_id", currentUser.id).maybeSingle();
-      if (profileError || !profile) {
-        showMessage($("searchMessage"), "We couldn't verify your account. Please sign in again.", "error");
-        return;
-      }
-      if (profile.role !== "customer") {
-        window.location.replace("main.html");
-        return;
-      }
-      if (profile.display_name) {
-        document.querySelector("h1").textContent = "Welcome, " + profile.display_name.split(/\s+/)[0] + ". Find a business to shop with.";
-      }
+    let currentUser = null, currentProfile = null, selectedBusiness = null, requests = [];
+    const titles = {dashboard:"Dashboard",send:"Send transaction",requests:"My requests",activity:"Activity",profile:"My account"};
+    const showMessage = (element, message, type="info") => { element.textContent=message; element.className="message show "+type; };
+    const hideMessage = element => { element.textContent=""; element.className="message"; };
+    const esc = value => String(value ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+    const money = value => new Intl.NumberFormat("en-NG",{style:"currency",currency:"NGN",maximumFractionDigits:2}).format(Number(value)||0);
+    const statusPill = status => '<span class="pill '+esc(status)+'">'+esc(status)+'</span>';
+    const empty = text => '<div class="empty">'+esc(text)+'</div>';
+    function navigate(section) {
+      if(!titles[section]) return;
+      document.querySelectorAll(".page-section").forEach(el=>el.classList.toggle("active",el.id==="section-"+section));
+      document.querySelectorAll(".nav-btn[data-section]").forEach(el=>{
+        const active=el.dataset.section===section; el.classList.toggle("active",active);
+        if(active) el.setAttribute("aria-current","page"); else el.removeAttribute("aria-current");
+      });
+      $("customerPageTitle").textContent=titles[section];
+      if(window.innerWidth<=800) $("sidebar").classList.remove("mobile-open");
+      if(section==="requests"||section==="activity"||section==="dashboard") loadRequests();
     }
-
-    $("businessSearchForm").addEventListener("submit", async event => {
-      event.preventDefault();
-      hideMessage($("searchMessage"));
-      hideMessage($("connectMessage"));
-      $("businessResult").classList.remove("show");
-      foundBusiness = null;
-      const businessId = $("businessIdInput").value.trim().toUpperCase();
-      if (!businessId) {
-        showMessage($("searchMessage"), "Enter a Business ID to search.", "error");
-        return;
+    document.querySelectorAll("[data-section]").forEach(el=>el.addEventListener("click",()=>navigate(el.dataset.section)));
+    document.querySelectorAll("[data-go]").forEach(el=>el.addEventListener("click",()=>navigate(el.dataset.go)));
+    async function start() {
+      if(!window.supabaseClient?.auth){showMessage($("submitMessage"),"BalTracker couldn't connect to its service. Refresh and try again.","error");return;}
+      const {data,error}=await window.supabaseClient.auth.getSession();
+      if(error||!data?.session?.user){window.location.replace("index.html");return;}
+      currentUser=data.session.user;
+      const {data:profile,error:profileError}=await window.supabaseClient.from("profiles").select("role,display_name").eq("user_id",currentUser.id).maybeSingle();
+      if(profileError||!profile){window.location.replace("index.html");return;}
+      if(profile.role!=="customer"){window.location.replace("main.html");return;}
+      currentProfile=profile;
+      const first=(profile.display_name||"Customer").trim().split(/\s+/)[0];
+      $("welcomeTitle").textContent="Welcome, "+first+".";
+      $("profileName").value=profile.display_name||"";
+      $("profileEmail").value=currentUser.email||"";
+      $("userAvatar").textContent=(profile.display_name||"BT").trim().split(/\s+/).slice(0,2).map(x=>x[0]).join("").toUpperCase();
+      await loadRequests();
+    }
+    async function lookupBusiness() {
+      const id=$("requestBusinessId").value.trim().toUpperCase();
+      if(!id){$("selectedBusiness").textContent="Enter a Business ID first.";selectedBusiness=null;return;}
+      const button=$("lookupBusinessButton");button.disabled=true;button.textContent="Searching…";
+      try{
+        const {data,error}=await window.supabaseClient.rpc("find_public_business",{p_business_id:id});
+        if(error) throw error;
+        const row=Array.isArray(data)?data[0]:data;
+        if(!row){selectedBusiness=null;$("selectedBusiness").textContent="No business found with that ID. Check the ID with the owner.";return;}
+        selectedBusiness={business_id:row.business_id,business_name:row.business_name};
+        $("requestBusinessId").value=row.business_id;
+        $("selectedBusiness").textContent="Sending to: "+row.business_name+" ("+row.business_id+")";
+      }catch(e){selectedBusiness=null;$("selectedBusiness").textContent="Couldn't look up this business. Check the ID and try again.";console.error(e);}
+      finally{button.disabled=false;button.textContent="Find business";}
+    }
+    $("lookupBusinessButton").addEventListener("click",lookupBusiness);
+    $("requestBusinessId").addEventListener("input",()=>{selectedBusiness=null;$("selectedBusiness").textContent="Find the business before submitting the transaction.";});
+    $("transactionRequestForm").addEventListener("reset",()=>{selectedBusiness=null;setTimeout(()=>{$("selectedBusiness").textContent="Enter a Business ID, then select Find business to verify the recipient.";hideMessage($("submitMessage"));},0);});
+    $("transactionRequestForm").addEventListener("submit",async event=>{
+      event.preventDefault();hideMessage($("submitMessage"));
+      if(!selectedBusiness||selectedBusiness.business_id!==$("requestBusinessId").value.trim().toUpperCase()){
+        showMessage($("submitMessage"),"Find and verify the business before sending your transaction.","error");return;
       }
-      const button = $("searchButton");
-      button.disabled = true;
-      button.textContent = "Searching…";
-      try {
-        const { data, error } = await window.supabaseClient.rpc("find_public_business", { p_business_id: businessId });
-        if (error) throw error;
-        const row = Array.isArray(data) ? data[0] : data;
-        if (!row) {
-          showMessage($("searchMessage"), "We couldn't find a business with that ID. Check it with the business owner and try again.", "info");
-          return;
-        }
-        foundBusiness = { business_id: row.business_id, business_name: row.business_name };
-        $("resultBusinessName").textContent = foundBusiness.business_name;
-        $("resultBusinessId").textContent = foundBusiness.business_id;
-        $("businessResult").classList.add("show");
-        showMessage($("searchMessage"), "Business found.", "success");
-      } catch (error) {
-        console.error("Business lookup failed:", error);
-        showMessage($("searchMessage"), friendlyError(error), "error");
-      } finally {
-        button.disabled = false;
-        button.textContent = "Search business";
-      }
+      const quantity=Number($("requestQuantity").value),amount=Number($("requestAmount").value);
+      if(!(quantity>0)||!(amount>0)){showMessage($("submitMessage"),"Quantity and amount must be greater than zero.","error");return;}
+      const button=$("submitRequestButton");button.disabled=true;button.textContent="Sending…";
+      try{
+        const {data,error}=await window.supabaseClient.rpc("submit_customer_transaction_request",{
+          p_business_id:selectedBusiness.business_id,p_item_name:$("requestItem").value.trim(),
+          p_quantity:quantity,p_amount:amount,p_payment_type:$("requestPaymentType").value,
+          p_description:$("requestDescription").value.trim()
+        });
+        if(error) throw error;
+        showMessage($("submitMessage"),"Transaction sent to "+selectedBusiness.business_name+" for authorization.","success");
+        $("transactionRequestForm").reset();await loadRequests();navigate("requests");
+      }catch(e){
+        console.error("Transaction request failed:",e);
+        const message=String(e?.message||"").toLowerCase();
+        showMessage($("submitMessage"),message.includes("does not exist")||message.includes("schema cache")?"Transaction authorization is not ready yet. Apply the latest Supabase migration, then try again.":(e.message||"We couldn't send the transaction. Check your details and try again."),"error");
+      }finally{button.disabled=false;button.textContent="Send for authorization";}
     });
-
-    $("connectButton").addEventListener("click", async () => {
-      if (!foundBusiness) return;
-      hideMessage($("connectMessage"));
-      const button = $("connectButton");
-      button.disabled = true;
-      button.textContent = "Sending request…";
-      try {
-        const { data, error } = await window.supabaseClient.rpc("request_business_connection", { p_business_id: foundBusiness.business_id });
-        if (error) throw error;
-        const result = Array.isArray(data) ? data[0] : data;
-        const status = result?.status || "pending";
-        showMessage($("connectMessage"), status === "connected" ? "You're already connected to this business." : "Connection request submitted. The business owner will review it.", "success");
-        button.textContent = status === "connected" ? "Connected" : "Request sent";
-      } catch (error) {
-        console.error("Business connection request failed:", error);
-        showMessage($("connectMessage"), friendlyError(error), "error");
-        button.disabled = false;
-        button.textContent = "Request connection";
-      }
+    function requestRows(rows) {
+      if(!rows.length)return empty("No transaction requests yet.");
+      return '<div class="table-wrap"><table><thead><tr><th>Business</th><th>Item</th><th>Amount</th><th>Payment</th><th>Date</th><th>Status</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+esc(r.business_name||"Business")+'<div class="hint">'+esc(r.business_id||"")+'</div></td><td>'+esc(r.item_name)+'<div class="hint">Qty: '+esc(r.quantity)+' · '+esc(r.description)+'</div></td><td>'+money(r.amount)+'</td><td>'+esc(r.payment_type==="pay_later"?"Pay later":"Pay now")+'</td><td>'+esc(new Date(r.created_at).toLocaleDateString())+'</td><td>'+statusPill(r.status)+(r.owner_note?'<div class="hint">'+esc(r.owner_note)+'</div>':"")+'</td></tr>').join("")+'</tbody></table></div>';
+    }
+    async function loadRequests() {
+      if(!currentUser)return;
+      const {data,error}=await window.supabaseClient.from("customer_transaction_requests").select("id,business_id,customer_user_id,item_name,quantity,amount,payment_type,description,status,owner_note,created_at,reviewed_at,businesses(business_name,business_id)").eq("customer_user_id",currentUser.id).order("created_at",{ascending:false}).limit(100);
+      if(error){console.warn("Could not load customer requests:",error.message);["recentRequests","allRequests","activityList"].forEach(id=>$(id).innerHTML=empty("Request history will appear after the transaction authorization migration is applied."));return;}
+      requests=(data||[]).map(r=>({...r,business_name:r.businesses?.business_name||"Business",business_code:r.businesses?.business_id||""}));
+      $("statTotal").textContent=String(requests.length);
+      $("statPending").textContent=String(requests.filter(r=>r.status==="pending").length);
+      $("statApproved").textContent=String(requests.filter(r=>r.status==="approved").length);
+      const rows=requestRows(requests.slice(0,5));$("recentRequests").innerHTML=rows;
+      $("allRequests").innerHTML=requestRows(requests);
+      $("activityList").innerHTML=requests.length?'<div class="table-wrap"><table><thead><tr><th>Activity</th><th>Date</th><th>Status</th></tr></thead><tbody>'+requests.map(r=>'<tr><td>Transaction request to '+esc(r.business_name)+'<div class="hint">'+esc(r.item_name)+' · '+money(r.amount)+'</div></td><td>'+esc(new Date(r.created_at).toLocaleString())+'</td><td>'+statusPill(r.status)+'</td></tr>').join("")+'</tbody></table></div>':empty("Your activity will appear here after you send a transaction.");
+    }
+    $("refreshRequests").addEventListener("click",loadRequests);
+    const signOut=async()=>{ $("sidebarSignOut").disabled=true;const {error}=await window.supabaseClient.auth.signOut();if(error){$("sidebarSignOut").disabled=false;showMessage($("submitMessage"),"Could not sign out. Please try again.","error");return;}window.location.replace("index.html");};
+    $("sidebarSignOut").addEventListener("click",signOut);
+    $("mobileMenu").addEventListener("click",()=>{
+      const sidebar=$("sidebar");const open=sidebar.classList.toggle("mobile-open");
+      sidebar.style.display=open?"flex":"none";sidebar.style.position="fixed";sidebar.style.width="260px";sidebar.style.maxWidth="85vw";sidebar.style.zIndex="100";sidebar.style.boxShadow=open?"10px 0 35px rgba(15,23,42,.2)":"none";
     });
-
-    const signOut = async () => {
-      $("sidebarSignOut").disabled = true;
-      const { error } = await window.supabaseClient.auth.signOut();
-      if (error) {
-        $("sidebarSignOut").disabled = false;
-        showMessage($("searchMessage"), "Could not sign out. Please try again.", "error");
-        return;
-      }
-      window.location.replace("index.html");
-    };
-    $("sidebarSignOut").addEventListener("click", signOut);
-
-    $("mobileMenu").addEventListener("click", () => {
-      const sidebar = $("sidebar");
-      const open = sidebar.style.display === "flex";
-      if (window.matchMedia("(max-width: 800px)").matches) {
-        sidebar.style.display = open ? "none" : "flex";
-        sidebar.style.position = "fixed";
-        sidebar.style.width = "260px";
-        sidebar.style.maxWidth = "85vw";
-        sidebar.style.zIndex = "100";
-        sidebar.style.boxShadow = "10px 0 35px rgba(15,23,42,.2)";
-      }
-    });
-
-    start().catch(error => {
-      console.error("Customer portal initialization failed:", error);
-      showMessage($("searchMessage"), "We couldn't load your customer account. Please refresh and try again.", "error");
-    });
+    start().catch(e=>{console.error(e);showMessage($("submitMessage"),"We couldn't load your customer account. Refresh and try again.","error");});
   })();
   </script>
 </body>
