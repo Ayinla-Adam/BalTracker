@@ -8586,6 +8586,8 @@ button, input, select, textarea { max-width: 100%; }
             loadSettings();
             renderAll();
             initializeUserAvatar();
+            await checkCustomerPaymentReminders();
+            window.addEventListener("focus", checkCustomerPaymentReminders);
 
             const params = new URLSearchParams(window.location.search);
             if(params.get("emailConfirmed")==="1"){

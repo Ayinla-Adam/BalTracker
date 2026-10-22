@@ -41,6 +41,12 @@ BEGIN
   IF NOT FOUND THEN RAISE EXCEPTION 'Pending request not found for this business'; END IF;
 
   IF p_decision = 'approved' THEN
+    -- Keep one customer contact for this customer account, for both sales and credit.
+    INSERT INTO public.customers (user_id, app_id, name, phone, email, notes)
+    VALUES (v_owner_id, 'customer_user_' || v_request.customer_user_id::text, v_request.customer_name, NULL, NULL, NULL)
+    ON CONFLICT (user_id, app_id) DO UPDATE SET name = EXCLUDED.name
+    RETURNING id INTO v_customer_id;
+
     IF v_request.payment_type = 'pay_later' THEN
       IF p_reminder_date IS NOT NULL AND p_due_date IS NULL THEN
         RAISE EXCEPTION 'A due date is required when adding a payment reminder';
@@ -54,11 +60,6 @@ BEGIN
       IF p_reminder_date IS NOT NULL AND p_reminder_date < CURRENT_DATE THEN
         RAISE EXCEPTION 'Reminder date cannot be in the past';
       END IF;
-
-      INSERT INTO public.customers (user_id, app_id, name, phone, email, notes)
-      VALUES (v_owner_id, 'customer_user_' || v_request.customer_user_id::text, v_request.customer_name, NULL, NULL, NULL)
-      ON CONFLICT (user_id, app_id) DO UPDATE SET name = EXCLUDED.name
-      RETURNING id INTO v_customer_id;
       v_type := 'owed_to_me';
     ELSE
       v_type := 'sales';
