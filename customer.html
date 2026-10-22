@@ -98,33 +98,63 @@
   @media(max-width:700px){.stats-grid{grid-template-columns:1fr 1fr}.field-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.section-head{flex-direction:column}}
   @media(max-width:420px){.stats-grid{grid-template-columns:1fr}.stat-card{padding:14px}}
 
-  /* Transaction form layout and native-select replacement styling */
+  /* Compact customer transaction form, matching the owner-side controls */
   #transactionRequestForm{
-    display:grid;
-    grid-template-columns:repeat(2,minmax(0,1fr));
-    gap:20px 18px;
-    align-items:start;
+    display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:15px 16px;align-items:start;max-width:900px;
   }
-  #transactionRequestForm .field{width:100%;min-width:0}
+  #transactionRequestForm .field{width:100%;min-width:0;gap:6px}
   #transactionRequestForm .field.full{grid-column:1/-1}
-  #transactionRequestForm .business-lookup{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:stretch}
-  #transactionRequestForm .business-lookup input{width:100%;min-width:0;flex:auto}
-  #transactionRequestForm .field select{
-    appearance:none;-webkit-appearance:none;
-    min-height:43px;padding:11px 42px 11px 13px;
-    border:1px solid #cbd5e1;border-radius:11px;
-    background-color:#fff;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364758b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-    background-repeat:no-repeat;background-position:right 14px center;
-    cursor:pointer;transition:border-color .18s ease,box-shadow .18s ease;
+  #transactionRequestForm .field label{font-size:11px;font-weight:750;color:#475569}
+  #transactionRequestForm .field input,
+  #transactionRequestForm .field textarea{
+    width:100%;min-width:0;border:1px solid var(--border);border-radius:9px;
+    padding:9px 11px;background:#fff;color:var(--text);font-size:12px;
+    outline:none;transition:border-color .18s ease,box-shadow .18s ease;
   }
-  #transactionRequestForm .field select:hover{border-color:#94a3b8}
-  #transactionRequestForm .field select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(15,98,254,.12)}
-  #transactionRequestForm .field select option{background:#fff;color:var(--text);padding:10px}
-  #transactionRequestForm .btn-row{margin-top:0}
-  #transactionRequestForm .field.full>.hint{margin-top:10px}
+  #transactionRequestForm .field input{height:39px}
+  #transactionRequestForm .field textarea{min-height:76px;resize:vertical}
+  #transactionRequestForm .field input:focus,
+  #transactionRequestForm .field textarea:focus{
+    border-color:#93c5fd;box-shadow:0 0 0 3px rgba(37,99,235,.08);outline:none;
+  }
+  #transactionRequestForm .business-lookup{
+    display:grid;grid-template-columns:minmax(0,1fr) auto;gap:9px;align-items:center
+  }
+  #transactionRequestForm .business-lookup input{width:100%;min-width:0}
+  #transactionRequestForm .business-lookup .btn{height:39px;padding:0 13px;font-size:12px;white-space:nowrap}
+  #transactionRequestForm .custom-select{position:relative;width:100%}
+  #transactionRequestForm .custom-select-trigger{
+    width:100%;height:39px;border:1px solid var(--border);background:#fff;
+    border-radius:9px;padding:0 11px;display:flex;align-items:center;
+    justify-content:space-between;gap:10px;color:var(--text);font-size:12px;
+    font-weight:600;text-align:left;transition:.18s ease;
+  }
+  #transactionRequestForm .custom-select-trigger:hover{border-color:#cbd5e1}
+  #transactionRequestForm .custom-select.open .custom-select-trigger{
+    border-color:#93c5fd;box-shadow:0 0 0 3px rgba(37,99,235,.08)
+  }
+  #transactionRequestForm .custom-select-arrow{color:#64748b;font-size:12px;transition:transform .18s ease}
+  #transactionRequestForm .custom-select.open .custom-select-arrow{transform:rotate(180deg)}
+  #transactionRequestForm .custom-select-menu{
+    position:absolute;top:calc(100% + 5px);left:0;right:0;z-index:1000;
+    display:none;background:#fff;border:1px solid #dbe3ec;border-radius:10px;
+    padding:5px;box-shadow:0 14px 35px rgba(15,23,42,.14)
+  }
+  #transactionRequestForm .custom-select.open .custom-select-menu{display:block}
+  #transactionRequestForm .custom-option{
+    width:100%;border:0;background:transparent;padding:9px 10px;border-radius:7px;
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    color:#334155;font-size:12px;font-weight:600;text-align:left;transition:.15s ease
+  }
+  #transactionRequestForm .custom-option:hover{background:#f1f5f9;color:#0f172a}
+  #transactionRequestForm .custom-option.selected{background:#eaf2ff;color:#0f62fe}
+  #transactionRequestForm .custom-option-check{color:#0f62fe;font-weight:900}
+  #transactionRequestForm .btn-row{margin-top:0;gap:8px}
+  #transactionRequestForm .btn-row .btn{min-height:37px;padding:9px 13px;font-size:12px}
+  #transactionRequestForm .field.full>.hint{margin-top:8px}
   @media(max-width:700px){
-    #transactionRequestForm{grid-template-columns:minmax(0,1fr);gap:16px}
+    #transactionRequestForm{grid-template-columns:minmax(0,1fr);gap:13px}
     #transactionRequestForm .field.full{grid-column:auto}
   }
   @media(max-width:460px){
@@ -193,7 +223,7 @@
           <div class="field"><label for="requestItem">Item / transaction *</label><input id="requestItem" name="item" maxlength="160" placeholder="What are you buying?" required></div>
           <div class="field"><label for="requestQuantity">Quantity *</label><input id="requestQuantity" name="quantity" type="number" min="0.01" max="1000000" step="0.01" placeholder="e.g. 2" required></div>
           <div class="field"><label for="requestAmount">Total amount (₦) *</label><input id="requestAmount" name="amount" type="number" min="0.01" step="0.01" placeholder="Enter agreed total" required></div>
-          <div class="field"><label for="requestPaymentType">Payment arrangement *</label><select id="requestPaymentType" name="paymentType" required><option value="pay_now">Pay now</option><option value="pay_later">Request pay-later / credit</option></select></div>
+          <div class="field"><label id="requestPaymentTypeLabel">Payment arrangement *</label><input type="hidden" id="requestPaymentType" name="paymentType" value="pay_now" required><div class="custom-select" id="requestPaymentTypeControl" data-value="pay_now"><button type="button" class="custom-select-trigger" aria-haspopup="listbox" aria-expanded="false" onclick="togglePaymentArrangement()"><span class="custom-select-value">Pay now</span><span class="custom-select-arrow">▾</span></button><div class="custom-select-menu" role="listbox" aria-labelledby="requestPaymentTypeLabel"><button type="button" class="custom-option selected" role="option" aria-selected="true" data-value="pay_now" onclick="selectPaymentArrangement('pay_now')"><span>Pay now</span><span class="custom-option-check">✓</span></button><button type="button" class="custom-option" role="option" aria-selected="false" data-value="pay_later" onclick="selectPaymentArrangement('pay_later')"><span>Request pay-later / credit</span></button></div></div></div>
           <div class="field full"><label for="requestDescription">Description *</label><textarea id="requestDescription" name="description" maxlength="1000" placeholder="Add any details the business owner needs to authorize this transaction." required></textarea></div>
           <div class="field full"><div id="submitMessage" class="message" role="status" aria-live="polite"></div><div class="btn-row"><button class="btn btn-primary" id="submitRequestButton" type="submit">Send for authorization</button><button class="btn btn-secondary" type="reset">Clear form</button></div><p class="hint">The amount is the amount you are proposing, not a confirmed payment. For pay-later requests, the business owner must explicitly approve the credit arrangement.</p></div>
         </form>
@@ -228,6 +258,39 @@
     const money = value => new Intl.NumberFormat("en-NG",{style:"currency",currency:"NGN",maximumFractionDigits:2}).format(Number(value)||0);
     const statusPill = status => '<span class="pill '+esc(status)+'">'+esc(status)+'</span>';
     const empty = text => '<div class="empty">'+esc(text)+'</div>';
+    function togglePaymentArrangement(){
+      const control=$("requestPaymentTypeControl");
+      const open=!control.classList.contains("open");
+      document.querySelectorAll("#transactionRequestForm .custom-select.open").forEach(el=>el.classList.remove("open"));
+      control.classList.toggle("open",open);
+      control.querySelector(".custom-select-trigger").setAttribute("aria-expanded",String(open));
+    }
+    function selectPaymentArrangement(value){
+      const control=$("requestPaymentTypeControl");
+      const options={pay_now:"Pay now",pay_later:"Request pay-later / credit"};
+      if(!options[value])return;
+      $("requestPaymentType").value=value;
+      control.dataset.value=value;
+      control.querySelector(".custom-select-value").textContent=options[value];
+      control.querySelectorAll(".custom-option").forEach(option=>{
+        const selected=option.dataset.value===value;
+        option.classList.toggle("selected",selected);
+        option.setAttribute("aria-selected",String(selected));
+        const check=option.querySelector(".custom-option-check");
+        if(check)check.remove();
+        if(selected){const mark=document.createElement("span");mark.className="custom-option-check";mark.textContent="✓";option.appendChild(mark);}
+      });
+      control.classList.remove("open");
+      control.querySelector(".custom-select-trigger").setAttribute("aria-expanded","false");
+    }
+    document.addEventListener("click",event=>{
+      const control=$("requestPaymentTypeControl");
+      if(control&&!control.contains(event.target)){
+        control.classList.remove("open");
+        control.querySelector(".custom-select-trigger").setAttribute("aria-expanded","false");
+      }
+    });
+
     function navigate(section) {
       if(!titles[section]) return;
       document.querySelectorAll(".page-section").forEach(el=>el.classList.toggle("active",el.id==="section-"+section));
@@ -274,7 +337,7 @@
     }
     $("lookupBusinessButton").addEventListener("click",lookupBusiness);
     $("requestBusinessId").addEventListener("input",()=>{selectedBusiness=null;$("selectedBusiness").textContent="Find the business before submitting the transaction.";});
-    $("transactionRequestForm").addEventListener("reset",()=>{selectedBusiness=null;setTimeout(()=>{$("selectedBusiness").textContent="Enter a Business ID, then select Find business to verify the recipient.";hideMessage($("submitMessage"));},0);});
+    $("transactionRequestForm").addEventListener("reset",()=>{selectedBusiness=null;selectPaymentArrangement("pay_now");setTimeout(()=>{$("selectedBusiness").textContent="Enter a Business ID, then select Find business to verify the recipient.";hideMessage($("submitMessage"));},0);});
     $("transactionRequestForm").addEventListener("submit",async event=>{
       event.preventDefault();hideMessage($("submitMessage"));
       if(!selectedBusiness||selectedBusiness.business_id!==$("requestBusinessId").value.trim().toUpperCase()){
