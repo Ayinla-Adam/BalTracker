@@ -8581,7 +8581,7 @@ button, input, select, textarea { max-width: 100%; }
             localStorage.setItem(BALTRACKER_LAST_AUTH_USER_KEY, JSON.stringify({
               id: balTrackerAuthUser.id,
               email: balTrackerAuthUser.email || "",
-              role: "business_owner",
+              role: (() => { try { return JSON.parse(localStorage.getItem(BALTRACKER_LAST_AUTH_USER_KEY) || "{}").role || "business_owner"; } catch (storageError) { return "business_owner"; } })(),
               verifiedAt: new Date().toISOString()
             }));
           } catch (storageError) {}
