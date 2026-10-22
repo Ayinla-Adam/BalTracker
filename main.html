@@ -1752,6 +1752,7 @@ button, input, select, textarea { max-width: 100%; }
   .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .contacts-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+.connection-status{position:fixed;left:50%;top:12px;transform:translate(-50%,-12px);z-index:9999;max-width:calc(100vw - 24px);padding:10px 15px;border-radius:999px;background:#0f172a;color:#fff;box-shadow:0 8px 28px rgba(15,23,42,.2);font-size:12px;font-weight:700;opacity:0;pointer-events:none;transition:opacity .2s ease,transform .2s ease;text-align:center}.connection-status.show{opacity:1;transform:translate(-50%,0)}.connection-status.offline{background:#92400e}.connection-status.online{background:#166534}
 @media (max-width: 800px) {
   .sidebar { width: min(82vw, 300px); max-width: calc(100vw - 44px); padding-top: max(16px, env(safe-area-inset-top)); padding-bottom: max(16px, env(safe-area-inset-bottom)); }
   .main { margin-left: 0; width: 100%; max-width: 100%; }
@@ -3034,6 +3035,7 @@ button, input, select, textarea { max-width: 100%; }
   ========================= -->
   
     <div class="toast-container" id="toastContainer"></div>
+    <div class="connection-status" id="connectionStatus" role="status" aria-live="polite"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-client.js"></script>
@@ -3667,6 +3669,18 @@ button, input, select, textarea { max-width: 100%; }
            TOASTS
         ========================================================= */
     
+        let connectionStatusTimer = null;
+        function showConnectionStatus(message, type) {
+          const node = document.getElementById("connectionStatus");
+          if (!node) return;
+          node.textContent = message;
+          node.className = "connection-status show " + (type === "offline" ? "offline" : "online");
+          if (connectionStatusTimer) clearTimeout(connectionStatusTimer);
+          connectionStatusTimer = setTimeout(() => node.classList.remove("show"), 4200);
+        }
+        window.addEventListener("offline", () => showConnectionStatus("You're offline · saved changes stay on this device", "offline"));
+        window.addEventListener("online", () => showConnectionStatus("Connection restored", "online"));
+
         function showToast(
           message,
           type = "info",
