@@ -2591,25 +2591,35 @@ button, input, select, textarea { max-width: 100%; }
 
     <!-- Customer transaction request review overlay -->
     <div class="modal-overlay" id="customerRequestReviewModal" role="dialog" aria-modal="true" aria-labelledby="customerRequestReviewTitle">
-      <div class="modal" style="max-width:520px;">
+      <div class="modal" style="max-width:560px;">
         <div class="modal-header">
           <div>
             <div class="modal-title" id="customerRequestReviewTitle">Review customer request</div>
-            <p style="margin:5px 0 0;color:var(--muted);font-size:12px;line-height:1.5;">Review the details, then choose how to respond.</p>
+            <p style="margin:5px 0 0;color:var(--muted);font-size:12px;line-height:1.5;">Approval records this as a sale or customer credit.</p>
           </div>
           <button class="modal-close" type="button" onclick="closeModal('customerRequestReviewModal')" aria-label="Close review overlay">×</button>
         </div>
         <div class="modal-body">
           <div id="customerRequestReviewDetails" style="display:grid;gap:12px;"></div>
+          <div id="customerRequestReminderFields" style="display:none;margin-top:16px;padding:14px;border:1px solid var(--border);border-radius:12px;background:var(--bg);">
+            <div style="font-size:13px;font-weight:800;margin-bottom:5px;">Optional payment reminder</div>
+            <p style="font-size:11px;color:var(--muted);line-height:1.5;margin:0 0 12px;">Set a due date and choose when BalTracker should remind you. The reminder appears inside BalTracker; browser notifications are optional and only work while the app can run.</p>
+            <label style="display:flex;gap:9px;align-items:center;font-size:12px;font-weight:700;margin-bottom:12px;"><input id="customerRequestAddReminder" type="checkbox" style="width:16px;height:16px;"> Add a payment reminder</label>
+            <div id="customerRequestReminderDateFields" style="display:none;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;">
+              <div><label for="customerRequestDueDate" style="display:block;font-size:11px;font-weight:700;margin-bottom:5px;">Payment due date</label><input id="customerRequestDueDate" class="form-input" type="date" style="width:100%;"></div>
+              <div><label for="customerRequestReminderDate" style="display:block;font-size:11px;font-weight:700;margin-bottom:5px;">Remind me on</label><input id="customerRequestReminderDate" class="form-input" type="date" style="width:100%;"></div>
+            </div>
+            <label id="customerRequestBrowserNotifyLabel" style="display:none;gap:9px;align-items:center;font-size:12px;margin-top:12px;"><input id="customerRequestBrowserNotify" type="checkbox" style="width:16px;height:16px;"> Also show a browser notification when I'm using BalTracker</label>
+            <p id="customerRequestReminderHint" style="font-size:11px;color:var(--muted);margin:9px 0 0;">You can approve the credit without setting a reminder.</p>
+          </div>
           <label for="customerRequestReviewNote" style="display:block;margin-top:18px;font-size:12px;font-weight:750;">Note to customer <span style="font-weight:500;color:var(--muted);">(optional)</span></label>
           <textarea id="customerRequestReviewNote" class="form-input" maxlength="500" rows="3" placeholder="Add a note explaining your decision, if needed." style="width:100%;min-height:88px;margin-top:7px;resize:vertical;"></textarea>
-          <p style="font-size:11px;color:var(--muted);line-height:1.55;margin:12px 0 0;">Approving or declining records your decision only. It does not automatically record a sale, payment, or debt.</p>
           <div id="customerRequestReviewMessage" role="status" aria-live="polite" style="display:none;margin-top:12px;padding:10px 12px;border-radius:10px;font-size:12px;"></div>
         </div>
         <div class="modal-footer" style="display:flex;gap:9px;flex-wrap:wrap;justify-content:flex-end;">
           <button class="btn btn-secondary" type="button" onclick="closeModal('customerRequestReviewModal')">Cancel</button>
           <button class="btn btn-danger" type="button" id="declineCustomerRequestButton">Decline request</button>
-          <button class="btn btn-primary" type="button" id="approveCustomerRequestButton">Approve request</button>
+          <button class="btn btn-primary" type="button" id="approveCustomerRequestButton">Approve & record</button>
         </div>
       </div>
     </div>
@@ -8264,31 +8274,42 @@ button, input, select, textarea { max-width: 100%; }
           const metricValues = Array.from(selected.querySelectorAll("strong")).map(node => node.textContent.trim());
           const amount = metricValues[0] || "Not specified";
           const payment = metricValues[1] || "Not specified";
+          const isPayLater = /pay later|credit/i.test(payment);
           activeCustomerRequestReviewId = requestId;
           const esc = value => String(value ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
           document.getElementById("customerRequestReviewDetails").innerHTML =
-            '<div style="padding:14px;border:1px solid var(--border);border-radius:12px;background:var(--bg);">' +
-              '<div style="font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Customer</div>' +
-              '<div style="font-size:14px;font-weight:800;color:var(--text);">' + esc(customerAndDate) + '</div>' +
-            '</div>' +
-            '<div style="padding:14px;border:1px solid var(--border);border-radius:12px;">' +
-              '<div style="font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Description</div>' +
-              '<div style="font-size:13px;line-height:1.65;color:var(--text);white-space:pre-wrap;overflow-wrap:anywhere;">' + esc(description) + '</div>' +
-            '</div>' +
-            '<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;">' +
-              '<div style="padding:12px;border-radius:10px;background:var(--bg);"><div style="font-size:10px;color:var(--muted);margin-bottom:5px;">Proposed amount</div><strong style="font-size:14px;">' + esc(amount) + '</strong></div>' +
-              '<div style="padding:12px;border-radius:10px;background:var(--bg);"><div style="font-size:10px;color:var(--muted);margin-bottom:5px;">Payment arrangement</div><strong style="font-size:13px;">' + esc(payment) + '</strong></div>' +
-            '</div>';
+            '<div style="padding:14px;border:1px solid var(--border);border-radius:12px;background:var(--bg);"><div style="font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Customer</div><div style="font-size:14px;font-weight:800;color:var(--text);">' + esc(customerAndDate) + '</div></div>' +
+            '<div style="padding:14px;border:1px solid var(--border);border-radius:12px;"><div style="font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Description</div><div style="font-size:13px;line-height:1.65;color:var(--text);white-space:pre-wrap;overflow-wrap:anywhere;">' + esc(description) + '</div></div>' +
+            '<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;"><div style="padding:12px;border-radius:10px;background:var(--bg);"><div style="font-size:10px;color:var(--muted);margin-bottom:5px;">Proposed amount</div><strong style="font-size:14px;">' + esc(amount) + '</strong></div><div style="padding:12px;border-radius:10px;background:var(--bg);"><div style="font-size:10px;color:var(--muted);margin-bottom:5px;">Payment arrangement</div><strong style="font-size:13px;">' + esc(payment) + '</strong></div></div>';
+          const reminderFields = document.getElementById("customerRequestReminderFields");
+          reminderFields.style.display = isPayLater ? "block" : "none";
+          document.getElementById("customerRequestAddReminder").checked = false;
+          document.getElementById("customerRequestReminderDateFields").style.display = "none";
+          document.getElementById("customerRequestDueDate").value = "";
+          document.getElementById("customerRequestReminderDate").value = "";
+          document.getElementById("customerRequestBrowserNotify").checked = false;
+          const browserLabel = document.getElementById("customerRequestBrowserNotifyLabel");
+          browserLabel.style.display = ("Notification" in window) ? "flex" : "none";
           document.getElementById("customerRequestReviewNote").value = "";
           const message = document.getElementById("customerRequestReviewMessage");
-          message.style.display = "none";
-          message.textContent = "";
+          message.style.display = "none"; message.textContent = "";
           const approveButton = document.getElementById("approveCustomerRequestButton");
           const declineButton = document.getElementById("declineCustomerRequestButton");
-          approveButton.disabled = false; approveButton.textContent = "Approve request";
+          approveButton.disabled = false; approveButton.textContent = "Approve & record";
           declineButton.disabled = false; declineButton.textContent = "Decline request";
           openModal("customerRequestReviewModal");
         }
+
+        document.getElementById("customerRequestAddReminder").addEventListener("change", event => {
+          document.getElementById("customerRequestReminderDateFields").style.display = event.target.checked ? "grid" : "none";
+        });
+        document.getElementById("customerRequestDueDate").addEventListener("change", event => {
+          const reminderDate = document.getElementById("customerRequestReminderDate");
+          reminderDate.max = event.target.value || "";
+          if (event.target.value && (!reminderDate.value || reminderDate.value > event.target.value)) reminderDate.value = event.target.value;
+          reminderDate.min = new Date().toISOString().slice(0,10);
+        });
+        document.getElementById("customerRequestReminderDate").min = new Date().toISOString().slice(0,10);
 
         async function reviewCustomerTransactionRequest(requestId, decision) {
           if (!["approved", "declined"].includes(decision)) return;
@@ -8297,27 +8318,79 @@ button, input, select, textarea { max-width: 100%; }
           const declineButton = document.getElementById("declineCustomerRequestButton");
           const activeButton = decision === "approved" ? approveButton : declineButton;
           const message = document.getElementById("customerRequestReviewMessage");
+          const addReminder = decision === "approved" && document.getElementById("customerRequestAddReminder").checked;
+          const dueDate = addReminder ? document.getElementById("customerRequestDueDate").value : null;
+          const reminderDate = addReminder ? document.getElementById("customerRequestReminderDate").value : null;
+          if (addReminder && (!dueDate || !reminderDate)) {
+            message.textContent = "Choose both the payment due date and reminder date, or turn the reminder off.";
+            message.style.display = "block"; message.style.background = "#fff7e6"; message.style.color = "#9a6700";
+            return;
+          }
+          if (addReminder && reminderDate > dueDate) {
+            message.textContent = "The reminder date must be on or before the payment due date.";
+            message.style.display = "block"; message.style.background = "#fff1f0"; message.style.color = "#b42318";
+            return;
+          }
           approveButton.disabled = true; declineButton.disabled = true;
-          activeButton.textContent = decision === "approved" ? "Approving…" : "Declining…";
+          activeButton.textContent = decision === "approved" ? "Approving & recording…" : "Declining…";
           message.style.display = "none";
           try {
-            const { error } = await window.supabaseClient.rpc("review_customer_transaction_request", {
-              p_request_id: requestId, p_decision: decision, p_owner_note: note || null
+            if (addReminder && document.getElementById("customerRequestBrowserNotify").checked && "Notification" in window && Notification.permission === "default") {
+              try { await Notification.requestPermission(); } catch (permissionError) { console.info("Browser notification permission was not granted.", permissionError); }
+            }
+            const { data, error } = await window.supabaseClient.rpc("review_customer_transaction_request", {
+              p_request_id: requestId, p_decision: decision, p_owner_note: note || null,
+              p_due_date: dueDate, p_reminder_date: reminderDate
             });
             if (error) throw error;
             closeModal("customerRequestReviewModal");
-            showToast(decision === "approved" ? "Request approved. No sale or debt was recorded automatically." : "Request declined.", "success", "Request Updated");
+            if (decision === "approved") {
+              try { await loadBalTrackerDataFromCloud(); renderAll(); } catch (refreshError) { console.warn("Approved request saved, but dashboard refresh needs retry:", refreshError); }
+              showToast(addReminder ? "Approved and recorded. Your payment reminder has been saved." : "Approved and recorded as a sale or customer credit.", "success", "Request Approved");
+              await checkCustomerPaymentReminders();
+            } else {
+              showToast("Request declined.", "success", "Request Updated");
+            }
             await loadPendingCustomerRequests();
           } catch (error) {
             console.error("Could not review customer request:", error);
-            message.textContent = String(error?.message || "").toLowerCase().includes("pending request not found")
+            const details = String(error?.message || "").toLowerCase();
+            message.textContent = details.includes("pending request not found")
               ? "This request has already been reviewed or is no longer pending. Refresh the list to see its latest status."
-              : "We couldn't save your decision. Check your connection and try again.";
-            message.style.display = "block";
-            message.style.background = "#fff1f0";
-            message.style.color = "#b42318";
+              : details.includes("reminder date") || details.includes("due date")
+                ? (error.message || "Check the payment and reminder dates.")
+                : "We couldn't save your decision. Apply the latest BalTracker reminder migration in Supabase, then try again.";
+            message.style.display = "block"; message.style.background = "#fff1f0"; message.style.color = "#b42318";
             approveButton.disabled = false; declineButton.disabled = false;
-            approveButton.textContent = "Approve request"; declineButton.textContent = "Decline request";
+            approveButton.textContent = "Approve & record"; declineButton.textContent = "Decline request";
+          }
+        }
+
+        async function checkCustomerPaymentReminders() {
+          if (!balTrackerAuthUser?.id || !window.supabaseClient) return;
+          try {
+            const todayLocal = new Date().toLocaleDateString("en-CA");
+            const { data, error } = await window.supabaseClient.from("customer_transaction_requests")
+              .select("id,customer_name,amount,description,due_date,reminder_date,business_id")
+              .eq("status","approved").not("reminder_date","is",null).lte("reminder_date",todayLocal).eq("reminder_dismissed",false)
+              .order("reminder_date",{ascending:true}).limit(20);
+            if (error) throw error;
+            const due = data || [];
+            if (!due.length) return;
+            const key = "baltracker_reminders_seen:" + balTrackerAuthUser.id;
+            let seen = [];
+            try { seen = JSON.parse(localStorage.getItem(key) || "[]"); } catch (e) {}
+            if (!Array.isArray(seen)) seen = [];
+            const unseen = due.filter(r => !seen.includes(r.id));
+            if (!unseen.length) return;
+            const r = unseen[0];
+            showToast("Payment reminder: " + r.customer_name + " owes " + money(r.amount) + ". " + (r.description || "Customer credit") + (r.due_date ? " · Due " + r.due_date : ""), "info", "Payment Reminder");
+            if ("Notification" in window && Notification.permission === "granted") {
+              try { new Notification("BalTracker payment reminder", { body: r.customer_name + " · " + money(r.amount) + (r.due_date ? " · Due " + r.due_date : ""), tag: "baltracker-reminder-" + r.id }); } catch (e) {}
+            }
+            localStorage.setItem(key, JSON.stringify([...seen,...unseen.map(x=>x.id)].slice(-200)));
+          } catch (error) {
+            console.warn("Payment reminders could not be checked:", error);
           }
         }
         document.getElementById("approveCustomerRequestButton").addEventListener("click", () => {
