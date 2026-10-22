@@ -8530,6 +8530,7 @@ button, input, select, textarea { max-width: 100%; }
           loadSettings();
           renderAll();
           initializeUserAvatar();
+          showConnectionStatus("Offline mode · showing saved business records", "offline");
           showToast("Offline access is active. Your saved records are available on this device; cloud changes will sync when you're back online.", "info", "Offline Mode");
           return true;
         }
