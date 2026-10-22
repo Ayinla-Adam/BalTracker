@@ -3988,20 +3988,28 @@ button, input, select, textarea { max-width: 100%; }
           });
     
     
-        document
-          .getElementById("mobileMenu")
-          .addEventListener(
-            "click",
-            () => {
-    
-              document
-                .getElementById("sidebar")
-                .classList.toggle("open");
-    
-            }
-          );
-    
-    
+        const ownerSidebar = document.getElementById("sidebar");
+        const ownerMobileMenu = document.getElementById("mobileMenu");
+        ownerMobileMenu.setAttribute("aria-expanded", "false");
+        ownerMobileMenu.addEventListener("click", event => {
+          event.stopPropagation();
+          const isOpen = ownerSidebar.classList.toggle("open");
+          ownerMobileMenu.setAttribute("aria-expanded", String(isOpen));
+        });
+        document.addEventListener("click", event => {
+          if (window.innerWidth > 800 || !ownerSidebar.classList.contains("open")) return;
+          if (!ownerSidebar.contains(event.target) && !ownerMobileMenu.contains(event.target)) {
+            ownerSidebar.classList.remove("open");
+            ownerMobileMenu.setAttribute("aria-expanded", "false");
+          }
+        });
+        ownerSidebar.querySelectorAll(".nav-btn[data-page]").forEach(button => button.addEventListener("click", () => {
+          if (window.innerWidth <= 800) { ownerSidebar.classList.remove("open"); ownerMobileMenu.setAttribute("aria-expanded", "false"); }
+        }));
+        window.addEventListener("resize", () => {
+          if (window.innerWidth > 800) { ownerSidebar.classList.remove("open"); ownerMobileMenu.setAttribute("aria-expanded", "false"); }
+        });
+
         /* =========================================================
            TRANSACTION TOTALS
         ========================================================= */
@@ -8533,7 +8541,8 @@ button, input, select, textarea { max-width: 100%; }
             if (!navigator.onLine) {
               let savedIdentity = null;
               try { savedIdentity = JSON.parse(localStorage.getItem(BALTRACKER_LAST_AUTH_USER_KEY) || "null"); } catch (storageError) {}
-              if (savedIdentity?.id && await restoreBalTrackerOffline(savedIdentity.id, savedIdentity.email)) return;
+              if (savedIdentity?.role === "customer") { window.location.replace("customer.html"); return; }
+              if (savedIdentity?.id && savedIdentity?.role === "business_owner" && await restoreBalTrackerOffline(savedIdentity.id, savedIdentity.email)) return;
             }
             showToast("Unable to verify your sign-in. Connect to the internet and try again.", "error", "Connection Required");
             return;
@@ -8543,7 +8552,8 @@ button, input, select, textarea { max-width: 100%; }
             if (!navigator.onLine) {
               let savedIdentity = null;
               try { savedIdentity = JSON.parse(localStorage.getItem(BALTRACKER_LAST_AUTH_USER_KEY) || "null"); } catch (storageError) {}
-              if (savedIdentity?.id && await restoreBalTrackerOffline(savedIdentity.id, savedIdentity.email)) return;
+              if (savedIdentity?.role === "customer") { window.location.replace("customer.html"); return; }
+              if (savedIdentity?.id && savedIdentity?.role === "business_owner" && await restoreBalTrackerOffline(savedIdentity.id, savedIdentity.email)) return;
             }
             const confirmedFlag = new URLSearchParams(window.location.search).get("emailConfirmed")==="1";
             window.location.href = confirmedFlag ? "index.html?emailConfirmed=1" : "index.html";
@@ -8556,6 +8566,7 @@ button, input, select, textarea { max-width: 100%; }
             localStorage.setItem(BALTRACKER_LAST_AUTH_USER_KEY, JSON.stringify({
               id: balTrackerAuthUser.id,
               email: balTrackerAuthUser.email || "",
+              role: "business_owner",
               verifiedAt: new Date().toISOString()
             }));
           } catch (storageError) {}
@@ -8563,10 +8574,17 @@ button, input, select, textarea { max-width: 100%; }
           try {
             const { data: profile, error: profileError } = await window.supabaseClient
               .from("profiles")
-              .select("display_name,business_name,currency_code")
+              .select("display_name,business_name,currency_code,role")
               .eq("user_id", balTrackerAuthUser.id)
               .maybeSingle();
             if (profileError) console.warn("Could not load profile:", profileError.message);
+            if (profile?.role) {
+              try {
+                const savedIdentity = JSON.parse(localStorage.getItem(BALTRACKER_LAST_AUTH_USER_KEY) || "{}");
+                localStorage.setItem(BALTRACKER_LAST_AUTH_USER_KEY, JSON.stringify({ ...savedIdentity, id: balTrackerAuthUser.id, email: balTrackerAuthUser.email || "", role: profile.role, verifiedAt: new Date().toISOString() }));
+              } catch (storageError) {}
+              if (profile.role === "customer") { window.location.replace("customer.html"); return; }
+            }
             if (profile?.business_name) balTrackerStorageSet("baltracker_business_name", profile.business_name);
             if (profile?.display_name) balTrackerStorageSet("baltracker_business_owner", profile.display_name);
 
