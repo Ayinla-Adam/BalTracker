@@ -112,7 +112,17 @@
     padding:9px 11px;background:#fff;color:var(--text);font-size:12px;
     outline:none;transition:border-color .18s ease,box-shadow .18s ease;
   }
-  #transactionRequestForm .field input{height:39px}
+  #transactionRequestForm .field input{
+    height:39px;min-height:39px;max-height:39px;
+    flex:0 0 39px;align-self:stretch;line-height:normal;
+  }
+  #transactionRequestForm .field input[type="number"]{appearance:auto;-moz-appearance:auto}
+  #transactionRequestForm .field textarea{
+    flex:0 0 auto;height:76px;min-height:76px;max-height:220px;line-height:1.45;
+  }
+  #transactionRequestForm .field .custom-select{flex:0 0 auto}
+  #transactionRequestForm .field .custom-select-trigger{flex:0 0 39px;min-height:39px;max-height:39px}
+  #transactionRequestForm .field .hint{flex:0 0 auto}
   #transactionRequestForm .field textarea{min-height:76px;resize:vertical}
   #transactionRequestForm .field input:focus,
   #transactionRequestForm .field textarea:focus{
@@ -223,7 +233,7 @@
           <div class="field"><label for="requestItem">Item / transaction *</label><input id="requestItem" name="item" maxlength="160" placeholder="What are you buying?" required></div>
           <div class="field"><label for="requestQuantity">Quantity *</label><input id="requestQuantity" name="quantity" type="number" min="0.01" max="1000000" step="0.01" placeholder="e.g. 2" required></div>
           <div class="field"><label for="requestAmount">Total amount (₦) *</label><input id="requestAmount" name="amount" type="number" min="0.01" step="0.01" placeholder="Enter agreed total" required></div>
-          <div class="field"><label id="requestPaymentTypeLabel">Payment arrangement *</label><input type="hidden" id="requestPaymentType" name="paymentType" value="pay_now" required><div class="custom-select" id="requestPaymentTypeControl" data-value="pay_now"><button type="button" class="custom-select-trigger" aria-haspopup="listbox" aria-expanded="false" onclick="togglePaymentArrangement()"><span class="custom-select-value">Pay now</span><span class="custom-select-arrow">▾</span></button><div class="custom-select-menu" role="listbox" aria-labelledby="requestPaymentTypeLabel"><button type="button" class="custom-option selected" role="option" aria-selected="true" data-value="pay_now" onclick="selectPaymentArrangement('pay_now')"><span>Pay now</span><span class="custom-option-check">✓</span></button><button type="button" class="custom-option" role="option" aria-selected="false" data-value="pay_later" onclick="selectPaymentArrangement('pay_later')"><span>Request pay-later / credit</span></button></div></div></div>
+          <div class="field"><label id="requestPaymentTypeLabel">Payment arrangement *</label><input type="hidden" id="requestPaymentType" name="paymentType" value="pay_now" required><div class="custom-select" id="requestPaymentTypeControl" data-value="pay_now"><button type="button" class="custom-select-trigger" aria-haspopup="listbox" aria-expanded="false" id="requestPaymentTypeTrigger"><span class="custom-select-value">Pay now</span><span class="custom-select-arrow">▾</span></button><div class="custom-select-menu" role="listbox" aria-labelledby="requestPaymentTypeLabel"><button type="button" class="custom-option selected" role="option" aria-selected="true" data-value="pay_now" data-action="choose-payment"><span>Pay now</span><span class="custom-option-check">✓</span></button><button type="button" class="custom-option" role="option" aria-selected="false" data-value="pay_later" data-action="choose-payment"><span>Request pay-later / credit</span></button></div></div></div>
           <div class="field full"><label for="requestDescription">Description *</label><textarea id="requestDescription" name="description" maxlength="1000" placeholder="Add any details the business owner needs to authorize this transaction." required></textarea></div>
           <div class="field full"><div id="submitMessage" class="message" role="status" aria-live="polite"></div><div class="btn-row"><button class="btn btn-primary" id="submitRequestButton" type="submit">Send for authorization</button><button class="btn btn-secondary" type="reset">Clear form</button></div><p class="hint">The amount is the amount you are proposing, not a confirmed payment. For pay-later requests, the business owner must explicitly approve the credit arrangement.</p></div>
         </form>
@@ -283,6 +293,10 @@
       control.classList.remove("open");
       control.querySelector(".custom-select-trigger").setAttribute("aria-expanded","false");
     }
+    $("requestPaymentTypeTrigger").addEventListener("click",togglePaymentArrangement);
+    $("requestPaymentTypeControl").querySelectorAll('[data-action="choose-payment"]').forEach(option=>{
+      option.addEventListener("click",()=>selectPaymentArrangement(option.dataset.value));
+    });
     document.addEventListener("click",event=>{
       const control=$("requestPaymentTypeControl");
       if(control&&!control.contains(event.target)){
