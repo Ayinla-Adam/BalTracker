@@ -6,30 +6,113 @@
   <meta name="theme-color" content="#123b32">
   <title>Customer Portal | BalTracker</title>
   <style>
-    :root{color-scheme:light;--green:#123b32;--green2:#1c5a49;--paper:#f5f8f6;--ink:#182521;--muted:#66756f;--line:#dce6e0;--white:#fff;--danger:#a52b2b}
-    *{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-    header{background:var(--green);color:white;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px}
-    .brand{font-weight:800;font-size:1.3rem;letter-spacing:-.03em}.brand span{color:#a9ddbf}
-    button,input{font:inherit}button{cursor:pointer;border:0;border-radius:10px;padding:11px 15px;font-weight:700}
-    .signout{background:#ffffff18;color:white;border:1px solid #ffffff50}.wrap{width:min(880px,calc(100% - 32px));margin:30px auto 56px}
-    .welcome{margin-bottom:22px}.eyebrow{text-transform:uppercase;letter-spacing:.12em;font-size:.75rem;font-weight:800;color:var(--green2)}
-    h1{font-size:clamp(1.8rem,5vw,2.5rem);letter-spacing:-.04em;line-height:1.15;margin:8px 0 10px}.sub{color:var(--muted);margin:0;max-width:650px}
-    .panel{background:var(--white);border:1px solid var(--line);border-radius:18px;padding:clamp(18px,4vw,28px);box-shadow:0 8px 28px #123b3209;margin-top:18px}
-    h2{font-size:1.1rem;margin:0 0 7px}.help{color:var(--muted);font-size:.93rem;margin:0 0 18px}
-    form{display:flex;gap:10px;flex-wrap:wrap}input{min-width:0;flex:1 1 230px;border:1px solid #c9d8d0;border-radius:10px;padding:13px 14px;background:white;color:var(--ink);outline-offset:2px}
-    input:focus{outline:2px solid var(--green2);border-color:transparent}.primary{background:var(--green);color:white}.primary:hover{background:var(--green2)}button:disabled{opacity:.6;cursor:wait}
-    .message{margin-top:14px;padding:12px 14px;border-radius:10px;display:none;font-size:.93rem}.message.show{display:block}.message.info{background:#eef4f1;color:#30463d}.message.error{background:#fff0f0;color:var(--danger)}.message.success{background:#eaf7ef;color:#1c603b}
-    .result{display:none;margin-top:18px;border:1px solid var(--line);border-radius:14px;padding:18px}.result.show{display:block}.business-name{font-size:1.25rem;font-weight:800;margin:0 0 8px;overflow-wrap:anywhere}.idline{font-size:.9rem;color:var(--muted);margin-bottom:16px}.status{display:inline-flex;padding:5px 10px;border-radius:999px;background:#edf4ef;color:#315b46;font-size:.8rem;font-weight:700;margin-bottom:12px}
-    .request-btn{background:#e5f2e9;color:#174e36}.request-btn:hover{background:#d6ebdd}.empty{color:var(--muted);font-size:.93rem;padding:10px 0}.footer{font-size:.82rem;color:var(--muted);text-align:center;margin-top:24px}
-    @media(max-width:520px){header{padding:15px 16px}.wrap{margin-top:22px}form button{width:100%}.panel{border-radius:14px}}
-  </style>
+  :root{
+    --primary:#0f62fe;--primary-dark:#0849c7;--primary-soft:#eaf2ff;
+    --green:#16a34a;--green-soft:#eaf8ef;--red:#dc2626;--red-soft:#fff0f0;
+    --text:#142033;--muted:#64748b;--light:#94a3b8;--border:#e2e8f0;
+    --bg:#f7f9fc;--white:#fff;--sidebar:250px;--radius:16px;
+    --shadow:0 8px 30px rgba(15,23,42,.07)
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+  button,input{font:inherit}button{cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .app{display:flex;min-height:100vh}
+  .sidebar{width:var(--sidebar);background:#0f172a;color:#fff;position:fixed;inset:0 auto 0 0;z-index:100;display:flex;flex-direction:column;padding:22px 15px;box-shadow:4px 0 20px rgba(15,23,42,.05)}
+  .sidebar-logo{display:flex;align-items:center;min-height:54px;padding:0 8px 24px}
+  .sidebar-logo img{display:block;width:190px;max-width:100%;height:auto;max-height:58px;object-fit:contain;object-position:left center}
+  .nav{display:flex;flex-direction:column;gap:5px}
+  .nav-section{margin:18px 10px 7px;font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#94a3b8}
+  .nav-btn{border:0;background:transparent;width:100%;display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:11px;color:#cbd5e1;font-size:13px;font-weight:600;text-align:left;transition:.18s ease}
+  .nav-btn:hover{background:#1e293b;color:#fff}
+  .nav-btn.active{background:rgba(15,98,254,.18);color:#93c5fd;font-weight:750}
+  .nav-icon{width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+  .sidebar-bottom{margin-top:auto;border-top:1px solid #334155;padding-top:15px}
+  .main{margin-left:var(--sidebar);width:calc(100% - var(--sidebar));min-width:0}
+  .topbar{height:72px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 30px;position:sticky;top:0;z-index:60}
+  .page-title{font-size:20px;font-weight:800;letter-spacing:-.4px}
+  .topbar-right{display:flex;align-items:center;gap:12px}
+  .user-avatar{width:36px;height:36px;border-radius:50%;background:var(--primary-soft);color:var(--primary);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;border:0;flex-shrink:0}
+  .content{padding:28px;max-width:1500px;margin:auto}
+  .wrap{width:100%;max-width:1100px;margin:0 auto}
+  .welcome{margin-bottom:24px}
+  .eyebrow{text-transform:uppercase;letter-spacing:.09em;font-size:10px;font-weight:800;color:var(--muted)}
+  h1{font-size:clamp(23px,3vw,29px);letter-spacing:-.5px;line-height:1.2;margin:8px 0 9px;font-weight:800}
+  .sub{color:var(--muted);margin:0;max-width:700px;font-size:14px;line-height:1.65}
+  .panel{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);margin-top:18px}
+  h2{font-size:16px;font-weight:800;letter-spacing:-.2px;margin:0 0 7px}
+  .help{color:var(--muted);font-size:13px;line-height:1.6;margin:0 0 18px}
+  form{display:flex;gap:10px;flex-wrap:wrap}
+  input{min-width:0;flex:1 1 230px;border:1px solid #cbd5e1;border-radius:11px;padding:11px 13px;background:#fff;color:var(--text);outline-offset:2px;font-size:13px}
+  input:focus{outline:2px solid rgba(15,98,254,.22);border-color:var(--primary)}
+  .btn{border:0;border-radius:11px;padding:10px 15px;font-weight:700;font-size:13px;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:.18s ease}
+  .btn:hover{transform:translateY(-1px)}
+  .btn-primary{background:var(--primary);color:#fff;box-shadow:0 6px 18px rgba(15,98,254,.18)}
+  .btn-primary:hover{background:var(--primary-dark)}
+  .btn-secondary{background:#f1f5f9;color:#334155}
+  .btn-secondary:hover{background:#e8eef5}
+  button:disabled{opacity:.6;cursor:wait;transform:none}
+  .message{margin-top:14px;padding:12px 14px;border-radius:11px;display:none;font-size:13px;line-height:1.5}
+  .message.show{display:block}.message.info{background:#f1f5f9;color:#334155}.message.error{background:var(--red-soft);color:#991b1b}.message.success{background:var(--green-soft);color:#166534}
+  .result{display:none;margin-top:18px;border:1px solid var(--border);border-radius:13px;padding:20px;background:#fff}
+  .result.show{display:block}.business-name{font-size:18px;font-weight:800;margin:0 0 8px;overflow-wrap:anywhere}
+  .idline{font-size:13px;color:var(--muted);margin-bottom:16px}
+  .status{display:inline-flex;padding:5px 10px;border-radius:999px;background:var(--primary-soft);color:var(--primary-dark);font-size:11px;font-weight:800;margin-bottom:12px}
+  .request-btn{border:0;border-radius:11px;background:var(--primary);color:white;padding:10px 15px;font-size:13px;font-weight:700;transition:.18s ease}
+  .request-btn:hover{background:var(--primary-dark);transform:translateY(-1px)}
+  .empty{color:var(--muted);font-size:13px;padding:10px 0}
+  .footer{font-size:12px;color:var(--muted);margin-top:22px;line-height:1.6}
+  .mobile-menu{display:none;width:36px;height:36px;border:0;background:#f1f5f9;color:#334155;border-radius:10px;align-items:center;justify-content:center;font-size:18px}
+  @media(max-width:800px){
+    :root{--sidebar:0px}
+    .sidebar{display:none}
+    .main{margin-left:0;width:100%}
+    .mobile-menu{display:flex}
+    .topbar{padding:0 18px}
+    .content{padding:20px}
+  }
+  @media(max-width:600px){
+    .page-title{font-size:17px}
+    .welcome h1{font-size:23px}
+    .panel{padding:18px;border-radius:14px}
+    form button{width:100%}
+    .topbar{height:64px}
+    .content{padding:18px 15px}
+  }
+</style>
 </head>
 <body>
-  <header>
-    <div class="brand">bal<span>Tracker</span></div>
-    <button class="signout" id="signOutButton" type="button">Sign out</button>
-  </header>
-  <main class="wrap">
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <img src="balTracker-logo.png" alt="BalTracker" onerror="this.onerror=null;this.src='balTracker-logo';">
+      </div>
+      <nav class="nav" aria-label="Customer navigation">
+        <div class="nav-section">Overview</div>
+        <button class="nav-btn active" type="button" aria-current="page">
+          <span class="nav-icon">⌕</span> Find a business
+        </button>
+        <div class="nav-section">Your account</div>
+        <div class="nav-btn" style="cursor:default" aria-label="Account privacy">
+          <span class="nav-icon">◇</span> Privacy & security
+        </div>
+      </nav>
+      <div class="sidebar-bottom">
+        <button class="nav-btn" id="sidebarSignOut" type="button"><span class="nav-icon">↪</span> Sign out</button>
+      </div>
+    </aside>
+    <main class="main">
+      <header class="topbar">
+        <div style="display:flex;align-items:center;gap:12px">
+          <button class="mobile-menu" id="mobileMenu" type="button" aria-label="Open navigation">☰</button>
+          <div class="page-title">Find a business</div>
+        </div>
+        <div class="topbar-right">
+          <div class="user-avatar" id="userAvatar" aria-label="Customer account">BT</div>
+        </div>
+      </header>
+      <div class="content">
+        <div class="wrap">
     <section class="welcome">
       <div class="eyebrow">Customer portal</div>
       <h1>Find a business to shop with.</h1>
@@ -52,7 +135,10 @@
       </article>
     </section>
     <p class="footer">Your account and business connections are separate from each business owner's private financial records.</p>
-  </main>
+        </div>
+      </div>
+    </main>
+  </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-client.js"></script>
   <script>
@@ -161,7 +247,7 @@
       }
     });
 
-    $("signOutButton").addEventListener("click", async () => {
+    const signOut = async () => {
       $("signOutButton").disabled = true;
       const { error } = await window.supabaseClient.auth.signOut();
       if (error) {
@@ -170,6 +256,20 @@
         return;
       }
       window.location.replace("index.html");
+    };
+    $("sidebarSignOut").addEventListener("click", signOut);
+
+    $("mobileMenu").addEventListener("click", () => {
+      const sidebar = $("sidebar");
+      const open = sidebar.style.display === "flex";
+      if (window.matchMedia("(max-width: 800px)").matches) {
+        sidebar.style.display = open ? "none" : "flex";
+        sidebar.style.position = "fixed";
+        sidebar.style.width = "260px";
+        sidebar.style.maxWidth = "85vw";
+        sidebar.style.zIndex = "100";
+        sidebar.style.boxShadow = "10px 0 35px rgba(15,23,42,.2)";
+      }
     });
 
     start().catch(error => {
