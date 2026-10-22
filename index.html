@@ -1060,10 +1060,8 @@ input, select, textarea, button { max-width: 100%; }
       }
 
       if(profile.role==="customer"){
-        await window.supabaseClient.auth.signOut({scope:"local"});
-        switchAuth("signin");
-        showAuthFeedback("signInForm","Your customer account is registered, but the customer portal is still being built. Please return later; your account has been saved.","info");
-        return false;
+        window.location.href="customer.html";
+        return true;
       }
 
       if(profile.role!=="business_owner"){
