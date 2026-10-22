@@ -2588,6 +2588,32 @@ button, input, select, textarea { max-width: 100%; }
     </div>
   
   
+
+    <!-- Customer transaction request review overlay -->
+    <div class="modal-overlay" id="customerRequestReviewModal" role="dialog" aria-modal="true" aria-labelledby="customerRequestReviewTitle">
+      <div class="modal" style="max-width:520px;">
+        <div class="modal-header">
+          <div>
+            <div class="modal-title" id="customerRequestReviewTitle">Review customer request</div>
+            <p style="margin:5px 0 0;color:var(--muted);font-size:12px;line-height:1.5;">Review the details, then choose how to respond.</p>
+          </div>
+          <button class="modal-close" type="button" onclick="closeModal('customerRequestReviewModal')" aria-label="Close review overlay">×</button>
+        </div>
+        <div class="modal-body">
+          <div id="customerRequestReviewDetails" style="display:grid;gap:12px;"></div>
+          <label for="customerRequestReviewNote" style="display:block;margin-top:18px;font-size:12px;font-weight:750;">Note to customer <span style="font-weight:500;color:var(--muted);">(optional)</span></label>
+          <textarea id="customerRequestReviewNote" class="form-input" maxlength="500" rows="3" placeholder="Add a note explaining your decision, if needed." style="width:100%;min-height:88px;margin-top:7px;resize:vertical;"></textarea>
+          <p style="font-size:11px;color:var(--muted);line-height:1.55;margin:12px 0 0;">Approving or declining records your decision only. It does not automatically record a sale, payment, or debt.</p>
+          <div id="customerRequestReviewMessage" role="status" aria-live="polite" style="display:none;margin-top:12px;padding:10px 12px;border-radius:10px;font-size:12px;"></div>
+        </div>
+        <div class="modal-footer" style="display:flex;gap:9px;flex-wrap:wrap;justify-content:flex-end;">
+          <button class="btn btn-secondary" type="button" onclick="closeModal('customerRequestReviewModal')">Cancel</button>
+          <button class="btn btn-danger" type="button" id="declineCustomerRequestButton">Decline request</button>
+          <button class="btn btn-primary" type="button" id="approveCustomerRequestButton">Approve request</button>
+        </div>
+      </div>
+    </div>
+
     <!-- =========================
        TRANSACTION MODAL
   ========================= -->
@@ -8206,11 +8232,8 @@ button, input, select, textarea { max-width: 100%; }
                   <div><div style="font-size:11px;color:var(--muted);">Proposed amount</div><strong>${money(r.amount)}</strong></div>
                   <div><div style="font-size:11px;color:var(--muted);">Payment arrangement</div><strong>${r.payment_type==="pay_later"?"Pay later / credit":"Pay now"}</strong></div>
                 </div>
-                <label for="ownerNote-${r.id}" style="display:block;margin-top:12px;font-size:12px;font-weight:700;">Optional note to customer</label>
-                <input id="ownerNote-${r.id}" class="form-input" maxlength="500" placeholder="Add a note (optional)" style="width:100%;margin-top:6px;">
                 <div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:13px;">
-                  <button class="btn btn-primary" type="button" onclick="reviewCustomerTransactionRequest('${r.id}','approved')">Approve request</button>
-                  <button class="btn btn-secondary" type="button" onclick="reviewCustomerTransactionRequest('${r.id}','declined')">Decline</button>
+                  <button class="btn btn-primary" type="button" onclick="openCustomerRequestReview('${r.id}')">Review request</button>
                 </div>
               </article>`).join("") + '</div>';
           } catch (error) {
@@ -8221,24 +8244,90 @@ button, input, select, textarea { max-width: 100%; }
             list.innerHTML = "";
           }
         }
+        let activeCustomerRequestReviewId = null;
+
+        function openCustomerRequestReview(requestId) {
+          const cards = document.querySelectorAll("#pendingRequestsList article");
+          let selected = null;
+          for (const card of cards) {
+            const button = card.querySelector('button[onclick*="' + requestId + '"]');
+            if (button) { selected = card; break; }
+          }
+          if (!selected) {
+            showToast("This request is no longer available. Refresh the pending requests and try again.", "error", "Request Not Found");
+            return;
+          }
+          const heading = selected.querySelector("div[style*='text-transform:uppercase']");
+          const description = heading && heading.nextElementSibling ? heading.nextElementSibling.textContent.trim() : "No description provided.";
+          const fromLine = selected.querySelector("div[style*='margin-top:5px']");
+          const customerAndDate = fromLine ? fromLine.textContent.trim() : "Customer request";
+          const metricValues = Array.from(selected.querySelectorAll("strong")).map(node => node.textContent.trim());
+          const amount = metricValues[0] || "Not specified";
+          const payment = metricValues[1] || "Not specified";
+          activeCustomerRequestReviewId = requestId;
+          const esc = value => String(value ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+          document.getElementById("customerRequestReviewDetails").innerHTML =
+            '<div style="padding:14px;border:1px solid var(--border);border-radius:12px;background:var(--bg);">' +
+              '<div style="font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Customer</div>' +
+              '<div style="font-size:14px;font-weight:800;color:var(--text);">' + esc(customerAndDate) + '</div>' +
+            '</div>' +
+            '<div style="padding:14px;border:1px solid var(--border);border-radius:12px;">' +
+              '<div style="font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Description</div>' +
+              '<div style="font-size:13px;line-height:1.65;color:var(--text);white-space:pre-wrap;overflow-wrap:anywhere;">' + esc(description) + '</div>' +
+            '</div>' +
+            '<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;">' +
+              '<div style="padding:12px;border-radius:10px;background:var(--bg);"><div style="font-size:10px;color:var(--muted);margin-bottom:5px;">Proposed amount</div><strong style="font-size:14px;">' + esc(amount) + '</strong></div>' +
+              '<div style="padding:12px;border-radius:10px;background:var(--bg);"><div style="font-size:10px;color:var(--muted);margin-bottom:5px;">Payment arrangement</div><strong style="font-size:13px;">' + esc(payment) + '</strong></div>' +
+            '</div>';
+          document.getElementById("customerRequestReviewNote").value = "";
+          const message = document.getElementById("customerRequestReviewMessage");
+          message.style.display = "none";
+          message.textContent = "";
+          const approveButton = document.getElementById("approveCustomerRequestButton");
+          const declineButton = document.getElementById("declineCustomerRequestButton");
+          approveButton.disabled = false; approveButton.textContent = "Approve request";
+          declineButton.disabled = false; declineButton.textContent = "Decline request";
+          openModal("customerRequestReviewModal");
+        }
+
         async function reviewCustomerTransactionRequest(requestId, decision) {
-          const noteInput = document.getElementById("ownerNote-" + requestId);
-          const note = noteInput ? noteInput.value.trim() : "";
-          const label = decision === "approved" ? "approve" : "decline";
-          if (!confirm("Are you sure you want to " + label + " this customer transaction request?")) return;
+          if (!["approved", "declined"].includes(decision)) return;
+          const note = document.getElementById("customerRequestReviewNote").value.trim();
+          const approveButton = document.getElementById("approveCustomerRequestButton");
+          const declineButton = document.getElementById("declineCustomerRequestButton");
+          const activeButton = decision === "approved" ? approveButton : declineButton;
+          const message = document.getElementById("customerRequestReviewMessage");
+          approveButton.disabled = true; declineButton.disabled = true;
+          activeButton.textContent = decision === "approved" ? "Approving…" : "Declining…";
+          message.style.display = "none";
           try {
-            const { data, error } = await window.supabaseClient.rpc("review_customer_transaction_request", {
+            const { error } = await window.supabaseClient.rpc("review_customer_transaction_request", {
               p_request_id: requestId, p_decision: decision, p_owner_note: note || null
             });
             if (error) throw error;
+            closeModal("customerRequestReviewModal");
             showToast(decision === "approved" ? "Request approved. No sale or debt was recorded automatically." : "Request declined.", "success", "Request Updated");
             await loadPendingCustomerRequests();
           } catch (error) {
             console.error("Could not review customer request:", error);
-            showToast("Couldn't update this request. Make sure the latest customer authorization migration is applied.", "error", "Request Failed");
+            message.textContent = String(error?.message || "").toLowerCase().includes("pending request not found")
+              ? "This request has already been reviewed or is no longer pending. Refresh the list to see its latest status."
+              : "We couldn't save your decision. Check your connection and try again.";
+            message.style.display = "block";
+            message.style.background = "#fff1f0";
+            message.style.color = "#b42318";
+            approveButton.disabled = false; declineButton.disabled = false;
+            approveButton.textContent = "Approve request"; declineButton.textContent = "Decline request";
           }
         }
+        document.getElementById("approveCustomerRequestButton").addEventListener("click", () => {
+          if (activeCustomerRequestReviewId) reviewCustomerTransactionRequest(activeCustomerRequestReviewId, "approved");
+        });
+        document.getElementById("declineCustomerRequestButton").addEventListener("click", () => {
+          if (activeCustomerRequestReviewId) reviewCustomerTransactionRequest(activeCustomerRequestReviewId, "declined");
+        });
         window.loadPendingCustomerRequests = loadPendingCustomerRequests;
+        window.openCustomerRequestReview = openCustomerRequestReview;
         window.reviewCustomerTransactionRequest = reviewCustomerTransactionRequest;
 
         function renderAll() {
