@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#123b32">
+  <title>Customer Portal | BalTracker</title>
+  <style>
+    :root{color-scheme:light;--green:#123b32;--green2:#1c5a49;--paper:#f5f8f6;--ink:#182521;--muted:#66756f;--line:#dce6e0;--white:#fff;--danger:#a52b2b}
+    *{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    header{background:var(--green);color:white;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+    .brand{font-weight:800;font-size:1.3rem;letter-spacing:-.03em}.brand span{color:#a9ddbf}
+    button,input{font:inherit}button{cursor:pointer;border:0;border-radius:10px;padding:11px 15px;font-weight:700}
+    .signout{background:#ffffff18;color:white;border:1px solid #ffffff50}.wrap{width:min(880px,calc(100% - 32px));margin:30px auto 56px}
+    .welcome{margin-bottom:22px}.eyebrow{text-transform:uppercase;letter-spacing:.12em;font-size:.75rem;font-weight:800;color:var(--green2)}
+    h1{font-size:clamp(1.8rem,5vw,2.5rem);letter-spacing:-.04em;line-height:1.15;margin:8px 0 10px}.sub{color:var(--muted);margin:0;max-width:650px}
+    .panel{background:var(--white);border:1px solid var(--line);border-radius:18px;padding:clamp(18px,4vw,28px);box-shadow:0 8px 28px #123b3209;margin-top:18px}
+    h2{font-size:1.1rem;margin:0 0 7px}.help{color:var(--muted);font-size:.93rem;margin:0 0 18px}
+    form{display:flex;gap:10px;flex-wrap:wrap}input{min-width:0;flex:1 1 230px;border:1px solid #c9d8d0;border-radius:10px;padding:13px 14px;background:white;color:var(--ink);outline-offset:2px}
+    input:focus{outline:2px solid var(--green2);border-color:transparent}.primary{background:var(--green);color:white}.primary:hover{background:var(--green2)}button:disabled{opacity:.6;cursor:wait}
+    .message{margin-top:14px;padding:12px 14px;border-radius:10px;display:none;font-size:.93rem}.message.show{display:block}.message.info{background:#eef4f1;color:#30463d}.message.error{background:#fff0f0;color:var(--danger)}.message.success{background:#eaf7ef;color:#1c603b}
+    .result{display:none;margin-top:18px;border:1px solid var(--line);border-radius:14px;padding:18px}.result.show{display:block}.business-name{font-size:1.25rem;font-weight:800;margin:0 0 8px;overflow-wrap:anywhere}.idline{font-size:.9rem;color:var(--muted);margin-bottom:16px}.status{display:inline-flex;padding:5px 10px;border-radius:999px;background:#edf4ef;color:#315b46;font-size:.8rem;font-weight:700;margin-bottom:12px}
+    .request-btn{background:#e5f2e9;color:#174e36}.request-btn:hover{background:#d6ebdd}.empty{color:var(--muted);font-size:.93rem;padding:10px 0}.footer{font-size:.82rem;color:var(--muted);text-align:center;margin-top:24px}
+    @media(max-width:520px){header{padding:15px 16px}.wrap{margin-top:22px}form button{width:100%}.panel{border-radius:14px}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">bal<span>Tracker</span></div>
+    <button class="signout" id="signOutButton" type="button">Sign out</button>
+  </header>
+  <main class="wrap">
+    <section class="welcome">
+      <div class="eyebrow">Customer portal</div>
+      <h1>Find a business to shop with.</h1>
+      <p class="sub">Search with the Business ID shared by a business owner. You can view the business's public name before requesting a connection.</p>
+    </section>
+    <section class="panel" aria-labelledby="searchTitle">
+      <h2 id="searchTitle">Find a business</h2>
+      <p class="help">Enter the Business ID exactly as provided. Letter case and surrounding spaces don't matter.</p>
+      <form id="businessSearchForm">
+        <input id="businessIdInput" name="businessId" autocomplete="off" autocapitalize="characters" maxlength="40" placeholder="e.g. BT-AB12CD34EF56" aria-label="Business ID" required>
+        <button class="primary" id="searchButton" type="submit">Search business</button>
+      </form>
+      <div class="message" id="searchMessage" role="status" aria-live="polite"></div>
+      <article class="result" id="businessResult" aria-live="polite">
+        <div class="status">Public business profile</div>
+        <p class="business-name" id="resultBusinessName"></p>
+        <div class="idline">Business ID: <strong id="resultBusinessId"></strong></div>
+        <button class="request-btn" id="connectButton" type="button">Request connection</button>
+        <div class="message" id="connectMessage" role="status" aria-live="polite"></div>
+      </article>
+    </section>
+    <p class="footer">Your account and business connections are separate from each business owner's private financial records.</p>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+  <script>
+  (() => {
+    const $ = id => document.getElementById(id);
+    let foundBusiness = null;
+    let currentUser = null;
+    const showMessage = (element, message, type = "info") => {
+      element.textContent = message;
+      element.className = "message show " + type;
+    };
+    const hideMessage = element => {
+      element.textContent = "";
+      element.className = "message";
+    };
+    const normalizeError = error => String(error?.message || "").toLowerCase();
+    const friendlyError = error => {
+      const msg = normalizeError(error);
+      if (msg.includes("function") && (msg.includes("not found") || msg.includes("schema cache"))) return "Business search is not available yet. Please refresh later or contact the BalTracker team.";
+      if (msg.includes("business_customer_links") || msg.includes("request_business_connection")) return "Business connection requests are being set up. You can search for businesses now; please try requesting a connection later.";
+      if (msg.includes("already exists") || msg.includes("duplicate key")) return "You've already requested or connected to this business.";
+      return "We couldn't complete that request. Please check your connection and try again.";
+    };
+
+    async function start() {
+      if (!window.supabaseClient?.auth) {
+        showMessage($("searchMessage"), "BalTracker couldn't connect to its service. Refresh the page and try again.", "error");
+        $("searchButton").disabled = true;
+        return;
+      }
+      const { data, error } = await window.supabaseClient.auth.getSession();
+      if (error || !data?.session?.user) {
+        window.location.replace("index.html");
+        return;
+      }
+      currentUser = data.session.user;
+      const { data: profile, error: profileError } = await window.supabaseClient
+        .from("profiles").select("role,display_name").eq("user_id", currentUser.id).maybeSingle();
+      if (profileError || !profile) {
+        showMessage($("searchMessage"), "We couldn't verify your account. Please sign in again.", "error");
+        return;
+      }
+      if (profile.role !== "customer") {
+        window.location.replace("main.html");
+        return;
+      }
+      if (profile.display_name) {
+        document.querySelector("h1").textContent = "Welcome, " + profile.display_name.split(/\s+/)[0] + ". Find a business to shop with.";
+      }
+    }
+
+    $("businessSearchForm").addEventListener("submit", async event => {
+      event.preventDefault();
+      hideMessage($("searchMessage"));
+      hideMessage($("connectMessage"));
+      $("businessResult").classList.remove("show");
+      foundBusiness = null;
+      const businessId = $("businessIdInput").value.trim().toUpperCase();
+      if (!businessId) {
+        showMessage($("searchMessage"), "Enter a Business ID to search.", "error");
+        return;
+      }
+      const button = $("searchButton");
+      button.disabled = true;
+      button.textContent = "Searching…";
+      try {
+        const { data, error } = await window.supabaseClient.rpc("find_public_business", { p_business_id: businessId });
+        if (error) throw error;
+        const row = Array.isArray(data) ? data[0] : data;
+        if (!row) {
+          showMessage($("searchMessage"), "We couldn't find a business with that ID. Check it with the business owner and try again.", "info");
+          return;
+        }
+        foundBusiness = { business_id: row.business_id, business_name: row.business_name };
+        $("resultBusinessName").textContent = foundBusiness.business_name;
+        $("resultBusinessId").textContent = foundBusiness.business_id;
+        $("businessResult").classList.add("show");
+        showMessage($("searchMessage"), "Business found.", "success");
+      } catch (error) {
+        console.error("Business lookup failed:", error);
+        showMessage($("searchMessage"), friendlyError(error), "error");
+      } finally {
+        button.disabled = false;
+        button.textContent = "Search business";
+      }
+    });
+
+    $("connectButton").addEventListener("click", async () => {
+      if (!foundBusiness) return;
+      hideMessage($("connectMessage"));
+      const button = $("connectButton");
+      button.disabled = true;
+      button.textContent = "Sending request…";
+      try {
+        const { data, error } = await window.supabaseClient.rpc("request_business_connection", { p_business_id: foundBusiness.business_id });
+        if (error) throw error;
+        const result = Array.isArray(data) ? data[0] : data;
+        const status = result?.status || "pending";
+        showMessage($("connectMessage"), status === "connected" ? "You're already connected to this business." : "Connection request submitted. The business owner will review it.", "success");
+        button.textContent = status === "connected" ? "Connected" : "Request sent";
+      } catch (error) {
+        console.error("Business connection request failed:", error);
+        showMessage($("connectMessage"), friendlyError(error), "error");
+        button.disabled = false;
+        button.textContent = "Request connection";
+      }
+    });
+
+    $("signOutButton").addEventListener("click", async () => {
+      $("signOutButton").disabled = true;
+      const { error } = await window.supabaseClient.auth.signOut();
+      if (error) {
+        $("signOutButton").disabled = false;
+        showMessage($("searchMessage"), "Could not sign out. Please try again.", "error");
+        return;
+      }
+      window.location.replace("index.html");
+    });
+
+    start().catch(error => {
+      console.error("Customer portal initialization failed:", error);
+      showMessage($("searchMessage"), "We couldn't load your customer account. Please refresh and try again.", "error");
+    });
+  })();
+  </script>
+</body>
+</html>
