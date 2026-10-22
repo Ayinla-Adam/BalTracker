@@ -650,7 +650,7 @@ input, select, textarea, button { max-width: 100%; }
           </div>
 
           <!-- SIGN IN -->
-          <form class="login-form auth-form active" id="signInForm" novalidate>
+          <form class="login-form auth-form active" id="signInForm" novalidate novalidate>
             <div class="auth-feedback" role="alert" aria-live="polite"></div>
             <div class="login-field">
               <label class="login-label" for="signInEmail">Email address</label>
@@ -684,7 +684,7 @@ input, select, textarea, button { max-width: 100%; }
           </form>
 
           <!-- SIGN UP -->
-          <form class="login-form auth-form" id="signUpForm" novalidate style="display:none;">
+          <form class="login-form auth-form" id="signUpForm" novalidate style="display:none;" novalidate>
             <div class="auth-feedback" role="alert" aria-live="polite"></div>
             <div class="login-field">
               <label class="login-label" for="signUpName">Full name</label>
@@ -779,7 +779,7 @@ input, select, textarea, button { max-width: 100%; }
             <p>Enter your email and we'll help you reset your password.</p>
           </div>
 
-          <form class="login-form" id="forgotForm" novalidate>
+          <form class="login-form" id="forgotForm" novalidate novalidate>
             <div class="auth-feedback" role="alert" aria-live="polite"></div>
             <div class="login-field">
               <label class="login-label" for="forgotEmail">Email address</label>

@@ -220,7 +220,7 @@
       </div>
       <div class="panel">
         <div class="section-head"><div><h2>Get started</h2><p class="help">You don't need a separate connection request. Send the transaction details to the business owner and they can authorize it.</p></div><button class="btn btn-primary" type="button" data-go="send">+ Send transaction</button></div>
-        <div class="notice">The business owner reviews the item, quantity, amount, and whether you intend to pay now or request pay-later credit. The request does not become a recorded sale or debt until the owner confirms it through the business workflow.</div>
+        <div class="notice">The business owner reviews your description, amount, and whether you intend to pay now or request pay-later credit. The request does not become a recorded sale or debt until the owner confirms it through the business workflow.</div>
       </div>
       <div class="panel"><div class="section-head"><div><h2>Recent requests</h2><p class="help">Your latest transaction requests and their current status.</p></div><button class="btn btn-secondary" type="button" data-go="requests">View all</button></div><div id="recentRequests" class="empty">Your requests will appear here.</div></div>
     </section>
@@ -228,13 +228,11 @@
     <section class="page-section" id="section-send">
       <div class="panel">
         <div class="section-head"><div><h2>Send transaction for authorization</h2><p class="help">Fill in the transaction and send it to the business owner for approval.</p></div></div>
-        <form id="transactionRequestForm">
+        <form id="transactionRequestForm" novalidate>
           <div class="field full"><label for="requestBusinessId">Business ID *</label><div class="business-lookup"><input id="requestBusinessId" name="businessId" placeholder="e.g. BT-AB12CD34EF56" maxlength="40" autocomplete="off" required><button class="btn btn-secondary" id="lookupBusinessButton" type="button">Find business</button></div><div id="selectedBusiness" class="hint">Enter a Business ID, then select Find business to verify the recipient.</div></div>
-          <div class="field"><label for="requestItem">Item / transaction *</label><input id="requestItem" name="item" maxlength="160" placeholder="What are you buying?" required></div>
-          <div class="field"><label for="requestQuantity">Quantity *</label><input id="requestQuantity" name="quantity" type="number" min="0.01" max="1000000" step="0.01" placeholder="e.g. 2" required></div>
-          <div class="field"><label for="requestAmount">Total amount (₦) *</label><input id="requestAmount" name="amount" type="number" min="0.01" step="0.01" placeholder="Enter agreed total" required></div>
+          <div class="field full"><label for="requestDescription">Description *</label><textarea id="requestDescription" name="description" maxlength="1000" placeholder="Describe the transaction, payment, investment, capital, or other arrangement." required></textarea></div>
+          <div class="field"><label for="requestAmount">Amount (₦) *</label><input id="requestAmount" name="amount" type="number" min="0.01" step="0.01" placeholder="Enter agreed total" required></div>
           <div class="field"><label id="requestPaymentTypeLabel">Payment arrangement *</label><input type="hidden" id="requestPaymentType" name="paymentType" value="pay_now" required><div class="custom-select" id="requestPaymentTypeControl" data-value="pay_now"><button type="button" class="custom-select-trigger" aria-haspopup="listbox" aria-expanded="false" id="requestPaymentTypeTrigger"><span class="custom-select-value">Pay now</span><span class="custom-select-arrow">▾</span></button><div class="custom-select-menu" role="listbox" aria-labelledby="requestPaymentTypeLabel"><button type="button" class="custom-option selected" role="option" aria-selected="true" data-value="pay_now" data-action="choose-payment"><span>Pay now</span><span class="custom-option-check">✓</span></button><button type="button" class="custom-option" role="option" aria-selected="false" data-value="pay_later" data-action="choose-payment"><span>Request pay-later / credit</span></button></div></div></div>
-          <div class="field full"><label for="requestDescription">Description *</label><textarea id="requestDescription" name="description" maxlength="1000" placeholder="Add any details the business owner needs to authorize this transaction." required></textarea></div>
           <div class="field full"><div id="submitMessage" class="message" role="status" aria-live="polite"></div><div class="btn-row"><button class="btn btn-primary" id="submitRequestButton" type="submit">Send for authorization</button><button class="btn btn-secondary" type="reset">Clear form</button></div><p class="hint">The amount is the amount you are proposing, not a confirmed payment. For pay-later requests, the business owner must explicitly approve the credit arrangement.</p></div>
         </form>
       </div>
@@ -357,14 +355,16 @@
       if(!selectedBusiness||selectedBusiness.business_id!==$("requestBusinessId").value.trim().toUpperCase()){
         showMessage($("submitMessage"),"Find and verify the business before sending your transaction.","error");return;
       }
-      const quantity=Number($("requestQuantity").value),amount=Number($("requestAmount").value);
-      if(!(quantity>0)||!(amount>0)){showMessage($("submitMessage"),"Quantity and amount must be greater than zero.","error");return;}
+      const description=$("requestDescription").value.trim(),amount=Number($("requestAmount").value);
+      if(!description){showMessage($("submitMessage"),"Please enter a description of the transaction or arrangement.","error");$("requestDescription").focus();return;}
+      if(!Number.isFinite(amount)||amount<=0){showMessage($("submitMessage"),"Please enter an amount greater than ₦0.","error");$("requestAmount").focus();return;}
+      if(!["pay_now","pay_later"].includes($("requestPaymentType").value)){showMessage($("submitMessage"),"Please choose Pay now or Request pay-later / credit.","error");return;}
       const button=$("submitRequestButton");button.disabled=true;button.textContent="Sending…";
       try{
         const {data,error}=await window.supabaseClient.rpc("submit_customer_transaction_request",{
-          p_business_id:selectedBusiness.business_id,p_item_name:$("requestItem").value.trim(),
-          p_quantity:quantity,p_amount:amount,p_payment_type:$("requestPaymentType").value,
-          p_description:$("requestDescription").value.trim()
+          p_business_id:selectedBusiness.business_id,p_item_name:description.slice(0,160),
+          p_quantity:1,p_amount:amount,p_payment_type:$("requestPaymentType").value,
+          p_description:description
         });
         if(error) throw error;
         showMessage($("submitMessage"),"Transaction sent to "+selectedBusiness.business_name+" for authorization.","success");
@@ -377,7 +377,7 @@
     });
     function requestRows(rows) {
       if(!rows.length)return empty("No transaction requests yet.");
-      return '<div class="table-wrap"><table><thead><tr><th>Business</th><th>Item</th><th>Amount</th><th>Payment</th><th>Date</th><th>Status</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+esc(r.business_name||"Business")+'<div class="hint">'+esc(r.business_id||"")+'</div></td><td>'+esc(r.item_name)+'<div class="hint">Qty: '+esc(r.quantity)+' · '+esc(r.description)+'</div></td><td>'+money(r.amount)+'</td><td>'+esc(r.payment_type==="pay_later"?"Pay later":"Pay now")+'</td><td>'+esc(new Date(r.created_at).toLocaleDateString())+'</td><td>'+statusPill(r.status)+(r.owner_note?'<div class="hint">'+esc(r.owner_note)+'</div>':"")+'</td></tr>').join("")+'</tbody></table></div>';
+      return '<div class="table-wrap"><table><thead><tr><th>Business</th><th>Description</th><th>Amount</th><th>Payment</th><th>Date</th><th>Status</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+esc(r.business_name||"Business")+'<div class="hint">'+esc(r.business_id||"")+'</div></td><td>'+esc(r.description || r.item_name)+'<div class="hint">Qty: '+esc(r.quantity)+' · '+esc(r.description)+'</div></td><td>'+money(r.amount)+'</td><td>'+esc(r.payment_type==="pay_later"?"Pay later":"Pay now")+'</td><td>'+esc(new Date(r.created_at).toLocaleDateString())+'</td><td>'+statusPill(r.status)+(r.owner_note?'<div class="hint">'+esc(r.owner_note)+'</div>':"")+'</td></tr>').join("")+'</tbody></table></div>';
     }
     async function loadRequests() {
       if(!currentUser)return;

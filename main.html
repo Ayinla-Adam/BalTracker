@@ -8198,16 +8198,14 @@ button, input, select, textarea { max-width: 100%; }
             list.innerHTML = '<div style="display:grid;gap:14px;">' + requests.map(r => `
               <article style="border:1px solid var(--border);border-radius:14px;padding:18px;background:#fff;">
                 <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
-                  <div><div style="font-size:15px;font-weight:800;color:var(--text);">${esc(r.item_name)}</div>
+                  <div><div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;">Description</div><div style="font-size:15px;font-weight:800;color:var(--text);margin-top:4px;white-space:pre-wrap;">${esc(r.description || r.item_name)}</div>
                     <div style="font-size:12px;color:var(--muted);margin-top:5px;">From ${esc(r.customer_name)} · ${esc(new Date(r.created_at).toLocaleString())}</div></div>
                   <span style="font-size:10px;font-weight:800;padding:5px 9px;border-radius:999px;background:#fff7e6;color:#9a6700;">PENDING</span>
                 </div>
                 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:12px;margin:16px 0;">
-                  <div><div style="font-size:11px;color:var(--muted);">Quantity</div><strong>${esc(r.quantity)}</strong></div>
                   <div><div style="font-size:11px;color:var(--muted);">Proposed amount</div><strong>${money(r.amount)}</strong></div>
                   <div><div style="font-size:11px;color:var(--muted);">Payment arrangement</div><strong>${r.payment_type==="pay_later"?"Pay later / credit":"Pay now"}</strong></div>
                 </div>
-                <div style="background:var(--bg);padding:12px;border-radius:10px;font-size:12px;line-height:1.6;"><strong>Description</strong><div>${esc(r.description)}</div></div>
                 <label for="ownerNote-${r.id}" style="display:block;margin-top:12px;font-size:12px;font-weight:700;">Optional note to customer</label>
                 <input id="ownerNote-${r.id}" class="form-input" maxlength="500" placeholder="Add a note (optional)" style="width:100%;margin-top:6px;">
                 <div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:13px;">
@@ -8456,6 +8454,40 @@ button, input, select, textarea { max-width: 100%; }
             );
           }
         });
+
+
+        // Use BalTracker-specific validation messages instead of browser-default bubbles.
+        // Capture also covers forms rendered later (transactions, contacts, and repayments).
+        document.addEventListener("invalid", function(event) {
+          const field = event.target;
+          if (!field || !field.willValidate) return;
+          event.preventDefault();
+          const labelNode = field.labels && field.labels.length ? field.labels[0] : null;
+          const labelText = String(labelNode ? labelNode.textContent : (field.getAttribute("aria-label") || field.placeholder || field.name || "this field"))
+            .replace(/[＊*]/g, "").replace(/\s+/g, " ").trim().replace(/\s+\(optional\)$/i, "");
+          let message;
+          if (field.validity.valueMissing) {
+            message = /choose|select|type|arrangement/i.test(labelText)
+              ? "Please choose a value for " + labelText + "."
+              : "Please complete the " + labelText + " field.";
+          } else if (field.validity.typeMismatch && field.type === "email") {
+            message = "Please enter a valid email address.";
+          } else if (field.validity.rangeUnderflow || field.validity.rangeOverflow || field.validity.stepMismatch) {
+            message = "Please enter a valid value for " + labelText + " within the allowed range.";
+          } else if (field.validity.tooLong || field.validity.tooShort) {
+            message = labelText + " does not meet the allowed length. Please review it and try again.";
+          } else if (field.validity.patternMismatch) {
+            message = "Please check the format of " + labelText + ".";
+          } else {
+            message = "Please check " + labelText + " and correct the value.";
+          }
+          if (typeof showToast === "function") showToast(message, "error", "Check Your Details");
+          field.setAttribute("aria-invalid", "true");
+          field.addEventListener("input", function clearInvalid() {
+            if (field.checkValidity()) field.removeAttribute("aria-invalid");
+          }, { once: true });
+          if (typeof field.focus === "function") field.focus();
+        }, true);
 
   </script>
   <script src="pwa.js"></script>
