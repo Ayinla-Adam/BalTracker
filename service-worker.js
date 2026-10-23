@@ -1,8 +1,9 @@
-const CACHE_NAME = "baltracker-shell-v7";
+const CACHE_NAME = "baltracker-shell-v8";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./main.html",
+  "./customer.html",
   "./supabase-client.js",
   "./pwa.js",
   "./manifest.json",
