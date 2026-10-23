@@ -3584,12 +3584,78 @@ button, input, select, textarea { max-width: 100%; }
         }
     
     
+        // Local calendar date is retained for offline use and form defaults.
         function today() {
-    
-          return new Date()
-            .toISOString()
-            .split("T")[0];
-    
+          const now = new Date();
+          return [
+            now.getFullYear(),
+            String(now.getMonth() + 1).padStart(2, "0"),
+            String(now.getDate()).padStart(2, "0")
+          ].join("-");
+        }
+
+        // The server date is authoritative while online. Offline, use the
+        // device's local date so date-sensitive features continue to work.
+        let balTrackerServerToday = null;
+        let balTrackerServerDateRefreshRunning = false;
+        let balTrackerServerDateRefreshTimer = null;
+
+        function getBusinessToday() {
+          return navigator.onLine && balTrackerServerToday
+            ? balTrackerServerToday
+            : today();
+        }
+
+        async function refreshBusinessToday(options = {}) {
+          if (!window.supabaseClient || !balTrackerAuthUser?.id ||
+              !navigator.onLine || balTrackerServerDateRefreshRunning) {
+            if (options.render && !navigator.onLine && balTrackerAuthUser?.id) renderAll();
+            return;
+          }
+
+          balTrackerServerDateRefreshRunning = true;
+          const previousDate = balTrackerServerToday;
+          try {
+            const { data, error } = await window.supabaseClient.rpc("get_business_today");
+            if (error) throw error;
+            if (typeof data !== "string" || !/^\\d{4}-\\d{2}-\\d{2}$/.test(data)) {
+              throw new Error("The server returned an invalid business date.");
+            }
+            balTrackerServerToday = data;
+          } catch (error) {
+            // If the server cannot be reached, keep the app usable with local date.
+            balTrackerServerToday = null;
+            console.info("Using the device date for BalTracker reminders until server date is available.", error);
+          } finally {
+            balTrackerServerDateRefreshRunning = false;
+          }
+
+          if (options.render || previousDate !== balTrackerServerToday) {
+            if (balTrackerAuthUser?.id) renderAll();
+          }
+        }
+
+        function startBusinessDateRefreshes() {
+          if (balTrackerServerDateRefreshTimer) clearInterval(balTrackerServerDateRefreshTimer);
+          window.addEventListener("focus", () => {
+            refreshBusinessToday({ render: true });
+            checkCustomerPaymentReminders();
+          });
+          window.addEventListener("pageshow", () => refreshBusinessToday({ render: true }));
+          document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible") {
+              refreshBusinessToday({ render: true });
+              checkCustomerPaymentReminders();
+            }
+          });
+          window.addEventListener("online", () => refreshBusinessToday({ render: true }));
+          window.addEventListener("offline", () => {
+            balTrackerServerToday = null;
+            if (balTrackerAuthUser?.id) renderAll();
+          });
+          balTrackerServerDateRefreshTimer = setInterval(() => {
+            refreshBusinessToday({ render: true });
+          }, 5 * 60 * 1000);
         }
     
     
@@ -4365,7 +4431,7 @@ button, input, select, textarea { max-width: 100%; }
             The deduction grows with the amount overdue relative to
             revenue and the average age of overdue balances.
           */
-          const todayKey = today();
+          const todayKey = getBusinessToday();
           const overdueItems = transactions
             .filter(x =>
               (x.type === "credit" || x.type === "debit") &&
@@ -4478,9 +4544,10 @@ button, input, select, textarea { max-width: 100%; }
     
           }
 
+          const businessTodayKey = getBusinessToday();
           const hasOverdueOpenDebt = transactions.some(x =>
             (x.type === "credit" || x.type === "debit") &&
-            x.dueDate && x.dueDate < today() &&
+            x.dueDate && x.dueDate < businessTodayKey &&
             Number(x.balance !== undefined ? x.balance : x.amount) > 0
           );
 
@@ -6077,7 +6144,7 @@ button, input, select, textarea { max-width: 100%; }
         function renderDueReminders() {
           const container = document.getElementById("dueReminders");
           if (!container) return;
-          const todayKey = today();
+          const todayKey = getBusinessToday();
           const limit = new Date(todayKey + "T00:00:00");
           limit.setDate(limit.getDate() + 7);
           const limitKey = [limit.getFullYear(), String(limit.getMonth()+1).padStart(2,"0"), String(limit.getDate()).padStart(2,"0")].join("-");
@@ -8444,7 +8511,7 @@ button, input, select, textarea { max-width: 100%; }
         async function checkCustomerPaymentReminders() {
           if (!balTrackerAuthUser?.id || !window.supabaseClient) return;
           try {
-            const todayLocal = new Date().toLocaleDateString("en-CA");
+            const todayLocal = getBusinessToday();
             const { data, error } = await window.supabaseClient.from("customer_transaction_requests")
               .select("id,customer_name,amount,description,due_date,reminder_date,business_id")
               .eq("status","approved").not("reminder_date","is",null).lte("reminder_date",todayLocal).eq("reminder_dismissed",false)
@@ -8670,10 +8737,11 @@ button, input, select, textarea { max-width: 100%; }
             }
             await loadBalTrackerDataFromCloud();
             loadSettings();
+            await refreshBusinessToday();
             renderAll();
             initializeUserAvatar();
+            startBusinessDateRefreshes();
             await checkCustomerPaymentReminders();
-            window.addEventListener("focus", checkCustomerPaymentReminders);
 
             const params = new URLSearchParams(window.location.search);
             if(params.get("emailConfirmed")==="1"){
