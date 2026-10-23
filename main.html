@@ -8243,7 +8243,7 @@ button, input, select, textarea { max-width: 100%; }
           try {
             const { data, error } = await window.supabaseClient
               .from("customer_transaction_requests")
-              .select("id,customer_user_id,customer_name,item_name,quantity,amount,payment_type,description,status,owner_note,created_at,business_id")
+              .select("id,customer_user_id,customer_name,item_name,quantity,amount,payment_type,description,status,owner_note,created_at,business_id,guest_reference")
               .eq("status", "pending").order("created_at", { ascending: false }).limit(100);
             if (error) throw error;
             const requests = data || [];

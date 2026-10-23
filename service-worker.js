@@ -4,6 +4,7 @@ const APP_SHELL = [
   "./index.html",
   "./main.html",
   "./customer.html",
+  "./guest.html",
   "./supabase-client.js",
   "./pwa.js",
   "./manifest.json",
@@ -68,7 +69,7 @@ self.addEventListener("fetch", (event) => {
 
   const shellPath = url.pathname.split("/").pop();
   const cacheableFiles = new Set([
-    "index.html", "main.html", "supabase-client.js", "pwa.js",
+    "index.html", "main.html", "customer.html", "guest.html", "supabase-client.js", "pwa.js",
     "manifest.json", "balTracker-logo.png", "baltracker-app-icon.svg"
   ]);
   if (!cacheableFiles.has(shellPath)) return;
