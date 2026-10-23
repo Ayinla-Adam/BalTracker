@@ -7386,10 +7386,17 @@ button, input, select, textarea { max-width: 100%; }
                         View
                       </button>
                       <button
-                        class="btn btn-primary"
+                        class="btn btn-outline"
                         onclick="editTransaction('${escapeHTML(t.id)}')"
-                        style="min-height:34px;padding:0 10px;font-size:10px;margin-left:5px;"
-                      >Edit</button>
+                        style="
+                          min-height:34px;
+                          padding:0 10px;
+                          font-size:10px;
+                          margin-left:5px;
+                        "
+                      >
+                        Edit
+                      </button>
                       <button
                         class="btn btn-danger"
                         onclick="deleteTransaction('${escapeHTML(t.id)}')"
