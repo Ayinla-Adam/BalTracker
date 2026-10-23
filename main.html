@@ -3015,7 +3015,7 @@ button, input, select, textarea { max-width: 100%; }
   
         <div class="modal-footer">
   
-          <button class="btn btn-secondary" onclick="closeModal('confirmModal')">
+          <button class="btn btn-secondary" id="confirmCancelButton" onclick="closeModal('confirmModal')">
             Cancel
           </button>
   
@@ -3905,6 +3905,11 @@ button, input, select, textarea { max-width: 100%; }
     
           confirmCallback = callback;
     
+          const cancelButton = document.getElementById("confirmCancelButton");
+          if (cancelButton) cancelButton.style.display = "";
+          const confirmButton = document.getElementById("confirmButton");
+          if (confirmButton) { confirmButton.textContent = "Confirm"; confirmButton.className = "btn btn-danger"; }
+
           openModal("confirmModal");
     
         }
@@ -5006,6 +5011,14 @@ button, input, select, textarea { max-width: 100%; }
         "transactionModalTitle"
       ).textContent =
         "Add Transaction";
+      const transactionTypeControl = document.getElementById("transactionTypeControl");
+      if (transactionTypeControl) {
+        transactionTypeControl.style.pointerEvents = "";
+        transactionTypeControl.style.opacity = "";
+        transactionTypeControl.removeAttribute("aria-disabled");
+      }
+      const transactionSubmitButton = document.querySelector('#transactionForm button[type="submit"]');
+      if (transactionSubmitButton) transactionSubmitButton.textContent = "Add Transaction";
     
     
       document.getElementById(
@@ -5575,6 +5588,14 @@ button, input, select, textarea { max-width: 100%; }
     
     
     function selectTransactionType(type){
+      const editingId = document.getElementById("transactionId")?.value;
+      if (editingId) {
+        const existing = transactions.find(t => String(t.id) === String(editingId));
+        if (existing && existing.type !== type) {
+          showToast("A transaction's type cannot be changed while editing. This protects its financial classification and repayment history.", "info", "Transaction Type Locked");
+          return;
+        }
+      }
     
       const control =
         document.getElementById(
@@ -6056,83 +6077,43 @@ button, input, select, textarea { max-width: 100%; }
               }
     
     
-              const transaction = {
-    
-                id:
-                  "tx_" +
-                  Date.now() +
-                  "_" +
-                  Math.random()
-                    .toString(36)
-                    .slice(2,8),
-    
-                type,
-    
-                amount,
-    
-                balance:
-                  (
-                    type === "credit" ||
-                    type === "debit"
-                  )
-                    ? amount
-                    : 0,
-    
-                date,
-    
-                dueDate: (type === "credit" || type === "debit") ? dueDate : "",
-    
-                party,
-    
-                description,
-    
-                payments: [],
-    
-                createdAt:
-                  new Date().toISOString()
-    
-              };
-    
-    
-              transactions.unshift(
-                transaction
-              );
-    
-    
+              const editingId = document.getElementById("transactionId").value;
+              const existingTransaction = editingId ? transactions.find(t => String(t.id) === String(editingId)) : null;
+              if (editingId && !existingTransaction) {
+                showToast("This transaction could not be found. Refresh Activity and try again.", "error", "Transaction Not Found");
+                releaseTransactionSubmission();
+                return;
+              }
+              const existingPayments = existingTransaction && Array.isArray(existingTransaction.payments) ? existingTransaction.payments : [];
+              const totalPaid = existingPayments.reduce((sum, payment) => sum + (Number(payment.amount) || 0), 0);
+              if (existingTransaction && (existingTransaction.type === "credit" || existingTransaction.type === "debit") && amount < totalPaid) {
+                setCustomError("transactionAmountError", "transactionAmount", "The amount cannot be less than payments already recorded (" + formatMoney(totalPaid) + ").");
+                document.getElementById("transactionAmount")?.focus();
+                releaseTransactionSubmission();
+                return;
+              }
+              const transaction = existingTransaction
+                ? {...existingTransaction, type: existingTransaction.type, amount,
+                    balance: (existingTransaction.type === "credit" || existingTransaction.type === "debit") ? Math.max(0, amount - totalPaid) : 0,
+                    date, dueDate: (existingTransaction.type === "credit" || existingTransaction.type === "debit") ? dueDate : "",
+                    party, description, payments: existingPayments}
+                : {id: "tx_" + Date.now() + "_" + Math.random().toString(36).slice(2,8), type, amount,
+                    balance: (type === "credit" || type === "debit") ? amount : 0, date,
+                    dueDate: (type === "credit" || type === "debit") ? dueDate : "", party, description,
+                    payments: [], createdAt: new Date().toISOString()};
+              if (existingTransaction) {
+                const transactionIndex = transactions.findIndex(t => String(t.id) === String(editingId));
+                transactions[transactionIndex] = transaction;
+              } else transactions.unshift(transaction);
               save();
-    
-    
-              closeModal(
-                "transactionModal"
-              );
-    
-    
+              closeModal("transactionModal");
               renderAll();
-    
-    
-              const successLabels = {
-    
-                sale:
-                  "Sale added successfully.",
-    
-                expense:
-                  "Expense added successfully.",
-    
-                credit:
-                  "Customer credit added successfully.",
-    
-                debit:
-                  "Business debit added successfully."
-    
-              };
-    
-    
-              showToast(
-                successLabels[type] ||
-                "Transaction added successfully.",
-                "success",
-                "Saved"
-              );
+              if (existingTransaction) {
+                showToast(navigator.onLine ? "Transaction updated. Its repayment history has been preserved; cloud sync is queued." : "Transaction updated on this device. It will sync when you reconnect.", "success", "Transaction Updated");
+              } else {
+                const successLabels = {sale:"Sale added successfully.", expense:"Expense added successfully.", credit:"Customer credit added successfully.", debit:"Business debit added successfully."};
+                showToast(successLabels[type] || "Transaction added successfully.", "success", "Saved");
+              }
     
             }
           );
@@ -7127,11 +7108,11 @@ button, input, select, textarea { max-width: 100%; }
       `;
     
     
-          document.getElementById(
-            "confirmButton"
-          ).textContent =
-            "Close";
-    
+          document.getElementById("confirmCancelButton").style.display = "none";
+          const detailsCloseButton = document.getElementById("confirmButton");
+          detailsCloseButton.textContent = "Close";
+          detailsCloseButton.className = "btn btn-secondary";
+
           confirmCallback = null;
     
           openModal(
@@ -7145,6 +7126,44 @@ button, input, select, textarea { max-width: 100%; }
            ACTIVITY
         ========================================================= */
     
+        function editTransaction(id) {
+          const transaction = transactions.find(t => String(t.id) === String(id));
+          if (!transaction) { showToast("This transaction could not be found.", "error", "Not Found"); return; }
+          openTransactionModal(transaction.type);
+          document.getElementById("transactionModalTitle").textContent = "Edit Transaction";
+          document.querySelector('#transactionForm button[type="submit"]').textContent = "Save Changes";
+          document.getElementById("transactionId").value = String(transaction.id);
+          const typeControl = document.getElementById("transactionTypeControl");
+          if (typeControl) { typeControl.style.pointerEvents = "none"; typeControl.style.opacity = ".7"; typeControl.setAttribute("aria-disabled", "true"); }
+          const partyType = transaction.type === "sale" || transaction.type === "credit" ? "customer" : "vendor";
+          const partyList = partyType === "customer" ? customers : vendors;
+          if (transaction.party && !partyList.some(name => String(name).toLowerCase() === String(transaction.party).toLowerCase())) partyList.push(transaction.party);
+          currentPartyMode.customer = "existing"; currentPartyMode.vendor = "existing";
+          renderPartyControl(partyType);
+          const partyControl = document.getElementById("partyControl");
+          if (partyControl) {
+            partyControl.dataset.value = transaction.party || "";
+            const select = partyControl.querySelector(".custom-select");
+            if (select) {
+              const display = select.querySelector(".custom-select-value");
+              if (display) display.textContent = transaction.party || (partyType === "customer" ? "Select customer" : "Select vendor");
+              select.querySelectorAll(".custom-option[data-value]").forEach(option => {
+                const selected = option.dataset.value === String(transaction.party || "");
+                option.classList.toggle("selected", selected);
+                const check = option.querySelector(".custom-option-check");
+                if (selected && !check) { const mark = document.createElement("span"); mark.className = "custom-option-check"; mark.textContent = "✓"; option.appendChild(mark); }
+                else if (!selected && check) check.remove();
+              });
+            }
+          }
+          document.getElementById("transactionAmount").value = Number(transaction.amount) || "";
+          document.getElementById("transactionDate").value = transaction.date || today();
+          document.getElementById("transactionDescription").value = transaction.description || "";
+          const dueDateField = document.getElementById("transactionDueDate");
+          if (dueDateField) dueDateField.value = transaction.dueDate || "";
+          openModal("transactionModal");
+        }
+
         function deleteTransaction(id) {
           const transaction = transactions.find(t => String(t.id) === String(id));
           if (!transaction) {
@@ -7366,6 +7385,11 @@ button, input, select, textarea { max-width: 100%; }
                       >
                         View
                       </button>
+                      <button
+                        class="btn btn-primary"
+                        onclick="editTransaction('${escapeHTML(t.id)}')"
+                        style="min-height:34px;padding:0 10px;font-size:10px;margin-left:5px;"
+                      >Edit</button>
                       <button
                         class="btn btn-danger"
                         onclick="deleteTransaction('${escapeHTML(t.id)}')"
