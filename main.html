@@ -6224,8 +6224,9 @@ button, input, select, textarea { max-width: 100%; }
           const insights = [];
           const openCredit = transactions.filter(x => x.type === "credit" && Number(x.balance !== undefined ? x.balance : x.amount) > 0);
           const openDebit = transactions.filter(x => x.type === "debit" && Number(x.balance !== undefined ? x.balance : x.amount) > 0);
+          const insightTodayKey = getBusinessToday();
           const overdue = transactions.filter(x =>
-            (x.type === "credit" || x.type === "debit") && x.dueDate && x.dueDate < today() &&
+            (x.type === "credit" || x.type === "debit") && x.dueDate && x.dueDate < insightTodayKey &&
             Number(x.balance !== undefined ? x.balance : x.amount) > 0
           );
           const overdueTotal = overdue.reduce((sum,x) => sum + (Number(x.balance !== undefined ? x.balance : x.amount) || 0), 0);
