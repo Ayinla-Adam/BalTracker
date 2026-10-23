@@ -4359,12 +4359,50 @@ button, input, select, textarea { max-width: 100%; }
           }
     
     
+          /*
+            OVERDUE PAYMENTS — 10 POINTS
+            Small/brief overdue balances cause a small deduction.
+            The deduction grows with the amount overdue relative to
+            revenue and the average age of overdue balances.
+          */
+          const todayKey = today();
+          const overdueItems = transactions
+            .filter(x =>
+              (x.type === "credit" || x.type === "debit") &&
+              x.dueDate &&
+              x.dueDate < todayKey &&
+              Number(x.balance !== undefined ? x.balance : x.amount) > 0
+            )
+            .map(x => {
+              const balance = Math.max(0, Number(x.balance !== undefined ? x.balance : x.amount) || 0);
+              const due = new Date(x.dueDate + "T00:00:00");
+              const now = new Date(todayKey + "T00:00:00");
+              const daysOverdue = Math.max(1, Math.floor((now.getTime() - due.getTime()) / 86400000));
+              return { balance, daysOverdue };
+            });
+
+          const overdueBalance = overdueItems.reduce((sum, item) => sum + item.balance, 0);
+          const weightedOverdueDays = overdueBalance > 0
+            ? overdueItems.reduce((sum, item) => sum + item.balance * item.daysOverdue, 0) / overdueBalance
+            : 0;
+          const overdueAmountPenalty = overdueBalance > 0
+            ? Math.min(6, (overdueBalance / Math.max(revenue, overdueBalance, 1)) * 24)
+            : 0;
+          let overdueDurationPenalty = 0;
+          if (overdueBalance > 0) {
+            overdueDurationPenalty = weightedOverdueDays <= 7 ? 1
+              : weightedOverdueDays <= 30 ? 2
+              : weightedOverdueDays <= 60 ? 3
+              : 4;
+          }
+          const overdueScore = Math.max(0, 10 - overdueAmountPenalty - overdueDurationPenalty);
+
+          // The original four components contribute 90 points together;
+          // the overdue-payment component contributes the remaining 10.
           let score =
-            profitabilityScore +
-            cashScore +
-            debtScore +
-            creditScore;
-    
+            (profitabilityScore + cashScore + debtScore + creditScore) * 0.9 +
+            overdueScore;
+
           score = Math.round(
             Math.max(
               0,
@@ -4454,12 +4492,25 @@ button, input, select, textarea { max-width: 100%; }
             score = Math.min(score, 74);
             status = score < 50 ? "Attention" : "Watch";
             message = "Recorded cash paid exceeds cash received. Review available cash before taking on more obligations.";
-          } else if ((debit > revenue && revenue > 0) || hasOverdueOpenDebt) {
+          } else if (debit > revenue && revenue > 0) {
             score = Math.min(score, 74);
             status = score < 50 ? "Attention" : "Watch";
-            message = hasOverdueOpenDebt
-              ? "At least one payment is overdue. Follow up on collections or plan the required payment."
-              : "Outstanding obligations are higher than recorded revenue. Keep a close eye on cash commitments.";
+            message = "Outstanding obligations are higher than recorded revenue. Keep a close eye on cash commitments.";
+          }
+
+          // Overdue payments influence the score through the dedicated
+          // 10-point component; they no longer force every score to 74.
+          if (
+            hasOverdueOpenDebt &&
+            revenue > 0 &&
+            cash >= 0 &&
+            debit <= revenue
+          ) {
+            message = status === "Healthy"
+              ? "Your overall finances look healthy, but at least one payment is overdue. Follow up promptly."
+              : status === "Watch"
+                ? "Your finances need monitoring, and at least one payment is overdue. Follow up promptly."
+                : "At least one payment is overdue. Review your finances and follow up promptly.";
           }
 
           return {
@@ -4472,7 +4523,9 @@ button, input, select, textarea { max-width: 100%; }
             profitabilityScore,
             cashScore,
             debtScore,
-            creditScore
+            creditScore,
+            overdueScore,
+            overdueBalance
     
           };
     
