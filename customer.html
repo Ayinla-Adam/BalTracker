@@ -257,7 +257,7 @@
 
     <section class="page-section" id="section-activity">
       <div class="panel">
-        <div class="section-head"><div><h2>Activity</h2><p class="help">Search, review, or download your transaction request history.</p></div><button class="btn btn-secondary" type="button" id="downloadActivity">Download activity</button></div>
+        <div class="section-head"><div><h2>Activity</h2><p class="help">Search and review your transaction request history.</p></div></div>
         <div class="field activity-search-field"><label for="activitySearch">Search activity</label><input id="activitySearch" type="search" placeholder="Search by business, description, amount, payment type or status…" autocomplete="off"></div>
         <div id="activityList" class="empty">Your activity will appear here.</div>
       </div>
@@ -441,13 +441,6 @@
       $("activityList").innerHTML=filtered.length?'<div class="table-wrap"><table><thead><tr><th>Activity</th><th>Date</th><th>Status</th></tr></thead><tbody>'+filtered.map(r=>'<tr><td>Transaction request to '+esc(r.business_name)+'<div class="hint">'+esc(r.description || r.item_name)+' · '+money(r.amount)+' · '+esc(r.payment_type==="pay_later"?"Pay later":"Pay now")+'</div></td><td>'+esc(new Date(r.created_at).toLocaleString())+'</td><td>'+statusPill(r.status)+'</td></tr>').join("")+'</tbody></table></div>':empty(search?"No activity matches that search.":"Your activity will appear here after you send a transaction.");
     }
     $("activitySearch").addEventListener("input",renderCustomerActivity);
-    $("downloadActivity").addEventListener("click",()=>{
-      const headers=["Business","Business ID","Description","Amount","Payment arrangement","Status","Submitted","Owner note"];
-      const rows=requests.map(r=>[r.business_name,r.business_code,r.description||r.item_name,r.amount,r.payment_type==="pay_later"?"Pay later":"Pay now",r.status,r.created_at,r.owner_note||""]);
-      const csv=[headers,...rows].map(row=>row.map(value=>'"'+String(value??"").replace(/"/g,'""')+'"').join(",")).join("\r\n");
-      const blob=new Blob(["\uFEFF",csv],{type:"text/csv;charset=utf-8;"});
-      const url=URL.createObjectURL(blob);const link=document.createElement("a");link.href=url;link.download="baltracker-customer-activity.csv";document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url);
-    });
     $("refreshRequests").addEventListener("click",loadRequests);
     const signOut=async()=>{ $("sidebarSignOut").disabled=true;const {error}=await window.supabaseClient.auth.signOut();if(error){$("sidebarSignOut").disabled=false;showMessage($("submitMessage"),"Could not sign out. Please try again.","error");return;}window.location.replace("index.html");};
     $("sidebarSignOut").addEventListener("click",signOut);
