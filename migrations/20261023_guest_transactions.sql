@@ -48,7 +48,7 @@ BEGIN
  IF p_payment_type NOT IN ('pay_now','pay_later') THEN RAISE EXCEPTION 'Choose a valid payment arrangement'; END IF;
  SELECT b.* INTO v_business FROM public.businesses b WHERE b.business_id=pg_catalog.upper(pg_catalog.btrim(COALESCE(p_business_id,''))) LIMIT 1;
  IF NOT FOUND THEN RAISE EXCEPTION 'Business not found'; END IF;
- v_reference:='BTG-'||pg_catalog.upper(pg_catalog.substr(pg_catalog.replace(gen_random_uuid()::text,'-',''),1,10));
+ v_reference:='BTG-'||pg_catalog.upper(pg_catalog.substr(pg_catalog.replace(gen_random_uuid()::text,'-',''),1,16));
  INSERT INTO public.customer_transaction_requests
   (business_id,customer_user_id,customer_name,item_name,quantity,amount,payment_type,description,status,guest_reference)
  VALUES(v_business.id,NULL,v_name,pg_catalog.left(pg_catalog.btrim(p_description),160),1,p_amount,p_payment_type,pg_catalog.btrim(p_description),'pending',v_reference);
