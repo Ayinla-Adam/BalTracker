@@ -141,7 +141,7 @@
     "Approved": { yo: "Fọwọ́sí", ha: "An amince", ig: "Akwadoro", pcm: "Approved" },
     "Declined": { yo: "A kọ̀ ọ́", ha: "An ƙi", ig: "Ajụrụ", pcm: "Declined" },
     "No requests found.": { yo: "A kò rí ìbéèrè kankan.", ha: "Ba a sami buƙata ba.", ig: "Ahụghị arịrịọ ọ bụla.", pcm: "No request found." },
-    "Search by business, description, amount, payment type or status…": { yo: "Wá nípasẹ̀ ilé-iṣẹ́, àpèjúwe, iye owó, irú ìsanwó tàbí ipò…", ha: "Nema ta kasuwanci, bayani, adadi, nau'in biya ko matsayi…", ig: "Chọọ site na azụmahịa, nkọwa, ego, ụdị ịkwụ ụgwọ ma ọ bụ ọnọdụ…", pcm: "Search business, description, amount, payment type or status…" }
+    "Search by business, description, amount, payment type or status…": { yo: "Wá nípasẹ̀ ilé-iṣẹ́, àpèjúwe, iye owó, irú ìsanwó tàbí ipò…", ha: "Nema ta kasuwanci, bayani, adadi, nau'in biya ko matsayi…", ig: "Chọọ site na azụmahịa, nkọwa, ego, ụdị ịkwụ ụgwọ ma ọ bụ ọnọdụ…", pcm: "Search business, description, amount, payment type or status…" },
     "Outstanding customer credit": { yo: "Gbèsè oníbàárà tó kù", ha: "Ragowar bashin kwastoma", ig: "Ụgwọ ndị ahịa fọdụrụ", pcm: "Customer money wey remain" },
     "Outstanding Debit": { yo: "Gbèsè ìṣòwò tó kù", ha: "Ragowar bashin kasuwanci", ig: "Ụgwọ azụmahịa fọdụrụ", pcm: "Business debt wey remain" },
     "Outstanding Customer Credit": { yo: "Gbèsè oníbàárà tó kù", ha: "Ragowar bashin kwastoma", ig: "Ụgwọ ndị ahịa fọdụrụ", pcm: "Customer money wey remain" },
