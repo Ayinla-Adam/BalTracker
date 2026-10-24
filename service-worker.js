@@ -1,4 +1,4 @@
-const CACHE_NAME = "baltracker-shell-v9";
+const CACHE_NAME = "baltracker-shell-v10";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -7,6 +7,7 @@ const APP_SHELL = [
   "./guest.html",
   "./supabase-client.js",
   "./pwa.js",
+  "./language.js",
   "./manifest.json",
   "./balTracker-logo.png",
   "./baltracker-app-icon.svg",
@@ -69,7 +70,7 @@ self.addEventListener("fetch", (event) => {
 
   const shellPath = url.pathname.split("/").pop();
   const cacheableFiles = new Set([
-    "index.html", "main.html", "customer.html", "guest.html", "supabase-client.js", "pwa.js",
+    "index.html", "main.html", "customer.html", "guest.html", "supabase-client.js", "pwa.js", "language.js",
     "manifest.json", "balTracker-logo.png", "baltracker-app-icon.svg"
   ]);
   if (!cacheableFiles.has(shellPath)) return;
