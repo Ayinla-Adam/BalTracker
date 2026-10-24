@@ -244,27 +244,44 @@
 
   function mountPicker() {
     if (document.getElementById("baltracker-language-picker")) return;
+
     const wrapper = document.createElement("div");
     wrapper.id = "baltracker-language-picker";
     wrapper.className = "bt-language-picker";
     wrapper.setAttribute("data-no-translate", "true");
     wrapper.innerHTML =
-      '<label for="btLanguageSelect" id="btLanguageLabel">Language</label>' +
-      '<select id="btLanguageSelect" aria-label="Language">' +
-      '<option value="en">English</option>' +
-      '<option value="yo">Yorùbá</option>' +
-      '<option value="ha">Hausa</option>' +
-      '<option value="ig">Igbo</option>' +
-      '<option value="pcm">Nigerian Pidgin</option>' +
-      '</select>';
+      '<label for="btLanguageTrigger" id="btLanguageLabel">Language</label>' +
+      '<div class="bt-language-control">' +
+        '<button id="btLanguageTrigger" class="bt-language-trigger" type="button" role="combobox" aria-label="Language" aria-haspopup="listbox" aria-expanded="false" aria-controls="btLanguageMenu">' +
+          '<span id="btLanguageValue">English</span>' +
+          '<svg class="bt-language-chevron" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+        '</button>' +
+        '<div id="btLanguageMenu" class="bt-language-menu" role="listbox" aria-label="Choose language" hidden>' +
+          '<button type="button" class="bt-language-option" role="option" data-language="en">English</button>' +
+          '<button type="button" class="bt-language-option" role="option" data-language="yo">Yorùbá</button>' +
+          '<button type="button" class="bt-language-option" role="option" data-language="ha">Hausa</button>' +
+          '<button type="button" class="bt-language-option" role="option" data-language="ig">Igbo</button>' +
+          '<button type="button" class="bt-language-option" role="option" data-language="pcm">Nigerian Pidgin</button>' +
+        '</div>' +
+      '</div>';
 
     const style = document.createElement("style");
     style.textContent =
-      ".bt-language-picker{display:flex;align-items:center;gap:6px;flex:0 1 auto;min-width:0;padding:5px 8px;border:1px solid #dbe3ec;border-radius:10px;background:#fff;color:#334155;font:600 11px/1.3 system-ui,sans-serif;}" +
-      ".bt-language-picker label{white-space:nowrap;font-size:11px;font-weight:700;color:#64748b;}" +
-      ".bt-language-picker select{width:auto;min-width:78px;max-width:145px;border:0;background:transparent;color:inherit;font:inherit;outline-offset:3px;padding:2px;}" +
-      ".bt-language-picker select:focus-visible{outline:2px solid #0f62fe;border-radius:4px;}" +
-      "@media(max-width:420px){.bt-language-picker{gap:4px;padding:4px 6px}.bt-language-picker label{display:none}.bt-language-picker select{min-width:88px;max-width:125px}}";
+      ".bt-language-picker{position:relative;z-index:150;display:inline-flex;align-items:center;gap:8px;flex:0 1 auto;min-width:0;padding:0;border:0;border-radius:0;background:transparent;color:#334155;font:600 12px/1.35 system-ui,sans-serif;}" +
+      ".bt-language-picker>label{display:inline-block;white-space:nowrap;color:#64748b;font-size:12px;font-weight:700;border:0;padding:0;margin:0;background:transparent;}" +
+      ".bt-language-control{position:relative;min-width:0;}" +
+      ".bt-language-trigger{display:inline-flex;align-items:center;justify-content:space-between;gap:10px;min-height:38px;min-width:112px;max-width:175px;padding:0 11px;border:1px solid #dbe3ec;border-radius:10px;background:#fff;color:#1e293b;font:650 12px/1.35 system-ui,sans-serif;white-space:nowrap;cursor:pointer;transition:border-color .16s ease,box-shadow .16s ease,background .16s ease;}" +
+      ".bt-language-trigger:hover{border-color:#94a3b8;background:#f8fafc;}" +
+      ".bt-language-trigger:focus-visible{outline:3px solid rgba(15,98,254,.18);outline-offset:2px;border-color:#0f62fe;}" +
+      ".bt-language-trigger[aria-expanded=true]{border-color:#93c5fd;box-shadow:0 0 0 3px rgba(15,98,254,.08);}" +
+      ".bt-language-chevron{flex:0 0 auto;color:#64748b;transition:transform .16s ease;}" +
+      ".bt-language-trigger[aria-expanded=true] .bt-language-chevron{transform:rotate(180deg);}" +
+      ".bt-language-menu{position:absolute;top:calc(100% + 7px);right:0;z-index:9999;width:max-content;min-width:100%;max-width:min(220px,calc(100vw - 28px));padding:5px;border:1px solid #e2e8f0;border-radius:12px;background:#fff;box-shadow:0 12px 34px rgba(15,23,42,.16);}" +
+      ".bt-language-menu[hidden]{display:none!important;}" +
+      ".bt-language-option{display:flex;align-items:center;width:100%;min-height:38px;padding:8px 11px;border:0;border-radius:8px;background:transparent;color:#334155;font:600 12px/1.35 system-ui,sans-serif;text-align:left;white-space:nowrap;cursor:pointer;}" +
+      ".bt-language-option:hover,.bt-language-option:focus-visible{background:#eff6ff;outline:none;}" +
+      ".bt-language-option[aria-selected=true]{background:#eaf2ff;color:#0f62fe;font-weight:750;}" +
+      "@media(max-width:500px){.bt-language-picker{gap:6px}.bt-language-picker>label{font-size:11px}.bt-language-trigger{min-height:36px;min-width:98px;max-width:140px;padding:0 9px;gap:7px;font-size:11px;}}";
     document.head.appendChild(style);
 
     const ownerHeader = document.querySelector(".topbar-right");
@@ -290,18 +307,73 @@
       document.body.insertBefore(wrapper, document.body.firstChild);
     }
 
-    const select = wrapper.querySelector("select");
-    select.addEventListener("change", () => setLanguage(select.value));
+    const trigger = wrapper.querySelector("#btLanguageTrigger");
+    const menu = wrapper.querySelector("#btLanguageMenu");
+    const options = Array.from(wrapper.querySelectorAll(".bt-language-option"));
+
+    function closeMenu(returnFocus) {
+      menu.hidden = true;
+      trigger.setAttribute("aria-expanded", "false");
+      if (returnFocus) trigger.focus();
+    }
+    function openMenu() {
+      menu.hidden = false;
+      trigger.setAttribute("aria-expanded", "true");
+      const selected = options.find(option => option.dataset.language === selectedLanguage) || options[0];
+      if (selected) selected.focus();
+    }
+
+    trigger.addEventListener("click", () => {
+      if (menu.hidden) openMenu();
+      else closeMenu(false);
+    });
+    options.forEach(option => {
+      option.addEventListener("click", () => {
+        setLanguage(option.dataset.language);
+        closeMenu(true);
+      });
+      option.addEventListener("keydown", event => {
+        const index = options.indexOf(option);
+        if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+          event.preventDefault();
+          const delta = event.key === "ArrowDown" ? 1 : -1;
+          options[(index + delta + options.length) % options.length].focus();
+        } else if (event.key === "Escape") {
+          event.preventDefault();
+          closeMenu(true);
+        } else if (event.key === "Tab") {
+          closeMenu(false);
+        }
+      });
+    });
+    trigger.addEventListener("keydown", event => {
+      if (event.key === "ArrowDown" || event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        if (menu.hidden) openMenu();
+      } else if (event.key === "Escape") {
+        closeMenu(false);
+      }
+    });
+    document.addEventListener("click", event => {
+      if (!wrapper.contains(event.target)) closeMenu(false);
+    });
   }
 
   function setLanguage(language) {
     selectedLanguage = LANGUAGES[language] ? language : "en";
     try { localStorage.setItem(STORAGE_KEY, selectedLanguage); } catch (error) {}
     document.documentElement.lang = LANGUAGES[selectedLanguage].htmlLang;
-    const select = document.getElementById("btLanguageSelect");
+    const trigger = document.getElementById("btLanguageTrigger");
+    const value = document.getElementById("btLanguageValue");
     const label = document.getElementById("btLanguageLabel");
-    if (select) select.value = selectedLanguage;
+    if (value) value.textContent = LANGUAGES[selectedLanguage].name;
+    if (trigger) trigger.setAttribute("aria-label", LANGUAGES[selectedLanguage].label + ": " + LANGUAGES[selectedLanguage].name);
     if (label) label.textContent = LANGUAGES[selectedLanguage].label;
+    document.querySelectorAll("#btLanguageMenu .bt-language-option").forEach(option => {
+      const selected = option.dataset.language === selectedLanguage;
+      option.setAttribute("aria-selected", String(selected));
+      option.tabIndex = selected ? 0 : -1;
+    });
     applying = true;
     translateSubtree(document.body, selectedLanguage);
     applying = false;
