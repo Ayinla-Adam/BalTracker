@@ -5683,7 +5683,7 @@ button, input, select, textarea { max-width: 100%; }
     
       const partyLabel =
         partyType === "customer"
-          ? "Customer"
+          ? (type === "sale" ? "Customer (optional)" : "Customer")
           : "Vendor";
     
     
@@ -5698,6 +5698,7 @@ button, input, select, textarea { max-width: 100%; }
             </label>
     
             <div id="partyControl"></div>
+            ${type === "sale" ? '<div style="font-size:11px;color:var(--muted);margin-top:6px;">Leave this blank for a walk-in sale.</div>' : ""}
             <div class="custom-form-error" id="partyError"></div>
     
           </div>
@@ -5713,6 +5714,7 @@ button, input, select, textarea { max-width: 100%; }
               class="form-input"
               type="number"
               id="transactionAmount"
+              inputmode="decimal"
               min="0"
               step="0.01"
               placeholder="₦0.00"
@@ -6056,7 +6058,7 @@ button, input, select, textarea { max-width: 100%; }
                   control?.dataset.value ||
                   "";
     
-                if(!party){
+                if(!party && type !== "sale"){
                   setCustomError(
                     "partyError",
                     null,
@@ -6077,6 +6079,9 @@ button, input, select, textarea { max-width: 100%; }
               }
     
     
+              // A walk-in sale needs no customer contact; credit still requires one.
+              if(type === "sale" && !party) party = "Walk-in customer";
+
               const editingId = document.getElementById("transactionId").value;
               const existingTransaction = editingId ? transactions.find(t => String(t.id) === String(editingId)) : null;
               if (editingId && !existingTransaction) {
