@@ -54,14 +54,50 @@
     }
   };
 
+  const IDENTITY_KEY = "baltracker_last_authenticated_user_v1";
+  window.balTrackerIdentityStorage = {
+    getItem() {
+      try {
+        const preferred = shouldRememberSession() ? localStorage : sessionStorage;
+        const other = shouldRememberSession() ? sessionStorage : localStorage;
+        const value = preferred.getItem(IDENTITY_KEY);
+        if (value) return value;
+        const legacyValue = other.getItem(IDENTITY_KEY);
+        if (legacyValue) {
+          preferred.setItem(IDENTITY_KEY, legacyValue);
+          other.removeItem(IDENTITY_KEY);
+        }
+        return legacyValue;
+      } catch (error) { return null; }
+    },
+    setItem(value) {
+      try {
+        const preferred = shouldRememberSession() ? localStorage : sessionStorage;
+        const other = shouldRememberSession() ? sessionStorage : localStorage;
+        preferred.setItem(IDENTITY_KEY, value);
+        other.removeItem(IDENTITY_KEY);
+      } catch (error) {
+        console.warn("BalTracker could not save the sign-in preference:", error);
+      }
+    },
+    removeItem() {
+      try { localStorage.removeItem(IDENTITY_KEY); } catch (error) {}
+      try { sessionStorage.removeItem(IDENTITY_KEY); } catch (error) {}
+    }
+  };
+
   if (rememberCheckbox) {
     rememberCheckbox.addEventListener("change", () => {
       const remember = rememberCheckbox.checked;
       try {
         localStorage.setItem(REMEMBER_SESSION_KEY, remember ? "1" : "0");
-        const current = (remember ? sessionStorage : localStorage).getItem(AUTH_STORAGE_KEY);
-        if (current) (remember ? localStorage : sessionStorage).setItem(AUTH_STORAGE_KEY, current);
-        (remember ? sessionStorage : localStorage).removeItem(AUTH_STORAGE_KEY);
+        const target = remember ? localStorage : sessionStorage;
+        const other = remember ? sessionStorage : localStorage;
+        for (const key of [AUTH_STORAGE_KEY, IDENTITY_KEY]) {
+          const current = other.getItem(key);
+          if (current) target.setItem(key, current);
+          other.removeItem(key);
+        }
       } catch (error) {
         console.warn("BalTracker could not update the sign-in preference:", error);
       }

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#123b32">
   <title>Customer Portal | BalTracker</title>
-  <link rel="icon" type="image/png" href="balTracker-logo.png">
+  <link rel="icon" type="image/svg+xml" href="BalTracker-logo.svg">
   <link rel="manifest" href="manifest.json">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -349,7 +349,7 @@
     document.addEventListener("click",event=>{if(window.innerWidth<=800&&$("sidebar").classList.contains("mobile-open")&&!$("sidebar").contains(event.target)&&!$("mobileMenu").contains(event.target))closeCustomerMobileNav();});
     window.addEventListener("resize",()=>{if(window.innerWidth>800)closeCustomerMobileNav();});
     async function start() {
-      let savedIdentity=null;try{savedIdentity=JSON.parse(localStorage.getItem("baltracker_last_authenticated_user_v1")||"null");}catch(e){}
+      let savedIdentity=null;try{savedIdentity=JSON.parse(window.balTrackerIdentityStorage.getItem()||"null");}catch(e){}
       if(!navigator.onLine&&savedIdentity?.id&&savedIdentity.role==="business_owner"){window.location.replace("main.html");return;}
       if(!navigator.onLine&&savedIdentity?.id&&savedIdentity.role==="customer"){
         currentUser={id:savedIdentity.id,email:savedIdentity.email||""};currentProfile={role:"customer",display_name:savedIdentity.display_name||"Customer"};
@@ -364,7 +364,7 @@
       const {data:profile,error:profileError}=await window.supabaseClient.from("profiles").select("role,display_name").eq("user_id",currentUser.id).maybeSingle();
       if(profileError||!profile){window.location.replace("index.html");return;}
       if(profile.role!=="customer"){window.location.replace("main.html");return;}
-      try{localStorage.setItem("baltracker_last_authenticated_user_v1",JSON.stringify({id:currentUser.id,email:currentUser.email||"",role:"customer",display_name:profile.display_name||"",verifiedAt:new Date().toISOString()}));}catch(e){}
+      try{window.balTrackerIdentityStorage.setItem(JSON.stringify({id:currentUser.id,email:currentUser.email||"",role:"customer",display_name:profile.display_name||"",verifiedAt:new Date().toISOString()}));}catch(e){}
       currentProfile=profile;
       const first=(profile.display_name||"Customer").trim().split(/\s+/)[0];
       $("welcomeTitle").textContent="Welcome, "+first+".";

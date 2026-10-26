@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#0f62fe">
   <title>BalTracker — Know Your Money. Control Your Business.</title>
-  <link rel="icon" type="image/png" href="balTracker-logo.png">
+  <link rel="icon" type="image/svg+xml" href="BalTracker-logo.svg">
   <link rel="manifest" href="manifest.json">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -8821,7 +8821,7 @@ button, input, select, textarea { max-width: 100%; }
             console.warn("BalTracker could not verify the cloud session:", error);
             if (!navigator.onLine) {
               let savedIdentity = null;
-              try { savedIdentity = JSON.parse(localStorage.getItem(BALTRACKER_LAST_AUTH_USER_KEY) || "null"); } catch (storageError) {}
+              try { savedIdentity = JSON.parse(window.balTrackerIdentityStorage.getItem() || "null"); } catch (storageError) {}
               if (savedIdentity?.role === "customer") { window.location.replace("customer.html"); return; }
               if (savedIdentity?.id && savedIdentity?.role === "business_owner" && await restoreBalTrackerOffline(savedIdentity.id, savedIdentity.email)) return;
             }
@@ -8832,7 +8832,7 @@ button, input, select, textarea { max-width: 100%; }
           if (!sessionData) {
             if (!navigator.onLine) {
               let savedIdentity = null;
-              try { savedIdentity = JSON.parse(localStorage.getItem(BALTRACKER_LAST_AUTH_USER_KEY) || "null"); } catch (storageError) {}
+              try { savedIdentity = JSON.parse(window.balTrackerIdentityStorage.getItem() || "null"); } catch (storageError) {}
               if (savedIdentity?.role === "customer") { window.location.replace("customer.html"); return; }
               if (savedIdentity?.id && savedIdentity?.role === "business_owner" && await restoreBalTrackerOffline(savedIdentity.id, savedIdentity.email)) return;
             }
@@ -8846,7 +8846,7 @@ button, input, select, textarea { max-width: 100%; }
 
           // Render the account-scoped local snapshot immediately. This avoids an empty/slow
           // dashboard while cloud requests are pending and makes saved records appear promptly.
-          const cachedIdentity = (() => { try { return JSON.parse(localStorage.getItem(BALTRACKER_LAST_AUTH_USER_KEY) || "null"); } catch (error) { return null; } })();
+          const cachedIdentity = (() => { try { return JSON.parse(window.balTrackerIdentityStorage.getItem() || "null"); } catch (error) { return null; } })();
           if (cachedIdentity?.role === "customer") { window.location.replace("customer.html"); return; }
           const startupBucket = getCurrentBalTrackerBucket();
           if (startupBucket) {
@@ -8861,10 +8861,10 @@ button, input, select, textarea { max-width: 100%; }
           // When offline, do not wait on profile, business-date, or table queries that cannot complete.
           if (!navigator.onLine && await restoreBalTrackerOffline(balTrackerAuthUser.id, balTrackerAuthUser.email)) return;
           try {
-            localStorage.setItem(BALTRACKER_LAST_AUTH_USER_KEY, JSON.stringify({
+            window.balTrackerIdentityStorage.setItem(JSON.stringify({
               id: balTrackerAuthUser.id,
               email: balTrackerAuthUser.email || "",
-              role: (() => { try { return JSON.parse(localStorage.getItem(BALTRACKER_LAST_AUTH_USER_KEY) || "{}").role || "business_owner"; } catch (storageError) { return "business_owner"; } })(),
+              role: (() => { try { return JSON.parse(window.balTrackerIdentityStorage.getItem() || "{}").role || "business_owner"; } catch (storageError) { return "business_owner"; } })(),
               verifiedAt: new Date().toISOString()
             }));
           } catch (storageError) {}
@@ -8878,8 +8878,8 @@ button, input, select, textarea { max-width: 100%; }
             if (profileError) console.warn("Could not load profile:", profileError.message);
             if (profile?.role) {
               try {
-                const savedIdentity = JSON.parse(localStorage.getItem(BALTRACKER_LAST_AUTH_USER_KEY) || "{}");
-                localStorage.setItem(BALTRACKER_LAST_AUTH_USER_KEY, JSON.stringify({ ...savedIdentity, id: balTrackerAuthUser.id, email: balTrackerAuthUser.email || "", role: profile.role, verifiedAt: new Date().toISOString() }));
+                const savedIdentity = JSON.parse(window.balTrackerIdentityStorage.getItem() || "{}");
+                window.balTrackerIdentityStorage.setItem(JSON.stringify({ ...savedIdentity, id: balTrackerAuthUser.id, email: balTrackerAuthUser.email || "", role: profile.role, verifiedAt: new Date().toISOString() }));
               } catch (storageError) {}
               if (profile.role === "customer") { window.location.replace("customer.html"); return; }
             }
