@@ -8393,6 +8393,94 @@ button, input, select, textarea { max-width: 100%; }
            RENDER EVERYTHING
         ========================================================= */
     
+        const BALTRACKER_PENDING_REQUESTS_CACHE_PREFIX = "baltracker_pending_requests_count_v1:";
+        let pendingRequestMonitorStarted = false;
+        let pendingRequestRefreshTimer = null;
+        let pendingRequestRealtimeChannel = null;
+
+        function getPendingRequestCacheKey() {
+          return BALTRACKER_PENDING_REQUESTS_CACHE_PREFIX + String(balTrackerAuthUser?.id || "");
+        }
+
+        function setPendingRequestsBadge(count, saveCache = true) {
+          const safeCount = Math.max(0, Number(count) || 0);
+          const badge = document.getElementById("pendingRequestsBadge");
+          if (badge) {
+            badge.textContent = safeCount > 99 ? "99+" : String(safeCount);
+            badge.style.display = safeCount ? "inline-flex" : "none";
+            badge.setAttribute("aria-label", safeCount + " pending customer requests");
+          }
+          if (saveCache && balTrackerAuthUser?.id) {
+            try { localStorage.setItem(getPendingRequestCacheKey(), String(safeCount)); } catch (error) {}
+          }
+        }
+
+        function restorePendingRequestsBadgeFromCache() {
+          if (!balTrackerAuthUser?.id) return;
+          try {
+            const cached = localStorage.getItem(getPendingRequestCacheKey());
+            if (cached !== null && /^\\d+$/.test(cached)) setPendingRequestsBadge(Number(cached), false);
+          } catch (error) {}
+        }
+
+        async function refreshPendingRequestsBadge() {
+          if (!balTrackerAuthUser?.id) return;
+          if (!navigator.onLine || !window.supabaseClient) {
+            restorePendingRequestsBadgeFromCache();
+            return;
+          }
+          try {
+            const { count, error } = await window.supabaseClient
+              .from("customer_transaction_requests")
+              .select("id", { count: "exact", head: true })
+              .eq("status", "pending");
+            if (error) throw error;
+            setPendingRequestsBadge(count || 0);
+          } catch (error) {
+            console.warn("Could not refresh pending request count:", error?.message || error);
+            restorePendingRequestsBadgeFromCache();
+          }
+        }
+
+        function startPendingRequestMonitoring() {
+          if (pendingRequestMonitorStarted || !balTrackerAuthUser?.id) return;
+          pendingRequestMonitorStarted = true;
+          restorePendingRequestsBadgeFromCache();
+          refreshPendingRequestsBadge();
+
+          // Realtime updates the badge even while the owner is viewing another section.
+          // A polling fallback keeps the count fresh if Realtime is unavailable or not enabled.
+          if (window.supabaseClient?.channel) {
+            try {
+              pendingRequestRealtimeChannel = window.supabaseClient
+                .channel("baltracker-pending-requests-" + balTrackerAuthUser.id)
+                .on("postgres_changes", {
+                  event: "*", schema: "public", table: "customer_transaction_requests"
+                }, () => {
+                  refreshPendingRequestsBadge();
+                  const requestsPage = document.getElementById("page-requests");
+                  if (requestsPage?.classList.contains("active")) loadPendingCustomerRequests();
+                })
+                .subscribe(status => {
+                  if (status === "SUBSCRIBED") refreshPendingRequestsBadge();
+                });
+            } catch (error) {
+              console.warn("Pending request live updates could not start:", error);
+            }
+          }
+
+          if (pendingRequestRefreshTimer) clearInterval(pendingRequestRefreshTimer);
+          pendingRequestRefreshTimer = setInterval(() => {
+            if (navigator.onLine && document.visibilityState === "visible") refreshPendingRequestsBadge();
+          }, 20000);
+
+          window.addEventListener("online", refreshPendingRequestsBadge);
+          window.addEventListener("focus", refreshPendingRequestsBadge);
+          document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible") refreshPendingRequestsBadge();
+          });
+        }
+
         async function loadPendingCustomerRequests() {
           const list = document.getElementById("pendingRequestsList");
           const message = document.getElementById("pendingRequestsMessage");
@@ -8405,8 +8493,7 @@ button, input, select, textarea { max-width: 100%; }
               .eq("status", "pending").order("created_at", { ascending: false }).limit(100);
             if (error) throw error;
             const requests = data || [];
-            const badge = document.getElementById("pendingRequestsBadge");
-            if (badge) { badge.textContent = String(requests.length); badge.style.display = requests.length ? "inline-flex" : "none"; }
+            setPendingRequestsBadge(requests.length);
             message.textContent = requests.length ? requests.length + " pending request(s). Review each request before approving." : "You're all caught up. There are no pending transaction requests.";
             if (!requests.length) { list.innerHTML = '<div style="padding:20px 0;color:var(--muted);font-size:13px;">No requests to review right now.</div>'; return; }
             const money = value => new Intl.NumberFormat("en-NG", {style:"currency",currency:"NGN",maximumFractionDigits:2}).format(Number(value)||0);
@@ -8735,6 +8822,23 @@ button, input, select, textarea { max-width: 100%; }
 
           balTrackerAuthUser = sessionData.user;
           localStorage.setItem("baltracker_user_email", balTrackerAuthUser.email || "");
+
+          // Render the account-scoped local snapshot immediately. This avoids an empty/slow
+          // dashboard while cloud requests are pending and makes saved records appear promptly.
+          const cachedIdentity = (() => { try { return JSON.parse(localStorage.getItem(BALTRACKER_LAST_AUTH_USER_KEY) || "null"); } catch (error) { return null; } })();
+          if (cachedIdentity?.role === "customer") { window.location.replace("customer.html"); return; }
+          const startupBucket = getCurrentBalTrackerBucket();
+          if (startupBucket) {
+            transactions = safeArray(startupBucket.transactions);
+            customers = safeArray(startupBucket.customers);
+            vendors = safeArray(startupBucket.vendors);
+            loadSettings();
+            renderAll();
+            initializeUserAvatar();
+            restorePendingRequestsBadgeFromCache();
+          }
+          // When offline, do not wait on profile, business-date, or table queries that cannot complete.
+          if (!navigator.onLine && await restoreBalTrackerOffline(balTrackerAuthUser.id, balTrackerAuthUser.email)) return;
           try {
             localStorage.setItem(BALTRACKER_LAST_AUTH_USER_KEY, JSON.stringify({
               id: balTrackerAuthUser.id,
@@ -8780,6 +8884,7 @@ button, input, select, textarea { max-width: 100%; }
             initializeUserAvatar();
             startBusinessDateRefreshes();
             await checkCustomerPaymentReminders();
+            startPendingRequestMonitoring();
 
             const params = new URLSearchParams(window.location.search);
             if(params.get("emailConfirmed")==="1"){
