@@ -2,7 +2,7 @@
   "use strict";
 
   function addConnectionNotice() {
-    if (!document.body || document.getElementById("baltracker-connection-notice")) return;
+    if (!document.body || document.getElementById("baltracker-connection-notice") || document.getElementById("connectionStatus")) return;
 
     const style = document.createElement("style");
     style.textContent = [
@@ -38,7 +38,7 @@
         connectionNoticeTimer = window.setTimeout(function () {
           notice.hidden = true;
           connectionNoticeTimer = null;
-        }, 6000);
+        }, 2200);
       } else {
         notice.hidden = true;
       }
