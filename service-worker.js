@@ -41,6 +41,30 @@ self.addEventListener("fetch", (event) => {
 
   if (request.mode === "navigate") {
     event.respondWith((async () => {
+      // Prefer the app shell cache for instant navigation, especially when the
+      // device is offline or the connection is present but unusably slow.
+      const path = url.pathname;
+      let cachedPage = await caches.match(request);
+      if (!cachedPage) {
+        if (path.endsWith("/main.html")) cachedPage = await caches.match("./main.html");
+        else if (path.endsWith("/customer.html")) cachedPage = await caches.match("./customer.html");
+        else if (path.endsWith("/guest.html")) cachedPage = await caches.match("./guest.html");
+        else if (path.endsWith("/index.html") || path.endsWith("/")) {
+          cachedPage = await caches.match("./index.html") || await caches.match("./");
+        }
+      }
+
+      if (cachedPage) {
+        // Refresh the cached navigation in the background for the next visit.
+        fetch(request).then(async (response) => {
+          if (response && response.ok) {
+            const cache = await caches.open(CACHE_NAME);
+            await cache.put(request, response.clone());
+          }
+        }).catch(() => {});
+        return cachedPage;
+      }
+
       try {
         const response = await fetch(request);
         if (response && response.ok) {
@@ -49,16 +73,8 @@ self.addEventListener("fetch", (event) => {
         }
         return response;
       } catch (error) {
-        const cachedPage = await caches.match(request);
-        if (cachedPage) return cachedPage;
-
-        const path = url.pathname;
-        if (path.endsWith("/main.html")) {
-          const cachedMain = await caches.match("./main.html");
-          if (cachedMain) return cachedMain;
-        }
-        const cachedIndex = await caches.match("./index.html");
-        if (cachedIndex) return cachedIndex;
+        const fallback = await caches.match("./index.html");
+        if (fallback) return fallback;
         return new Response("BalTracker is offline. Reconnect to the internet and try again.", {
           status: 503,
           headers: { "Content-Type": "text/plain; charset=utf-8" }
