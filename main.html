@@ -8672,9 +8672,9 @@ button, input, select, textarea { max-width: 100%; }
             const unseen = due.filter(r => !seen.includes(r.id));
             if (!unseen.length) return;
             const r = unseen[0];
-            showToast("Payment reminder: " + r.customer_name + " owes " + money(r.amount) + ". " + (r.description || "Customer credit") + (r.due_date ? " · Due " + r.due_date : ""), "info", "Payment Reminder");
+            showToast("Payment reminder: " + r.customer_name + " owes " + formatMoney(r.amount) + ". " + (r.description || "Customer credit") + (r.due_date ? " · Due " + r.due_date : ""), "info", "Payment Reminder");
             if ("Notification" in window && Notification.permission === "granted") {
-              try { new Notification("BalTracker payment reminder", { body: r.customer_name + " · " + money(r.amount) + (r.due_date ? " · Due " + r.due_date : ""), tag: "baltracker-reminder-" + r.id }); } catch (e) {}
+              try { new Notification("BalTracker payment reminder", { body: r.customer_name + " · " + formatMoney(r.amount) + (r.due_date ? " · Due " + r.due_date : ""), tag: "baltracker-reminder-" + r.id }); } catch (e) {}
             }
             localStorage.setItem(key, JSON.stringify([...seen,...unseen.map(x=>x.id)].slice(-200)));
           } catch (error) {
