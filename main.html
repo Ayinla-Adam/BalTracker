@@ -8812,6 +8812,24 @@ button, input, select, textarea { max-width: 100%; }
         }
 
         document.addEventListener("DOMContentLoaded", async () => {
+          // Offline first: restore the saved account snapshot before asking Supabase
+          // for a session, because auth.getSession() can wait on storage/network work.
+          if (!navigator.onLine) {
+            let offlineIdentity = null;
+            try {
+              offlineIdentity = JSON.parse(window.balTrackerIdentityStorage.getItem() || "null");
+            } catch (storageError) {}
+            if (offlineIdentity?.role === "customer") {
+              window.location.replace("customer.html");
+              return;
+            }
+            if (
+              offlineIdentity?.id &&
+              offlineIdentity?.role === "business_owner" &&
+              await restoreBalTrackerOffline(offlineIdentity.id, offlineIdentity.email)
+            ) return;
+          }
+
           let sessionData = null;
           try {
             const { data, error } = await window.supabaseClient.auth.getSession();
