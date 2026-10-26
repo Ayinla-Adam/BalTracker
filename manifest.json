@@ -15,6 +15,12 @@
   "theme_color": "#0f62fe",
   "icons": [
     {
+      "src": "./BalTracker-logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
       "src": "./balTracker-logo.png",
       "sizes": "360x360",
       "type": "image/png",
