@@ -247,7 +247,7 @@
       <div class="panel">
         <div class="section-head"><div><h2>Send transaction for authorization</h2><p class="help">Fill in the transaction and send it to the business owner for approval.</p></div></div>
         <form id="transactionRequestForm" novalidate>
-          <div class="field full"><label for="requestBusinessId">Business ID *</label><div class="business-lookup"><input id="requestBusinessId" name="businessId" placeholder="e.g. BT-AB12CD34EF56" maxlength="40" autocomplete="off" required><button class="btn btn-secondary" id="lookupBusinessButton" type="button">Find business</button></div><div id="selectedBusiness" class="hint">Enter a Business ID, then select Find business to verify the recipient.</div></div>
+          <div class="field full"><label for="requestBusinessId">Business ID *</label><div class="business-lookup"><input id="requestBusinessId" name="businessId" type="text" inputmode="numeric" pattern="[0-9]{10}" title="Enter exactly 10 digits" placeholder="Enter 10-digit Business ID" maxlength="10" autocomplete="off" required><button class="btn btn-secondary" id="lookupBusinessButton" type="button">Find business</button></div><div id="selectedBusiness" class="hint">Enter a Business ID, then select Find business to verify the recipient.</div></div>
           <div class="field full"><label for="requestDescription">Description *</label><textarea id="requestDescription" name="description" maxlength="1000" placeholder="Describe the transaction, payment, investment, capital, or other arrangement." required></textarea></div>
           <div class="field"><label for="requestAmount">Amount (₦) *</label><input id="requestAmount" name="amount" type="number" min="0.01" step="0.01" placeholder="Enter agreed total" required></div>
           <div class="field"><label id="requestPaymentTypeLabel">Payment arrangement *</label><input type="hidden" id="requestPaymentType" name="paymentType" value="pay_now" required><div class="custom-select" id="requestPaymentTypeControl" data-value="pay_now"><button type="button" class="custom-select-trigger" aria-haspopup="listbox" aria-expanded="false" id="requestPaymentTypeTrigger"><span class="custom-select-value">Pay now</span><span class="custom-select-arrow">▾</span></button><div class="custom-select-menu" role="listbox" aria-labelledby="requestPaymentTypeLabel"><button type="button" class="custom-option selected" role="option" aria-selected="true" data-value="pay_now" data-action="choose-payment"><span>Pay now</span><span class="custom-option-check">✓</span></button><button type="button" class="custom-option" role="option" aria-selected="false" data-value="pay_later" data-action="choose-payment"><span>Request pay-later / credit</span></button></div></div></div>
@@ -381,8 +381,8 @@
       $("requestBusinessId").placeholder="Connect to the internet to find a business";
     }
     async function lookupBusiness() {
-      const id=$("requestBusinessId").value.trim().toUpperCase();
-      if(!id){$("selectedBusiness").textContent="Enter a Business ID first.";selectedBusiness=null;return;}
+      const id=$("requestBusinessId").value.trim();
+      if(!/^[0-9]{10}$/.test(id)){$("selectedBusiness").textContent="Enter the 10-digit Business ID, using numbers only.";selectedBusiness=null;return;}
       const button=$("lookupBusinessButton");button.disabled=true;button.textContent="Searching…";
       try{
         const {data,error}=await window.supabaseClient.rpc("find_public_business",{p_business_id:id});
@@ -400,7 +400,7 @@
     $("transactionRequestForm").addEventListener("reset",()=>{selectedBusiness=null;selectPaymentArrangement("pay_now");setTimeout(()=>{$("selectedBusiness").textContent="Enter a Business ID, then select Find business to verify the recipient.";hideMessage($("submitMessage"));},0);});
     $("transactionRequestForm").addEventListener("submit",async event=>{
       event.preventDefault();hideMessage($("submitMessage"));
-      if(!selectedBusiness||selectedBusiness.business_id!==$("requestBusinessId").value.trim().toUpperCase()){
+      if(!selectedBusiness||selectedBusiness.business_id!==$("requestBusinessId").value.trim()){
         showMessage($("submitMessage"),"Find and verify the business before sending your transaction.","error");return;
       }
       const description=$("requestDescription").value.trim(),amount=Number($("requestAmount").value);
