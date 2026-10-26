@@ -3602,9 +3602,10 @@ button, input, select, textarea { max-width: 100%; }
         let balTrackerServerDateRefreshTimer = null;
 
         function getBusinessToday() {
-          return navigator.onLine && balTrackerServerToday
-            ? balTrackerServerToday
-            : today();
+          // Online: only trust the Supabase server date. Do not briefly classify
+          // payments using the device clock while the server date is loading.
+          // Offline: use the device's local calendar date.
+          return navigator.onLine ? balTrackerServerToday : today();
         }
 
         async function refreshBusinessToday(options = {}) {
@@ -3633,6 +3634,10 @@ button, input, select, textarea { max-width: 100%; }
 
           if (options.render || previousDate !== balTrackerServerToday) {
             if (balTrackerAuthUser?.id) renderAll();
+          }
+          // Re-check reminders only after a valid online server date is available.
+          if (navigator.onLine && balTrackerServerToday && balTrackerAuthUser?.id) {
+            checkCustomerPaymentReminders();
           }
         }
 
@@ -6132,6 +6137,18 @@ button, input, select, textarea { max-width: 100%; }
           const container = document.getElementById("dueReminders");
           if (!container) return;
           const todayKey = getBusinessToday();
+          if (!todayKey) {
+            container.innerHTML = "";
+            const empty = document.createElement("div");
+            empty.className = "empty";
+            const title = document.createElement("strong");
+            title.textContent = "Checking payment dates";
+            const detail = document.createElement("span");
+            detail.textContent = "BalTracker is waiting for the server date before calculating due and overdue payments.";
+            empty.append(title, detail);
+            container.appendChild(empty);
+            return;
+          }
           const limit = new Date(todayKey + "T00:00:00");
           limit.setDate(limit.getDate() + 7);
           const limitKey = [limit.getFullYear(), String(limit.getMonth()+1).padStart(2,"0"), String(limit.getDate()).padStart(2,"0")].join("-");
@@ -8637,6 +8654,8 @@ button, input, select, textarea { max-width: 100%; }
           if (!balTrackerAuthUser?.id || !window.supabaseClient) return;
           try {
             const todayLocal = getBusinessToday();
+            // While online, do not use the device date if the server date has not arrived.
+            if (!todayLocal) return;
             const { data, error } = await window.supabaseClient.from("customer_transaction_requests")
               .select("id,customer_name,amount,description,due_date,reminder_date,business_id")
               .eq("status","approved").not("reminder_date","is",null).lte("reminder_date",todayLocal).eq("reminder_dismissed",false)
