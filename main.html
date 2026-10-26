@@ -8419,7 +8419,7 @@ button, input, select, textarea { max-width: 100%; }
           if (!balTrackerAuthUser?.id) return;
           try {
             const cached = localStorage.getItem(getPendingRequestCacheKey());
-            if (cached !== null && /^\\d+$/.test(cached)) setPendingRequestsBadge(Number(cached), false);
+            if (cached !== null && /^\d+$/.test(cached)) setPendingRequestsBadge(Number(cached), false);
           } catch (error) {}
         }
 
