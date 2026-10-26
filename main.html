@@ -3625,9 +3625,11 @@ button, input, select, textarea { max-width: 100%; }
             }
             balTrackerServerToday = data;
           } catch (error) {
-            // If the server cannot be reached, keep the app usable with local date.
+            // The browser may still report online while Supabase is unreachable.
+            // Keep the server date unavailable; do not substitute the device date
+            // until the browser actually reports offline.
             balTrackerServerToday = null;
-            console.info("Using the device date for BalTracker reminders until server date is available.", error);
+            console.info("Supabase server date is unavailable; waiting for a successful server response.", error);
           } finally {
             balTrackerServerDateRefreshRunning = false;
           }
