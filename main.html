@@ -1784,8 +1784,9 @@ button, input, select, textarea { max-width: 100%; }
   .quick-actions > * { min-width: 0; }
   .card { border-radius: 14px; }
   .card-header, .card-body { padding: 13px; }
-  .modal-overlay { padding: 8px; align-items: flex-end; }
-  .modal { width: 100%; border-radius: 18px 18px 12px 12px; max-height: calc(100vh - 16px); max-height: calc(100dvh - 16px); }
+  /* Keep dialogs centred on small screens instead of presenting them as bottom sheets. */
+  .modal-overlay { padding: 8px; align-items: center; justify-content: center; }
+  .modal { width: min(100%, 560px); border-radius: 18px; max-height: calc(100vh - 16px); max-height: calc(100dvh - 16px); }
   .modal-header, .modal-body { padding: 13px; }
   .modal-footer { display: flex; flex-wrap: wrap; gap: 8px; }
   .modal-footer > button { flex: 1 1 120px; }
