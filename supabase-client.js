@@ -1,3 +1,10 @@
+/**
+ * @file Project Portfolio
+ * @copyright (c) 2026 Ayinla Adam. All rights reserved.
+ * Authorized for bootcamp evaluation use only.
+ */
+
+
 /* BalTracker browser Supabase client.
    The publishable key is intended for browser use. Never place a service-role key here. */
 (function () {

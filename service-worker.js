@@ -1,3 +1,8 @@
+/**
+ * @file Project Portfolio
+ * @copyright (c) 2026 Ayinla Adam. All rights reserved.
+ * Authorized for bootcamp evaluation use only.
+ */
 const CACHE_NAME = "baltracker-shell-v17";
 const APP_SHELL = [
   "./",
