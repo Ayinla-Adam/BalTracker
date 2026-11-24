@@ -1024,7 +1024,7 @@ input, select, textarea, button { max-width: 100%; }
       if (!control) return;
       const action = control.dataset.authAction;
       if (action === "signin" || action === "signup" || action === "forgot") {
-        // Clear stale feedback only when the user deliberately changes views.
+        // Clear stale feedback only when the user(s) deliberately changes views.
         // Programmatic redirects can still show their own messages afterwards.
         ["signInForm","signUpForm","forgotForm","resetPasswordForm"].forEach(clearAuthFeedback);
         switchAuth(action);
